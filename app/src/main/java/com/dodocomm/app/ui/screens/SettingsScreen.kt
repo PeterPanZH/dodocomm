@@ -41,7 +41,11 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
@@ -68,6 +72,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.biometric.BiometricManager
 import com.dodocomm.app.BuildConfig
+import com.dodocomm.app.core.export.ExportFormat
+import com.dodocomm.app.core.export.ExportRange
 import com.dodocomm.app.core.settings.AppSettings
 import com.dodocomm.app.core.settings.CopyMode
 import com.dodocomm.app.core.settings.PushLevel
@@ -92,6 +98,7 @@ import com.dodocomm.app.ui.model.PermissionState
 import com.dodocomm.app.ui.model.UpdateState
 import com.dodocomm.app.ui.model.TestPushState
 import com.dodocomm.app.ui.theme.FieldShape
+import java.time.LocalDate
 
 @Composable
 fun SettingsScreen(
@@ -108,6 +115,22 @@ fun SettingsScreen(
 
     var showClearDialog by rememberSaveable { mutableStateOf(false) }
     var pinDialogMode by rememberSaveable { mutableStateOf<String?>(null) }
+    var showExportDialog by rememberSaveable { mutableStateOf(false) }
+    var exportFormatName by rememberSaveable { mutableStateOf(ExportFormat.CSV.name) }
+    var exportRangeName by rememberSaveable { mutableStateOf(ExportRange.ALL.name) }
+    var exportMasked by rememberSaveable { mutableStateOf(true) }
+    val exportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/plain"),
+    ) { uri ->
+        if (uri != null) {
+            viewModel.exportRecords(
+                uri = uri,
+                format = ExportFormat.valueOf(exportFormatName),
+                range = ExportRange.valueOf(exportRangeName),
+                masked = exportMasked,
+            )
+        }
+    }
     val deviceLabel = remember { OemGuides.detect().deviceLabel }
     val biometricAvailable = remember {
         runCatching {
@@ -212,6 +235,7 @@ fun SettingsScreen(
                 onSetRetention = viewModel::setRetentionDays,
                 onSetMaxRecords = viewModel::setMaxRecords,
                 onPruneNow = viewModel::pruneNow,
+                onExportRecords = { showExportDialog = true },
             )
             Spacer(Modifier.height(20.dp))
         }
@@ -297,6 +321,20 @@ fun SettingsScreen(
                     "disable" -> if (viewModel.disableAppLock(currentPin)) null else "当前 PIN 不正确"
                     else -> null
                 }
+            },
+        )
+    }
+
+    if (showExportDialog) {
+        ExportRecordsDialog(
+            onDismiss = { showExportDialog = false },
+            onConfirm = { format, range, masked ->
+                exportFormatName = format.name
+                exportRangeName = range.name
+                exportMasked = masked
+                showExportDialog = false
+                val date = LocalDate.now().toString()
+                exportLauncher.launch("dodocomm-records-$date.${format.extension}")
             },
         )
     }
@@ -742,6 +780,7 @@ private fun DataCard(
     onSetRetention: (Int) -> Unit,
     onSetMaxRecords: (Int) -> Unit,
     onPruneNow: () -> Unit,
+    onExportRecords: () -> Unit,
 ) {
     var retentionExpanded by remember { mutableStateOf(false) }
     var maxExpanded by remember { mutableStateOf(false) }
@@ -795,6 +834,13 @@ private fun DataCard(
                 }
             }
         }
+        RowDivider()
+        SettingActionRow(
+            title = "导出记录",
+            subtitle = "CSV / JSON，可选择范围和脱敏",
+            icon = Icons.Rounded.Delete,
+            onClick = onExportRecords,
+        )
         RowDivider()
         SettingActionRow(
             title = "立即清理",
@@ -933,6 +979,59 @@ private fun AppLockPinDialog(
                 val result = onSubmit(currentPin, newPin, confirmPin)
                 if (result == null) onDismiss() else error = result
             }) { Text(if (mode == "disable") "关闭应用锁" else "保存") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+    )
+}
+
+@Composable
+private fun ExportRecordsDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (ExportFormat, ExportRange, Boolean) -> Unit,
+) {
+    var format by remember { mutableStateOf(ExportFormat.CSV) }
+    var range by remember { mutableStateOf(ExportRange.ALL) }
+    var masked by remember { mutableStateOf(true) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("导出记录") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                Text("格式", style = MaterialTheme.typography.labelMedium)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ExportFormat.entries.forEach { item ->
+                        FilterChip(
+                            selected = format == item,
+                            onClick = { format = item },
+                            label = { Text(item.name) },
+                        )
+                    }
+                }
+                Text("范围", style = MaterialTheme.typography.labelMedium)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ExportRange.entries.forEach { item ->
+                        FilterChip(
+                            selected = range == item,
+                            onClick = { range = item },
+                            label = { Text(item.label) },
+                        )
+                    }
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("脱敏导出", style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            "隐藏发送者、手机号和银行卡号，保留验证码",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Switch(checked = masked, onCheckedChange = { masked = it })
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(format, range, masked) }) { Text("选择保存位置") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
     )

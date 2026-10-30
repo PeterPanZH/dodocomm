@@ -4,9 +4,12 @@ import android.app.Application
 import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import android.net.Uri
 import com.dodocomm.app.BuildConfig
 import com.dodocomm.app.appContainer
 import com.dodocomm.app.core.model.BarkResult
+import com.dodocomm.app.core.export.ExportFormat
+import com.dodocomm.app.core.export.ExportRange
 import com.dodocomm.app.core.security.AppLock
 import com.dodocomm.app.core.settings.AppSettings
 import com.dodocomm.app.core.settings.CopyMode
@@ -295,6 +298,25 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun setRetentionDays(days: Int) = updateSettings { it.copy(retentionDays = days) }
 
     fun setMaxRecords(max: Int) = updateSettings { it.copy(maxRecords = max) }
+
+    /** Exports records to a user-picked SAF [uri]. */
+    fun exportRecords(uri: Uri, format: ExportFormat, range: ExportRange, masked: Boolean) {
+        viewModelScope.launch {
+            runCatching {
+                container.recordExporter.export(
+                    uri = uri,
+                    format = format,
+                    range = range,
+                    masked = masked,
+                    records = records.value,
+                )
+            }.onSuccess { count ->
+                postSnackbar("已导出 $count 条记录")
+            }.onFailure { error ->
+                postSnackbar("导出失败：${error.message?.ifBlank { error.javaClass.simpleName } ?: "未知错误"}", isError = true)
+            }
+        }
+    }
 
     /** Applies the retention policy immediately (used by the "清理" action). */
     fun pruneNow() {
