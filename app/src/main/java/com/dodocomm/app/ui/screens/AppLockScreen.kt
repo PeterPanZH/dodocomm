@@ -20,7 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.dodocomm.app.ui.components.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,6 +32,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -197,6 +199,7 @@ private fun Keypad(
     onDigit: (Char) -> Unit,
     onBackspace: () -> Unit,
 ) {
+    val haptic = LocalHapticFeedback.current
     val keys = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "⌫")
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         keys.chunked(3).forEach { row ->
@@ -211,6 +214,7 @@ private fun Keypad(
                         Surface(
                             onClick = {
                                 if (!enabled) return@Surface
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 if (key == "⌫") onBackspace() else onDigit(key.first())
                             },
                             shape = CircleShape,

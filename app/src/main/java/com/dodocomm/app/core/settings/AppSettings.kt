@@ -11,6 +11,17 @@ enum class PushLevel(val apiValue: String, val label: String) {
     }
 }
 
+enum class AppLanguage(val label: String) {
+    SYSTEM("跟随系统"),
+    ZH("简体中文"),
+    EN("English"),
+    JA("日本語");
+
+    companion object {
+        fun fromName(name: String?): AppLanguage = entries.firstOrNull { it.name == name } ?: SYSTEM
+    }
+}
+
 enum class CopyMode(val label: String) {
     OFF("不复制"),
     FULL("复制全文"),
@@ -66,6 +77,7 @@ data class AppSettings(
     val keywordBlacklist: List<String> = emptyList(),
     val dynamicColor: Boolean = false,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val appLanguage: AppLanguage = AppLanguage.SYSTEM,
     val recordFilteredMessages: Boolean = true,
     /** 0 = keep forever; otherwise delete records older than this many days. */
     val retentionDays: Int = 0,

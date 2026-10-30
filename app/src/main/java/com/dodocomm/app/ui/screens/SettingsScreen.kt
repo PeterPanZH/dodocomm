@@ -2,8 +2,10 @@
 
 package com.dodocomm.app.ui.screens
 
+import android.content.Context
 import android.net.Uri
 import android.os.Build
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -52,7 +54,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Text
+import com.dodocomm.app.ui.components.Text
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
@@ -79,6 +81,7 @@ import androidx.biometric.BiometricPrompt
 import com.dodocomm.app.BuildConfig
 import com.dodocomm.app.core.export.ExportFormat
 import com.dodocomm.app.core.export.ExportRange
+import com.dodocomm.app.core.settings.AppLanguage
 import com.dodocomm.app.core.settings.AppSettings
 import com.dodocomm.app.core.settings.CopyMode
 import com.dodocomm.app.core.settings.PushLevel
@@ -259,7 +262,11 @@ fun SettingsScreen(
                 onPruneNow = viewModel::pruneNow,
                 onExportRecords = { showExportDialog = true },
                 onBackup = { showBackupExportDialog = true },
-                onRestore = { backupImportLauncher.launch(arrayOf("application/octet-stream", "*/*")) },
+                onRestore = {
+                    launchSaf(context) {
+                        backupImportLauncher.launch(arrayOf("*/*"))
+                    }
+                },
             )
             Spacer(Modifier.height(20.dp))
         }
@@ -358,7 +365,9 @@ fun SettingsScreen(
                 exportMasked = masked
                 showExportDialog = false
                 val date = LocalDate.now().toString()
-                exportLauncher.launch("dodocomm-records-$date.${format.extension}")
+                launchSaf(context) {
+                    exportLauncher.launch("dodocomm-records-$date.${format.extension}")
+                }
             },
         )
     }
@@ -371,7 +380,9 @@ fun SettingsScreen(
             onConfirm = { password ->
                 pendingBackupPassword = password
                 showBackupExportDialog = false
-                backupExportLauncher.launch("dodocomm-backup-${LocalDate.now()}.dodocomm-backup")
+                launchSaf(context) {
+                    backupExportLauncher.launch("dodocomm-backup-${LocalDate.now()}.dodocomm-backup")
+                }
             },
         )
     }
@@ -784,7 +795,7 @@ private fun UpdateDialog(
             title = { Text("正在下载更新") },
             text = {
                 Column {
-                    Text("v${state.info.versionName} · ${state.progress}%")
+                    Text("v${state.info.versionName} · ${formatSize(state.info.size)} · ${state.progress}%")
                     Spacer(Modifier.height(10.dp))
                     LinearProgressIndicator(
                         progress = { state.progress / 100f },
@@ -1226,6 +1237,16 @@ private fun BackupImportDialog(
     )
 }
 
+private fun launchSaf(context: Context, launch: () -> Unit) {
+    runCatching(launch).onFailure { error ->
+        Toast.makeText(
+            context,
+            "无法打开系统文件选择器：${error.message ?: error.javaClass.simpleName}",
+            Toast.LENGTH_LONG,
+        ).show()
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Appearance
 // ---------------------------------------------------------------------------
@@ -1271,6 +1292,7 @@ private fun AppearanceCard(settings: AppSettings, viewModel: AppViewModel) {
             }
         }
         Spacer(Modifier.height(8.dp))
+        RowDivider()
         RowDivider()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             SettingSwitchRow(

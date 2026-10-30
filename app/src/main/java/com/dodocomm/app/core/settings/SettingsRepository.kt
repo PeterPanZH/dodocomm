@@ -72,6 +72,7 @@ class SettingsRepository(context: Context) {
             keywordBlacklist = decodeList(prefs.getString(KEY_KEYWORD_BLACKLIST, null)),
             dynamicColor = prefs.getBoolean(KEY_DYNAMIC_COLOR, defaults.dynamicColor),
             themeMode = ThemeMode.fromName(prefs.getString(KEY_THEME_MODE, defaults.themeMode.name)),
+            appLanguage = AppLanguage.fromName(prefs.getString(KEY_APP_LANGUAGE, defaults.appLanguage.name)),
             recordFilteredMessages = prefs.getBoolean(KEY_RECORD_FILTERED, defaults.recordFilteredMessages),
             retentionDays = prefs.getInt(KEY_RETENTION_DAYS, defaults.retentionDays),
             maxRecords = prefs.getInt(KEY_MAX_RECORDS, defaults.maxRecords),
@@ -108,6 +109,7 @@ class SettingsRepository(context: Context) {
             .putString(KEY_KEYWORD_BLACKLIST, encodeList(settings.keywordBlacklist))
             .putBoolean(KEY_DYNAMIC_COLOR, settings.dynamicColor)
             .putString(KEY_THEME_MODE, settings.themeMode.name)
+            .putString(KEY_APP_LANGUAGE, settings.appLanguage.name)
             .putBoolean(KEY_RECORD_FILTERED, settings.recordFilteredMessages)
             .putInt(KEY_RETENTION_DAYS, settings.retentionDays)
             .putInt(KEY_MAX_RECORDS, settings.maxRecords)
@@ -147,6 +149,7 @@ class SettingsRepository(context: Context) {
         private const val KEY_KEYWORD_BLACKLIST = "keyword_blacklist"
         private const val KEY_DYNAMIC_COLOR = "dynamic_color"
         private const val KEY_THEME_MODE = "theme_mode"
+        private const val KEY_APP_LANGUAGE = "app_language"
         private const val KEY_RECORD_FILTERED = "record_filtered"
         private const val KEY_AUTO_UPDATE_CHECK = "auto_update_check"
         private const val KEY_PAUSE_UNTIL = "pause_until"

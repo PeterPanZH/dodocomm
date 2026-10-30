@@ -31,6 +31,34 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Archive
+import androidx.compose.material.icons.rounded.Backup
+import androidx.compose.material.icons.rounded.BatterySaver
+import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.Cloud
+import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.FileDownload
+import androidx.compose.material.icons.rounded.Fingerprint
+import androidx.compose.material.icons.rounded.HelpOutline
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Key
+import androidx.compose.material.icons.rounded.Language
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.NotificationsActive
+import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.Password
+import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material.icons.rounded.Restore
+import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.Send
+import androidx.compose.material.icons.rounded.Storage
+import androidx.compose.material.icons.rounded.SystemUpdate
+import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material.icons.rounded.Tune
+import androidx.compose.material.icons.rounded.Update
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.ErrorOutline
@@ -42,7 +70,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
+import com.dodocomm.app.ui.components.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -276,6 +304,30 @@ fun GradientSwitch(
 // ---------------------------------------------------------------------------
 
 /** Title + optional subtitle + trailing switch; whole row is the touch target. */
+private fun settingLeadingIcon(title: String): androidx.compose.ui.graphics.vector.ImageVector = when {
+    title.contains("更新") -> Icons.Rounded.SystemUpdate
+    title.contains("通知") || title.contains("角标") -> Icons.Rounded.Notifications
+    title.contains("备份") -> Icons.Rounded.Backup
+    title.contains("恢复") -> Icons.Rounded.Restore
+    title.contains("导出") -> Icons.Rounded.FileDownload
+    title.contains("清理") || title.contains("删除") -> Icons.Rounded.Delete
+    title.contains("锁") || title.contains("PIN") || title.contains("指纹") -> Icons.Rounded.Lock
+    title.contains("保留") || title.contains("期限") -> Icons.Rounded.Schedule
+    title.contains("语言") -> Icons.Rounded.Language
+    title.contains("取色") -> Icons.Rounded.Palette
+    title.contains("隐藏") -> Icons.Rounded.VisibilityOff
+    title.contains("开机") -> Icons.Rounded.RestartAlt
+    title.contains("电池") -> Icons.Rounded.BatterySaver
+    title.contains("帮助") || title.contains("向导") || title.contains("保活") -> Icons.Rounded.Bolt
+    title.contains("复制") -> Icons.Rounded.ContentCopy
+    title.contains("记录") -> Icons.Rounded.History
+    title.contains("服务器") -> Icons.Rounded.Cloud
+    title.contains("Device") -> Icons.Rounded.Key
+    title.contains("测试") -> Icons.Rounded.Send
+    title.contains("锁定") -> Icons.Rounded.Timer
+    else -> Icons.Rounded.Tune
+}
+
 @Composable
 fun SettingSwitchRow(
     title: String,
@@ -299,10 +351,8 @@ fun SettingSwitchRow(
             .padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (icon != null) {
-            IconBubble(icon = icon, size = 34, iconSize = 18)
-            Spacer(Modifier.width(12.dp))
-        }
+        IconBubble(icon = icon ?: settingLeadingIcon(title), size = 34, iconSize = 18)
+        Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(
                 text = title,
@@ -356,24 +406,22 @@ fun SettingActionRow(
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (icon != null) {
-            IconBubble(
-                icon = icon,
-                size = 34,
-                iconSize = 18,
-                containerColor = if (destructive) {
-                    MaterialTheme.colorScheme.errorContainer
-                } else {
-                    MaterialTheme.colorScheme.primaryContainer
-                },
-                contentColor = if (destructive) {
-                    MaterialTheme.colorScheme.onErrorContainer
-                } else {
-                    MaterialTheme.colorScheme.onPrimaryContainer
-                },
-            )
-            Spacer(Modifier.width(12.dp))
-        }
+        IconBubble(
+            icon = icon ?: settingLeadingIcon(title),
+            size = 34,
+            iconSize = 18,
+            containerColor = if (destructive) {
+                MaterialTheme.colorScheme.errorContainer
+            } else {
+                MaterialTheme.colorScheme.primaryContainer
+            },
+            contentColor = if (destructive) {
+                MaterialTheme.colorScheme.onErrorContainer
+            } else {
+                MaterialTheme.colorScheme.onPrimaryContainer
+            },
+        )
+        Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(text = title, style = MaterialTheme.typography.bodyLarge, color = titleColor)
             if (subtitle != null) {

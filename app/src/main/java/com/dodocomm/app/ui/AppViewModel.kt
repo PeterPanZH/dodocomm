@@ -12,6 +12,7 @@ import com.dodocomm.app.core.export.ExportFormat
 import com.dodocomm.app.core.export.ExportRange
 import com.dodocomm.app.core.security.AppLock
 import com.dodocomm.app.core.settings.AppSettings
+import com.dodocomm.app.core.settings.AppLanguage
 import com.dodocomm.app.core.settings.CopyMode
 import com.dodocomm.app.core.settings.PushLevel
 import com.dodocomm.app.core.settings.ThemeMode
@@ -410,6 +411,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun setThemeMode(mode: ThemeMode) = updateSettings { it.copy(themeMode = mode) }
+
+    fun setAppLanguage(language: AppLanguage) = updateSettings { it.copy(appLanguage = language) }
 
     fun setDynamicColor(enabled: Boolean) = updateSettings { it.copy(dynamicColor = enabled) }
 

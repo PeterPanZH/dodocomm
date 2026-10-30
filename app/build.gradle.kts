@@ -15,8 +15,8 @@ android {
         applicationId = "com.dodocomm.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 14
-        versionName = "1.7.0"
+        versionCode = 15
+        versionName = "1.7.0.1"
 
         // GitHub Releases is public; latest.json is attached to every release.
         buildConfigField(
@@ -64,6 +64,7 @@ android {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation("androidx.biometric:biometric:1.1.0")
+    implementation("androidx.fragment:fragment-ktx:1.9.1")
     implementation(libs.kotlinx.coroutines.android)
 
     implementation(platform(libs.androidx.compose.bom))

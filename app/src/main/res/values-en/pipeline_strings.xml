@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notify_channel_service">SMS forwarding service</string>
+    <string name="notify_channel_service_desc">Ongoing notification that keeps SMS forwarding alive</string>
+    <string name="notify_channel_alerts">Forwarding alerts</string>
+    <string name="notify_channel_alerts_desc">Delivery failures and important notices</string>
+    <string name="notify_title">DodoComm</string>
+    <string name="notify_ongoing_idle">Dodoco ready · %1$d delivered today</string>
+    <string name="notify_ongoing_stats">Dodoco delivering · %1$d sent today</string>
+    <string name="notify_ongoing_last">Dodoco just delivered one · %1$d today · latest %2$s %3$s</string>
+    <string name="notify_paused">Forwarding is paused. Tap the switch to resume.</string>
+    <string name="notify_unknown_sender">Unknown sender</string>
+    <string name="notify_action_pause">Pause</string>
+    <string name="notify_action_pause_30">Pause 30m</string>
+    <string name="notify_action_resume">Resume</string>
+    <string name="notify_action_test">Test</string>
+    <string name="notify_paused_until">Temporarily paused · resumes in about %1$d min</string>
+    <string name="notify_boot_recovery_title">Dodoco is offline</string>
+    <string name="notify_boot_recovery_text">Tap to open the app and wake Dodoco. SMS receiving itself is unaffected.</string>
+    <string name="notify_test_sending">Sending test push…</string>
+    <string name="notify_test_success">Test push sent ✅</string>
+    <string name="notify_test_failed">Test push failed: %1$s</string>
+</resources>

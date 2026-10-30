@@ -18,6 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dodocomm.app.appContainer
 import com.dodocomm.app.core.settings.ThemeMode
+import com.dodocomm.app.ui.i18n.AppLocale
 import com.dodocomm.app.ui.screens.AppLockScreen
 import com.dodocomm.app.ui.theme.Sms2BarkTheme
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -74,6 +75,10 @@ class MainActivity : FragmentActivity() {
                         SystemBarStyle.light(transparent, transparent)
                     },
                 )
+            }
+
+            LaunchedEffect(settings.appLanguage) {
+                AppLocale.apply(settings.appLanguage)
             }
 
             LaunchedEffect(settings.appLockEnabled) {
