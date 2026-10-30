@@ -1293,6 +1293,31 @@ private fun AppearanceCard(settings: AppSettings, viewModel: AppViewModel) {
         }
         Spacer(Modifier.height(8.dp))
         RowDivider()
+        var languageExpanded by remember { mutableStateOf(false) }
+        Box {
+            SettingActionRow(
+                title = "语言",
+                subtitle = "界面文字语言（应用内）",
+                value = settings.appLanguage.label,
+                onClick = { languageExpanded = true },
+            )
+            DropdownMenu(expanded = languageExpanded, onDismissRequest = { languageExpanded = false }) {
+                AppLanguage.entries.forEach { language ->
+                    DropdownMenuItem(
+                        text = { Text(language.label) },
+                        onClick = {
+                            viewModel.setAppLanguage(language)
+                            languageExpanded = false
+                        },
+                        trailingIcon = {
+                            if (settings.appLanguage == language) {
+                                Icon(Icons.Rounded.Check, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
+                            }
+                        },
+                    )
+                }
+            }
+        }
         RowDivider()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             SettingSwitchRow(

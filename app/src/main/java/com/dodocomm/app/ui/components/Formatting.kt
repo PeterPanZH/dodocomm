@@ -1,13 +1,20 @@
 package com.dodocomm.app.ui.components
 
+import com.dodocomm.app.core.i18n.LanguageState
+import com.dodocomm.app.core.i18n.LanguageTag
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /** "+8613800138000" -> "13800138000"; blank -> "未知号码". */
 fun displaySender(sender: String): String {
     val trimmed = sender.trim()
-    if (trimmed.isEmpty()) return "未知号码"
+    if (trimmed.isEmpty()) return when (LanguageState.tag) {
+        LanguageTag.EN -> "Unknown sender"
+        LanguageTag.JA -> "不明な番号"
+        LanguageTag.ZH -> "未知号码"
+    }
     val withoutCountryCode = if (trimmed.startsWith("+86")) trimmed.removePrefix("+86") else trimmed
     return withoutCountryCode.ifBlank { trimmed }
 }
@@ -29,21 +36,41 @@ fun senderInitial(sender: String): String {
 /** "10月29日 周四" for the home header. */
 fun todayLabel(): String {
     val date = LocalDate.now()
-    return "${date.monthValue}月${date.dayOfMonth}日 ${weekdayLabel(date)}"
+    return when (LanguageState.tag) {
+        LanguageTag.EN -> date.format(DateTimeFormatter.ofPattern("EEEE, MMM d", Locale.ENGLISH))
+        LanguageTag.JA -> date.format(DateTimeFormatter.ofPattern("M月d日 (E)", Locale.JAPANESE))
+        LanguageTag.ZH -> "${date.monthValue}月${date.dayOfMonth}日 ${weekdayLabel(date)}"
+    }
 }
 
-fun weekdayLabel(date: LocalDate): String = when (date.dayOfWeek.value) {
-    1 -> "周一"
-    2 -> "周二"
-    3 -> "周三"
-    4 -> "周四"
-    5 -> "周五"
-    6 -> "周六"
-    else -> "周日"
+fun weekdayLabel(date: LocalDate): String = when (LanguageState.tag) {
+    LanguageTag.EN -> listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")[date.dayOfWeek.value - 1]
+    LanguageTag.JA -> listOf("月", "火", "水", "木", "金", "土", "日")[date.dayOfWeek.value - 1]
+    LanguageTag.ZH -> when (date.dayOfWeek.value) {
+        1 -> "周一"
+        2 -> "周二"
+        3 -> "周三"
+        4 -> "周四"
+        5 -> "周五"
+        6 -> "周六"
+        else -> "周日"
+    }
 }
 
-fun greeting(): String = when (LocalTime.now().hour) {
-    in 5..11 -> "早上好"
-    in 12..17 -> "下午好"
-    else -> "晚上好"
+fun greeting(): String = when (LanguageState.tag) {
+    LanguageTag.EN -> when (LocalTime.now().hour) {
+        in 5..11 -> "Good morning"
+        in 12..17 -> "Good afternoon"
+        else -> "Good evening"
+    }
+    LanguageTag.JA -> when (LocalTime.now().hour) {
+        in 5..11 -> "おはようございます"
+        in 12..17 -> "こんにちは"
+        else -> "こんばんは"
+    }
+    LanguageTag.ZH -> when (LocalTime.now().hour) {
+        in 5..11 -> "早上好"
+        in 12..17 -> "下午好"
+        else -> "晚上好"
+    }
 }
