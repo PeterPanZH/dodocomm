@@ -20,12 +20,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BatterySaver
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.automirrored.rounded.HelpOutline
 import androidx.compose.material.icons.rounded.NotificationsActive
@@ -46,6 +48,7 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -59,9 +62,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.biometric.BiometricManager
 import com.dodocomm.app.BuildConfig
 import com.dodocomm.app.core.settings.AppSettings
 import com.dodocomm.app.core.settings.CopyMode
@@ -102,7 +107,15 @@ fun SettingsScreen(
     val context = LocalContext.current
 
     var showClearDialog by rememberSaveable { mutableStateOf(false) }
+    var pinDialogMode by rememberSaveable { mutableStateOf<String?>(null) }
     val deviceLabel = remember { OemGuides.detect().deviceLabel }
+    val biometricAvailable = remember {
+        runCatching {
+            BiometricManager.from(context).canAuthenticate(
+                BiometricManager.Authenticators.BIOMETRIC_WEAK,
+            ) == BiometricManager.BIOMETRIC_SUCCESS
+        }.getOrDefault(false)
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -146,6 +159,23 @@ fun SettingsScreen(
         }
         item(key = "rules_card", contentType = "card") {
             ForwardingRulesCard(settings = settings, viewModel = viewModel)
+            Spacer(Modifier.height(20.dp))
+        }
+
+        stickyHeader(key = "privacy_header", contentType = "header") {
+            StickySectionHeader("隐私与安全")
+        }
+        item(key = "privacy_card", contentType = "card") {
+            PrivacyCard(
+                settings = settings,
+                biometricAvailable = biometricAvailable,
+                onToggleAppLock = { enabled ->
+                    pinDialogMode = if (enabled) "setup" else "disable"
+                },
+                onChangePin = { pinDialogMode = "change" },
+                onSetAutoLockMinutes = viewModel::setAutoLockMinutes,
+                onToggleBiometric = viewModel::setBiometricUnlock,
+            )
             Spacer(Modifier.height(20.dp))
         }
 
@@ -243,6 +273,31 @@ fun SettingsScreen(
             state = updateState,
             onDownload = viewModel::downloadAndInstallUpdate,
             onDismiss = viewModel::dismissUpdateDialog,
+        )
+    }
+
+    pinDialogMode?.let { mode ->
+        AppLockPinDialog(
+            mode = mode,
+            onDismiss = { pinDialogMode = null },
+            onSubmit = { currentPin, newPin, confirmPin ->
+                when (mode) {
+                    "setup" -> when {
+                        !com.dodocomm.app.core.security.AppLock.isValidPin(newPin) -> "PIN 必须为 6 位数字"
+                        newPin != confirmPin -> "两次输入的 PIN 不一致"
+                        !viewModel.enableAppLock(newPin) -> "PIN 格式无效"
+                        else -> null
+                    }
+                    "change" -> when {
+                        !com.dodocomm.app.core.security.AppLock.isValidPin(newPin) -> "PIN 必须为 6 位数字"
+                        newPin != confirmPin -> "两次输入的 PIN 不一致"
+                        !viewModel.changeAppLockPin(currentPin, newPin) -> "当前 PIN 不正确"
+                        else -> null
+                    }
+                    "disable" -> if (viewModel.disableAppLock(currentPin)) null else "当前 PIN 不正确"
+                    else -> null
+                }
+            },
         )
     }
 }
@@ -748,6 +803,139 @@ private fun DataCard(
             onClick = onPruneNow,
         )
     }
+}
+
+@Composable
+private fun PrivacyCard(
+    settings: AppSettings,
+    biometricAvailable: Boolean,
+    onToggleAppLock: (Boolean) -> Unit,
+    onChangePin: () -> Unit,
+    onSetAutoLockMinutes: (Int) -> Unit,
+    onToggleBiometric: (Boolean) -> Unit,
+) {
+    var autoLockExpanded by remember { mutableStateOf(false) }
+    SectionCard {
+        SettingSwitchRow(
+            title = "应用锁",
+            checked = settings.appLockEnabled,
+            onCheckedChange = onToggleAppLock,
+            subtitle = "打开 App 需输入 6 位 PIN；禁止截屏与最近任务预览",
+            icon = Icons.Rounded.Lock,
+        )
+        if (settings.appLockEnabled) {
+            RowDivider()
+            SettingActionRow(
+                title = "修改 PIN",
+                subtitle = "需要验证当前 PIN",
+                value = "",
+                icon = Icons.Rounded.Lock,
+                onClick = onChangePin,
+            )
+            RowDivider()
+            Box {
+                SettingActionRow(
+                    title = "自动锁定",
+                    subtitle = "离开 App 后多久重新上锁",
+                    value = when (settings.autoLockMinutes) {
+                        0 -> "立即"
+                        1 -> "1 分钟"
+                        else -> "5 分钟"
+                    },
+                    onClick = { autoLockExpanded = true },
+                )
+                DropdownMenu(expanded = autoLockExpanded, onDismissRequest = { autoLockExpanded = false }) {
+                    listOf(0 to "立即", 1 to "1 分钟", 5 to "5 分钟").forEach { (minutes, label) ->
+                        DropdownMenuItem(
+                            text = { Text(label) },
+                            onClick = {
+                                onSetAutoLockMinutes(minutes)
+                                autoLockExpanded = false
+                            },
+                            trailingIcon = {
+                                if (settings.autoLockMinutes == minutes) {
+                                    Icon(Icons.Rounded.Check, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+            if (biometricAvailable) {
+                RowDivider()
+                SettingSwitchRow(
+                    title = "指纹 / 面容解锁",
+                    checked = settings.biometricUnlock,
+                    onCheckedChange = onToggleBiometric,
+                    subtitle = "支持的设备可在 PIN 之外使用生物识别",
+                    icon = Icons.Rounded.Lock,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AppLockPinDialog(
+    mode: String,
+    onDismiss: () -> Unit,
+    onSubmit: (current: String, newPin: String, confirmPin: String) -> String?,
+) {
+    var currentPin by rememberSaveable { mutableStateOf("") }
+    var newPin by rememberSaveable { mutableStateOf("") }
+    var confirmPin by rememberSaveable { mutableStateOf("") }
+    var error by remember { mutableStateOf<String?>(null) }
+    val title = when (mode) {
+        "setup" -> "设置应用锁 PIN"
+        "change" -> "修改应用锁 PIN"
+        else -> "关闭应用锁"
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (mode != "setup") {
+                    OutlinedTextField(
+                        value = currentPin,
+                        onValueChange = { currentPin = it.filter(Char::isDigit).take(6) },
+                        label = { Text("当前 PIN") },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    )
+                }
+                if (mode != "disable") {
+                    OutlinedTextField(
+                        value = newPin,
+                        onValueChange = { newPin = it.filter(Char::isDigit).take(6) },
+                        label = { Text("新 PIN（6 位数字）") },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    )
+                    OutlinedTextField(
+                        value = confirmPin,
+                        onValueChange = { confirmPin = it.filter(Char::isDigit).take(6) },
+                        label = { Text("确认新 PIN") },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    )
+                }
+                error?.let {
+                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                val result = onSubmit(currentPin, newPin, confirmPin)
+                if (result == null) onDismiss() else error = result
+            }) { Text(if (mode == "disable") "关闭应用锁" else "保存") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+    )
 }
 
 // ---------------------------------------------------------------------------

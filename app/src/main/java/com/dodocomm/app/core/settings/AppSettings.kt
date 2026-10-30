@@ -54,6 +54,13 @@ data class AppSettings(
     val autoStartOnBoot: Boolean = true,
     /** Remove the app from the recent-tasks list when the user leaves it. */
     val hideFromRecents: Boolean = false,
+    /** App lock: 6-digit PIN + optional biometric unlock. */
+    val appLockEnabled: Boolean = false,
+    val appLockPinSalt: String = "",
+    val appLockPinHash: String = "",
+    /** 0 = lock immediately when leaving; otherwise minutes of grace. */
+    val autoLockMinutes: Int = 1,
+    val biometricUnlock: Boolean = true,
     val senderWhitelist: List<String> = emptyList(),
     val senderBlacklist: List<String> = emptyList(),
     val keywordBlacklist: List<String> = emptyList(),

@@ -63,6 +63,7 @@ android {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation("androidx.biometric:biometric:1.1.0")
     implementation(libs.kotlinx.coroutines.android)
 
     implementation(platform(libs.androidx.compose.bom))

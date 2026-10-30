@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.dodocomm.app.BuildConfig
 import com.dodocomm.app.appContainer
 import com.dodocomm.app.core.model.BarkResult
+import com.dodocomm.app.core.security.AppLock
 import com.dodocomm.app.core.settings.AppSettings
 import com.dodocomm.app.core.settings.CopyMode
 import com.dodocomm.app.core.settings.PushLevel
@@ -316,6 +317,37 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun setBadge(enabled: Boolean) = updateSettings { it.copy(badgeEnabled = enabled) }
 
     fun setAutoStartOnBoot(enabled: Boolean) = updateSettings { it.copy(autoStartOnBoot = enabled) }
+
+    /** Enables the app lock after the setup dialog verified the PIN twice. */
+    fun enableAppLock(pin: String): Boolean {
+        if (!AppLock.isValidPin(pin)) return false
+        val (salt, hash) = AppLock.setPin(pin)
+        updateSettings { it.copy(appLockEnabled = true, appLockPinSalt = salt, appLockPinHash = hash) }
+        postSnackbar("已开启应用锁")
+        return true
+    }
+
+    fun disableAppLock(currentPin: String): Boolean {
+        val settings = container.settings.current()
+        if (!AppLock.verifyPin(currentPin, settings.appLockPinSalt, settings.appLockPinHash)) return false
+        updateSettings { it.copy(appLockEnabled = false, appLockPinSalt = "", appLockPinHash = "") }
+        postSnackbar("已关闭应用锁")
+        return true
+    }
+
+    fun changeAppLockPin(currentPin: String, newPin: String): Boolean {
+        val settings = container.settings.current()
+        if (!AppLock.verifyPin(currentPin, settings.appLockPinSalt, settings.appLockPinHash)) return false
+        if (!AppLock.isValidPin(newPin)) return false
+        val (salt, hash) = AppLock.setPin(newPin)
+        updateSettings { it.copy(appLockPinSalt = salt, appLockPinHash = hash) }
+        postSnackbar("PIN 已更新")
+        return true
+    }
+
+    fun setAutoLockMinutes(minutes: Int) = updateSettings { it.copy(autoLockMinutes = minutes) }
+
+    fun setBiometricUnlock(enabled: Boolean) = updateSettings { it.copy(biometricUnlock = enabled) }
 
     fun setHideFromRecents(enabled: Boolean) {
         updateSettings { it.copy(hideFromRecents = enabled) }

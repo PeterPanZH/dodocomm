@@ -62,6 +62,11 @@ class SettingsRepository(context: Context) {
             foregroundServiceEnabled = prefs.getBoolean(KEY_FOREGROUND_SERVICE_ENABLED, defaults.foregroundServiceEnabled),
             autoStartOnBoot = prefs.getBoolean(KEY_AUTO_START_ON_BOOT, defaults.autoStartOnBoot),
             hideFromRecents = prefs.getBoolean(KEY_HIDE_FROM_RECENTS, defaults.hideFromRecents),
+            appLockEnabled = prefs.getBoolean(KEY_APP_LOCK_ENABLED, defaults.appLockEnabled),
+            appLockPinSalt = prefs.getString(KEY_APP_LOCK_SALT, defaults.appLockPinSalt).orEmpty(),
+            appLockPinHash = prefs.getString(KEY_APP_LOCK_HASH, defaults.appLockPinHash).orEmpty(),
+            autoLockMinutes = prefs.getInt(KEY_AUTO_LOCK_MINUTES, defaults.autoLockMinutes),
+            biometricUnlock = prefs.getBoolean(KEY_BIOMETRIC_UNLOCK, defaults.biometricUnlock),
             senderWhitelist = decodeList(prefs.getString(KEY_SENDER_WHITELIST, null)),
             senderBlacklist = decodeList(prefs.getString(KEY_SENDER_BLACKLIST, null)),
             keywordBlacklist = decodeList(prefs.getString(KEY_KEYWORD_BLACKLIST, null)),
@@ -92,6 +97,11 @@ class SettingsRepository(context: Context) {
             .putBoolean(KEY_FOREGROUND_SERVICE_ENABLED, settings.foregroundServiceEnabled)
             .putBoolean(KEY_AUTO_START_ON_BOOT, settings.autoStartOnBoot)
             .putBoolean(KEY_HIDE_FROM_RECENTS, settings.hideFromRecents)
+            .putBoolean(KEY_APP_LOCK_ENABLED, settings.appLockEnabled)
+            .putString(KEY_APP_LOCK_SALT, settings.appLockPinSalt)
+            .putString(KEY_APP_LOCK_HASH, settings.appLockPinHash)
+            .putInt(KEY_AUTO_LOCK_MINUTES, settings.autoLockMinutes)
+            .putBoolean(KEY_BIOMETRIC_UNLOCK, settings.biometricUnlock)
             .putString(KEY_SENDER_WHITELIST, encodeList(settings.senderWhitelist))
             .putString(KEY_SENDER_BLACKLIST, encodeList(settings.senderBlacklist))
             .putString(KEY_KEYWORD_BLACKLIST, encodeList(settings.keywordBlacklist))
@@ -125,6 +135,11 @@ class SettingsRepository(context: Context) {
         private const val KEY_FOREGROUND_SERVICE_ENABLED = "foreground_service_enabled"
         private const val KEY_AUTO_START_ON_BOOT = "auto_start_on_boot"
         private const val KEY_HIDE_FROM_RECENTS = "hide_from_recents"
+        private const val KEY_APP_LOCK_ENABLED = "app_lock_enabled"
+        private const val KEY_APP_LOCK_SALT = "app_lock_pin_salt"
+        private const val KEY_APP_LOCK_HASH = "app_lock_pin_hash"
+        private const val KEY_AUTO_LOCK_MINUTES = "auto_lock_minutes"
+        private const val KEY_BIOMETRIC_UNLOCK = "biometric_unlock"
         private const val KEY_SENDER_WHITELIST = "sender_whitelist"
         private const val KEY_SENDER_BLACKLIST = "sender_blacklist"
         private const val KEY_KEYWORD_BLACKLIST = "keyword_blacklist"
