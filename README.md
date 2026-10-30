@@ -125,7 +125,7 @@ sms2bark/
 ## 已验证（Android 16 模拟器，端到端）
 
 **构建 / 质量**
-- `assembleDebug`、`assembleRelease`（R8 压缩 + 资源收缩）均构建成功；**单元测试 32/32 通过**；`lintDebug` **0 errors**（14 warnings 为风格/版本提示）。
+- `assembleDebug`、`assembleRelease`（R8 压缩 + 资源收缩）均构建成功；**单元测试 38/38 通过**；`lintDebug` **0 errors**（14 warnings 为风格/版本提示）。
 - Release APK：约 2.4 MB，V3 签名；模拟器 release 冷启动约 250 ms（debug 约 940 ms）。
 
 **功能端到端（release 构建，真实 UI 操作，无 debug 后门）**
@@ -158,7 +158,7 @@ sms2bark/
 - 工作流：`.github/workflows/release.yml`
 - 触发：push tag `v*`，或在 Actions 页面手动 `Run workflow`（可留空 tag，自动用 `v<versionName>`）
 - 流程：JDK 21 + Android SDK 37.2 + Gradle 9.6 → 构建 release（R8）+ 单测 → 用 GitHub Secrets 中的 keystore 签名 → 发布 APK、`SHA256SUMS.txt` 和 `latest.json`（应用内更新源）到 GitHub Release
-- 需在仓库 Secrets 配置：`KEYSTORE_BASE64`（`base64 -i keystore/release.jks | pbcopy`）、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD`
+- 需在仓库 Secrets 配置：`KEYSTORE_BASE64`（把本地 release keystore base64 后写入）、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD`
 - 本地签名 keystore 不入库（见 `.gitignore`）；请妥善保管 Secrets 与 `keystore.properties`
 
 ## License
