@@ -11,6 +11,16 @@ enum class PushLevel(val apiValue: String, val label: String) {
     }
 }
 
+enum class CopyMode(val label: String) {
+    OFF("不复制"),
+    FULL("复制全文"),
+    CODE("仅复制验证码");
+
+    companion object {
+        fun fromName(name: String?): CopyMode = entries.firstOrNull { it.name == name } ?: OFF
+    }
+}
+
 enum class ThemeMode(val label: String) {
     SYSTEM("跟随系统"),
     LIGHT("浅色"),
@@ -38,7 +48,7 @@ data class AppSettings(
     val pushIcon: String = "",
     val pushUrl: String = "",
     val isArchive: Boolean = true,
-    val autoCopy: Boolean = false,
+    val copyMode: CopyMode = CopyMode.OFF,
     val badgeEnabled: Boolean = false,
     val foregroundServiceEnabled: Boolean = true,
     val autoStartOnBoot: Boolean = true,
@@ -50,6 +60,10 @@ data class AppSettings(
     val dynamicColor: Boolean = false,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val recordFilteredMessages: Boolean = true,
+    /** 0 = keep forever; otherwise delete records older than this many days. */
+    val retentionDays: Int = 0,
+    /** Hard cap on locally stored rows (maintenance enforces it). */
+    val maxRecords: Int = 500,
     /** Check GitHub Releases for a new version at most once per 24h. */
     val autoUpdateCheck: Boolean = true,
 ) {

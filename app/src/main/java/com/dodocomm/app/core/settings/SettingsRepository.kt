@@ -52,7 +52,12 @@ class SettingsRepository(context: Context) {
             pushIcon = prefs.getString(KEY_PUSH_ICON, defaults.pushIcon).orEmpty(),
             pushUrl = prefs.getString(KEY_PUSH_URL, defaults.pushUrl).orEmpty(),
             isArchive = prefs.getBoolean(KEY_IS_ARCHIVE, defaults.isArchive),
-            autoCopy = prefs.getBoolean(KEY_AUTO_COPY, defaults.autoCopy),
+            copyMode = CopyMode.fromName(
+                prefs.getString(
+                    KEY_COPY_MODE,
+                    if (prefs.getBoolean(KEY_AUTO_COPY, false)) CopyMode.FULL.name else defaults.copyMode.name,
+                ),
+            ),
             badgeEnabled = prefs.getBoolean(KEY_BADGE_ENABLED, defaults.badgeEnabled),
             foregroundServiceEnabled = prefs.getBoolean(KEY_FOREGROUND_SERVICE_ENABLED, defaults.foregroundServiceEnabled),
             autoStartOnBoot = prefs.getBoolean(KEY_AUTO_START_ON_BOOT, defaults.autoStartOnBoot),
@@ -63,6 +68,8 @@ class SettingsRepository(context: Context) {
             dynamicColor = prefs.getBoolean(KEY_DYNAMIC_COLOR, defaults.dynamicColor),
             themeMode = ThemeMode.fromName(prefs.getString(KEY_THEME_MODE, defaults.themeMode.name)),
             recordFilteredMessages = prefs.getBoolean(KEY_RECORD_FILTERED, defaults.recordFilteredMessages),
+            retentionDays = prefs.getInt(KEY_RETENTION_DAYS, defaults.retentionDays),
+            maxRecords = prefs.getInt(KEY_MAX_RECORDS, defaults.maxRecords),
             autoUpdateCheck = prefs.getBoolean(KEY_AUTO_UPDATE_CHECK, defaults.autoUpdateCheck),
         )
     }
@@ -79,7 +86,8 @@ class SettingsRepository(context: Context) {
             .putString(KEY_PUSH_ICON, settings.pushIcon)
             .putString(KEY_PUSH_URL, settings.pushUrl)
             .putBoolean(KEY_IS_ARCHIVE, settings.isArchive)
-            .putBoolean(KEY_AUTO_COPY, settings.autoCopy)
+            .putString(KEY_COPY_MODE, settings.copyMode.name)
+            .putBoolean(KEY_AUTO_COPY, settings.copyMode == CopyMode.FULL)
             .putBoolean(KEY_BADGE_ENABLED, settings.badgeEnabled)
             .putBoolean(KEY_FOREGROUND_SERVICE_ENABLED, settings.foregroundServiceEnabled)
             .putBoolean(KEY_AUTO_START_ON_BOOT, settings.autoStartOnBoot)
@@ -90,6 +98,8 @@ class SettingsRepository(context: Context) {
             .putBoolean(KEY_DYNAMIC_COLOR, settings.dynamicColor)
             .putString(KEY_THEME_MODE, settings.themeMode.name)
             .putBoolean(KEY_RECORD_FILTERED, settings.recordFilteredMessages)
+            .putInt(KEY_RETENTION_DAYS, settings.retentionDays)
+            .putInt(KEY_MAX_RECORDS, settings.maxRecords)
             .putBoolean(KEY_AUTO_UPDATE_CHECK, settings.autoUpdateCheck)
             .commit()
     }
@@ -108,6 +118,9 @@ class SettingsRepository(context: Context) {
         private const val KEY_PUSH_URL = "push_url"
         private const val KEY_IS_ARCHIVE = "is_archive"
         private const val KEY_AUTO_COPY = "auto_copy"
+        private const val KEY_COPY_MODE = "copy_mode"
+        private const val KEY_RETENTION_DAYS = "retention_days"
+        private const val KEY_MAX_RECORDS = "max_records"
         private const val KEY_BADGE_ENABLED = "badge_enabled"
         private const val KEY_FOREGROUND_SERVICE_ENABLED = "foreground_service_enabled"
         private const val KEY_AUTO_START_ON_BOOT = "auto_start_on_boot"

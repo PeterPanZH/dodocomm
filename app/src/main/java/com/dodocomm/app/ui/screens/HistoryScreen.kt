@@ -35,6 +35,7 @@ import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.FilterAlt
 import androidx.compose.material.icons.rounded.Inbox
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
@@ -51,6 +52,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -72,6 +74,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dodocomm.app.core.model.BarkResult
 import com.dodocomm.app.core.model.ForwardRecord
+import com.dodocomm.app.core.util.OtpExtractor
 import com.dodocomm.app.core.model.ForwardStatus
 import com.dodocomm.app.core.util.TimeFormatter
 import com.dodocomm.app.ui.AppViewModel
@@ -108,8 +111,6 @@ fun HistoryScreen(viewModel: AppViewModel) {
             selectedId = -1L
         }
     }
-
-    val groups = remember(records, filter) { buildGroups(records, filter) }
     val counts = remember(records) {
         mapOf(
             HistoryFilter.ALL to records.size,
@@ -124,6 +125,27 @@ fun HistoryScreen(viewModel: AppViewModel) {
     val context = LocalContext.current
     val clipboard = remember(context) { context.getSystemService(ClipboardManager::class.java) }
     val selectedRecord = remember(records, selectedId) { records.firstOrNull { it.id == selectedId } }
+
+    // S2: search + advanced filters (sender, keyword, date range)
+    var searchOpen by rememberSaveable { mutableStateOf(false) }
+    var query by rememberSaveable { mutableStateOf("") }
+    var senderFilter by rememberSaveable { mutableStateOf("") }
+    var keywordFilter by rememberSaveable { mutableStateOf("") }
+    var dateFilterName by rememberSaveable { mutableStateOf(RecordDateFilter.ALL.name) }
+    var showFilterSheet by rememberSaveable { mutableStateOf(false) }
+    val dateFilter = RecordDateFilter.valueOf(dateFilterName)
+    val filtersActive = senderFilter.isNotBlank() || keywordFilter.isNotBlank() || dateFilter != RecordDateFilter.ALL
+    val visibleRecords = remember(records, filter, query, senderFilter, keywordFilter, dateFilter) {
+        records.filter { record ->
+            filter.matches(record.status) &&
+                query.matchesRecord(record) &&
+                (senderFilter.isBlank() || record.sender.contains(senderFilter.trim(), ignoreCase = true)) &&
+                (keywordFilter.isBlank() || (record.body.contains(keywordFilter.trim(), ignoreCase = true) ||
+                    record.sender.contains(keywordFilter.trim(), ignoreCase = true))) &&
+                dateFilter.matches(record.receivedAt)
+        }
+    }
+    val groups = remember(visibleRecords) { buildGroups(visibleRecords) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
@@ -143,10 +165,17 @@ fun HistoryScreen(viewModel: AppViewModel) {
                     text = if (records.isEmpty()) {
                         "短信送达状态都在这里"
                     } else {
-                        "共 ${records.size} 条 · 本地保留最近 500 条"
+                        "共 ${records.size} 条 · 本地转发记录"
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            IconButton(onClick = { searchOpen = !searchOpen }) {
+                Icon(
+                    imageVector = Icons.Rounded.Search,
+                    contentDescription = "搜索记录",
+                    tint = if (searchOpen) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Box {
@@ -180,6 +209,26 @@ fun HistoryScreen(viewModel: AppViewModel) {
             }
         }
 
+        if (searchOpen) {
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 4.dp),
+                placeholder = { Text("搜索号码或内容") },
+                singleLine = true,
+                leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (query.isNotEmpty()) {
+                        IconButton(onClick = { query = "" }) {
+                            Icon(Icons.Rounded.Delete, contentDescription = "清空搜索")
+                        }
+                    }
+                },
+            )
+        }
+
         Spacer(Modifier.height(10.dp))
         Row(
             modifier = Modifier
@@ -209,6 +258,14 @@ fun HistoryScreen(viewModel: AppViewModel) {
                     ),
                 )
             }
+            IconButton(onClick = { showFilterSheet = true }) {
+                Icon(
+                    imageVector = Icons.Rounded.FilterAlt,
+                    contentDescription = "筛选",
+                    tint = if (filtersActive) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
 
         Spacer(Modifier.height(10.dp))
@@ -227,7 +284,7 @@ fun HistoryScreen(viewModel: AppViewModel) {
                     message = "收到的短信会出现在这里，转发状态也能随时查看。",
                 )
             }
-        } else if (groups.isEmpty()) {
+        } else if (visibleRecords.isEmpty()) {
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -240,7 +297,13 @@ fun HistoryScreen(viewModel: AppViewModel) {
                     title = "嘟嘟可没找到符合条件的记录",
                     message = "换一个筛选条件再看看吧。",
                     actionLabel = "查看全部",
-                    onAction = { viewModel.setHistoryFilter(HistoryFilter.ALL) },
+                    onAction = {
+                        viewModel.setHistoryFilter(HistoryFilter.ALL)
+                        query = ""
+                        senderFilter = ""
+                        keywordFilter = ""
+                        dateFilterName = RecordDateFilter.ALL.name
+                    },
                 )
             }
         } else {
@@ -284,6 +347,26 @@ fun HistoryScreen(viewModel: AppViewModel) {
         )
     }
 
+    if (showFilterSheet) {
+        RecordFilterSheet(
+            sender = senderFilter,
+            keyword = keywordFilter,
+            dateFilter = dateFilter,
+            onApply = { newSender, newKeyword, newDate ->
+                senderFilter = newSender
+                keywordFilter = newKeyword
+                dateFilterName = newDate.name
+                showFilterSheet = false
+            },
+            onReset = {
+                senderFilter = ""
+                keywordFilter = ""
+                dateFilterName = RecordDateFilter.ALL.name
+            },
+            onDismiss = { showFilterSheet = false },
+        )
+    }
+
     val record = selectedRecord
     if (record != null) {
         RecordDetailSheet(
@@ -302,21 +385,114 @@ fun HistoryScreen(viewModel: AppViewModel) {
     }
 }
 
+@Composable
+private fun RecordFilterSheet(
+    sender: String,
+    keyword: String,
+    dateFilter: RecordDateFilter,
+    onApply: (String, String, RecordDateFilter) -> Unit,
+    onReset: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var senderValue by remember(sender) { mutableStateOf(sender) }
+    var keywordValue by remember(keyword) { mutableStateOf(keyword) }
+    var dateValue by remember(dateFilter) { mutableStateOf(dateFilter) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        shape = SheetShape,
+        containerColor = MaterialTheme.colorScheme.surface,
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, end = 20.dp, bottom = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text("筛选记录", style = MaterialTheme.typography.titleLarge)
+            OutlinedTextField(
+                value = senderValue,
+                onValueChange = { senderValue = it },
+                label = { Text("发送者包含") },
+                placeholder = { Text("例如 95588") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
+                value = keywordValue,
+                onValueChange = { keywordValue = it },
+                label = { Text("内容关键词") },
+                placeholder = { Text("例如 验证码、快递") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text("时间范围", style = MaterialTheme.typography.labelMedium)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                RecordDateFilter.entries.forEach { option ->
+                    val label = when (option) {
+                        RecordDateFilter.ALL -> "全部"
+                        RecordDateFilter.TODAY -> "今天"
+                        RecordDateFilter.LAST_7_DAYS -> "近 7 天"
+                        RecordDateFilter.LAST_30_DAYS -> "近 30 天"
+                    }
+                    FilterChip(
+                        selected = dateValue == option,
+                        onClick = { dateValue = option },
+                        label = { Text(label) },
+                    )
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedButton(onClick = onReset, modifier = Modifier.weight(1f)) { Text("重置") }
+                Button(
+                    onClick = { onApply(senderValue, keywordValue, dateValue) },
+                    modifier = Modifier.weight(1f),
+                ) { Text("应用") }
+            }
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Date grouping
 // ---------------------------------------------------------------------------
 
 private data class HistoryGroup(val header: String, val records: List<ForwardRecord>)
 
-private fun buildGroups(records: List<ForwardRecord>, filter: HistoryFilter): List<HistoryGroup> {
+private fun buildGroups(records: List<ForwardRecord>): List<HistoryGroup> {
     val now = System.currentTimeMillis()
     val grouped = LinkedHashMap<String, MutableList<ForwardRecord>>()
     records.forEach { record ->
-        if (!filter.matches(record.status)) return@forEach
         val header = TimeFormatter.formatDateHeader(record.receivedAt, now)
         grouped.getOrPut(header) { mutableListOf() }.add(record)
     }
     return grouped.map { (header, list) -> HistoryGroup(header, list) }
+}
+
+private enum class RecordDateFilter {
+    ALL, TODAY, LAST_7_DAYS, LAST_30_DAYS;
+
+    fun matches(timestamp: Long): Boolean {
+        if (this == ALL) return true
+        val start = TimeFormatter.startOfToday()
+        val from = when (this) {
+            TODAY -> start
+            LAST_7_DAYS -> start - 6L * 86_400_000L
+            LAST_30_DAYS -> start - 29L * 86_400_000L
+            ALL -> 0L
+        }
+        return timestamp >= from
+    }
+}
+
+private fun String.matchesRecord(record: ForwardRecord): Boolean {
+    if (isBlank()) return true
+    val needle = trim()
+    return record.sender.contains(needle, ignoreCase = true) ||
+        record.body.contains(needle, ignoreCase = true)
 }
 
 @Composable
@@ -406,6 +582,35 @@ private fun RecordDetailSheet(
             }
 
             Spacer(Modifier.height(16.dp))
+            OtpExtractor.extract(record.body)?.let { otp ->
+                Surface(
+                    shape = InnerShape,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                text = "验证码",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            )
+                            Text(
+                                text = otp,
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                        TextButton(onClick = { onCopy(otp) }) {
+                            Text("复制验证码")
+                        }
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+            }
             Surface(
                 shape = InnerShape,
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),

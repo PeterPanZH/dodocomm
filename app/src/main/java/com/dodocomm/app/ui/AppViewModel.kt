@@ -8,6 +8,7 @@ import com.dodocomm.app.BuildConfig
 import com.dodocomm.app.appContainer
 import com.dodocomm.app.core.model.BarkResult
 import com.dodocomm.app.core.settings.AppSettings
+import com.dodocomm.app.core.settings.CopyMode
 import com.dodocomm.app.core.settings.PushLevel
 import com.dodocomm.app.core.settings.ThemeMode
 import com.dodocomm.app.core.update.UpdateInstaller
@@ -288,7 +289,27 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun setRecordFilteredMessages(enabled: Boolean) =
         updateSettings { it.copy(recordFilteredMessages = enabled) }
 
-    fun setAutoCopy(enabled: Boolean) = updateSettings { it.copy(autoCopy = enabled) }
+    fun setCopyMode(mode: CopyMode) = updateSettings { it.copy(copyMode = mode) }
+
+    fun setRetentionDays(days: Int) = updateSettings { it.copy(retentionDays = days) }
+
+    fun setMaxRecords(max: Int) = updateSettings { it.copy(maxRecords = max) }
+
+    /** Applies the retention policy immediately (used by the "清理" action). */
+    fun pruneNow() {
+        viewModelScope.launch {
+            val settings = container.settings.current()
+            val before = if (settings.retentionDays > 0) {
+                System.currentTimeMillis() - settings.retentionDays * 86_400_000L
+            } else {
+                0L
+            }
+            if (before > 0) container.history.pruneBefore(before)
+            container.history.prune(settings.maxRecords)
+            container.history.refresh()
+            postSnackbar("已按当前保留策略清理记录")
+        }
+    }
 
     fun setArchive(enabled: Boolean) = updateSettings { it.copy(isArchive = enabled) }
 

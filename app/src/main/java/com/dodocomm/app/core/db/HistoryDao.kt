@@ -131,6 +131,14 @@ class HistoryDao(private val database: HistoryDatabase) {
         database.writableDatabase.delete(HistoryDatabase.TABLE_RECORDS, null, null)
     }
 
+    fun pruneBefore(before: Long) {
+        database.writableDatabase.delete(
+            HistoryDatabase.TABLE_RECORDS,
+            "received_at < ?",
+            arrayOf(before.toString()),
+        )
+    }
+
     fun prune(keep: Int) {
         if (keep <= 0) return
         database.writableDatabase.execSQL(

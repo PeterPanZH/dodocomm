@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dodocomm.app.core.model.ForwardRecord
+import com.dodocomm.app.core.util.OtpExtractor
 import com.dodocomm.app.core.model.ForwardStatus
 import com.dodocomm.app.ui.theme.AvatarPaletteDark
 import com.dodocomm.app.ui.theme.AvatarPaletteLight
@@ -501,6 +502,20 @@ fun RecordCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                OtpExtractor.extract(record.body)?.let { otp ->
+                    Spacer(Modifier.height(6.dp))
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                    ) {
+                        Text(
+                            text = "验证码 $otp",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        )
+                    }
+                }
                 Spacer(Modifier.height(6.dp))
                 Text(
                     text = record.body.ifBlank { "（无正文）" },

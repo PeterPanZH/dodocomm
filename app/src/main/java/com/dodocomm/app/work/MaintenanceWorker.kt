@@ -24,7 +24,12 @@ class MaintenanceWorker(
     override suspend fun doWork(): Result {
         val container = (applicationContext as Sms2BarkApp).container
         return try {
-            container.history.prune(HistoryDao.MAX_HISTORY_ROWS)
+            val settings = container.settings.current()
+            if (settings.retentionDays > 0) {
+                val before = System.currentTimeMillis() - settings.retentionDays * 86_400_000L
+                container.history.pruneBefore(before)
+            }
+            container.history.prune(settings.maxRecords.coerceIn(100, 10_000))
             if (container.forwardEngine.retryPending()) {
                 container.workScheduler.enqueueRetry()
             }

@@ -82,6 +82,10 @@ class HistoryRepository(
         withContext(Dispatchers.IO) { dao.prune(keep) }
     }
 
+    suspend fun pruneBefore(before: Long) {
+        withContext(Dispatchers.IO) { dao.pruneBefore(before) }
+    }
+
     /** Latest known record (may be one refresh behind). */
     fun lastRecord(): ForwardRecord? = snapshot.firstOrNull()
 }

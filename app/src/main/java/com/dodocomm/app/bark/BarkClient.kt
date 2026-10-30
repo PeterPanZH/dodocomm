@@ -2,6 +2,8 @@ package com.dodocomm.app.bark
 
 import com.dodocomm.app.core.model.BarkResult
 import com.dodocomm.app.core.settings.AppSettings
+import com.dodocomm.app.core.settings.CopyMode
+import com.dodocomm.app.core.util.OtpExtractor
 import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -102,7 +104,11 @@ class BarkClient(
             if (settings.pushIcon.isNotBlank()) put("icon", settings.pushIcon)
             if (settings.pushUrl.isNotBlank()) put("url", settings.pushUrl)
             if (settings.isArchive) put("isArchive", "1")
-            if (settings.autoCopy) put("autoCopy", "1")
+            when (settings.copyMode) {
+                CopyMode.FULL -> put("autoCopy", "1")
+                CopyMode.CODE -> OtpExtractor.extract(body)?.let { put("copy", it) }
+                CopyMode.OFF -> Unit
+            }
             if (settings.badgeEnabled) put("badge", 1)
         }
 
@@ -122,7 +128,11 @@ class BarkClient(
             builder.addQueryParameter("level", settings.pushLevel.apiValue)
         }
         if (settings.isArchive) builder.addQueryParameter("isArchive", "1")
-        if (settings.autoCopy) builder.addQueryParameter("autoCopy", "1")
+        when (settings.copyMode) {
+            CopyMode.FULL -> builder.addQueryParameter("autoCopy", "1")
+            CopyMode.CODE -> OtpExtractor.extract(body)?.let { builder.addQueryParameter("copy", it) }
+            CopyMode.OFF -> Unit
+        }
         return builder.build()
     }
 

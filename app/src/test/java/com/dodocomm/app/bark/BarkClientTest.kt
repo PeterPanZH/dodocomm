@@ -1,6 +1,7 @@
 package com.dodocomm.app.bark
 
 import com.dodocomm.app.core.settings.AppSettings
+import com.dodocomm.app.core.settings.CopyMode
 import com.dodocomm.app.core.settings.PushLevel
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
@@ -75,6 +76,16 @@ class BarkClientTest {
     }
 
     @Test
+    fun `code copy mode sends only the extracted verification code`() = runBlocking {
+        server.enqueue(MockResponse(code = 200, body = """{"code":200}"""))
+        val settings = configuredSettings().copy(copyMode = CopyMode.CODE)
+        client.send(settings, "来自 95588", "【银行】验证码 123456，5 分钟内有效")
+        val json = JSONObject(checkNotNull(takeRequest().body).utf8())
+        assertEquals("123456", json.getString("copy"))
+        assertFalse(json.has("autoCopy"))
+    }
+
+    @Test
     fun `optional style fields are mapped when enabled`() = runBlocking {
         server.enqueue(MockResponse(code = 200, body = """{"code":200}"""))
         val settings = configuredSettings().copy(
@@ -83,7 +94,7 @@ class BarkClientTest {
             pushIcon = "https://example.com/icon.png",
             pushUrl = "https://example.com",
             isArchive = false,
-            autoCopy = true,
+            copyMode = CopyMode.FULL,
             badgeEnabled = true,
         )
 

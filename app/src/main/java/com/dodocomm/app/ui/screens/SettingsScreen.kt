@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dodocomm.app.BuildConfig
 import com.dodocomm.app.core.settings.AppSettings
+import com.dodocomm.app.core.settings.CopyMode
 import com.dodocomm.app.core.settings.PushLevel
 import com.dodocomm.app.core.settings.ThemeMode
 import com.dodocomm.app.core.system.OemGuides
@@ -167,6 +168,20 @@ fun SettingsScreen(
         item(key = "reliability_note", contentType = "note") {
             InfoNote(
                 text = "关闭常驻通知栏会停用前台服务，改为短信广播 + 每 15 分钟定时补发；后台可靠性会下降，但不需要常驻通知。后台隐藏只影响最近任务列表。",
+            )
+            Spacer(Modifier.height(20.dp))
+        }
+
+        stickyHeader(key = "data_header", contentType = "header") {
+            StickySectionHeader("数据")
+        }
+        item(key = "data_card", contentType = "card") {
+            DataCard(
+                settings = settings,
+                recordCount = records.size,
+                onSetRetention = viewModel::setRetentionDays,
+                onSetMaxRecords = viewModel::setMaxRecords,
+                onPruneNow = viewModel::pruneNow,
             )
             Spacer(Modifier.height(20.dp))
         }
@@ -399,12 +414,7 @@ private fun PushStyleCard(settings: AppSettings, viewModel: AppViewModel) {
             subtitle = "在 Bark 历史中保留这条推送",
         )
         RowDivider()
-        SettingSwitchRow(
-            title = "自动复制",
-            checked = settings.autoCopy,
-            onCheckedChange = viewModel::setAutoCopy,
-            subtitle = "iPhone 收到后自动复制内容",
-        )
+        CopyModeRow(selected = settings.copyMode, onSelect = viewModel::setCopyMode)
         RowDivider()
         SettingSwitchRow(
             title = "显示角标",
@@ -624,6 +634,119 @@ private fun UpdateDialog(
         )
 
         else -> Unit
+    }
+}
+
+private fun retentionLabel(days: Int): String = if (days <= 0) "永久" else "${days} 天"
+
+private fun maxRecordsLabel(max: Int): String = when (max) {
+    500 -> "500 条"
+    1000 -> "1000 条"
+    5000 -> "5000 条"
+    else -> "${max} 条"
+}
+
+@Composable
+private fun CopyModeRow(selected: CopyMode, onSelect: (CopyMode) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        SettingActionRow(
+            title = "自动复制",
+            subtitle = "Bark 在 iPhone 上收到后复制到剪贴板",
+            value = selected.label,
+            onClick = { expanded = true },
+        )
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            CopyMode.entries.forEach { mode ->
+                DropdownMenuItem(
+                    text = { Text(mode.label) },
+                    onClick = {
+                        onSelect(mode)
+                        expanded = false
+                    },
+                    trailingIcon = {
+                        if (mode == selected) {
+                            Icon(
+                                imageVector = Icons.Rounded.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DataCard(
+    settings: AppSettings,
+    recordCount: Int,
+    onSetRetention: (Int) -> Unit,
+    onSetMaxRecords: (Int) -> Unit,
+    onPruneNow: () -> Unit,
+) {
+    var retentionExpanded by remember { mutableStateOf(false) }
+    var maxExpanded by remember { mutableStateOf(false) }
+    SectionCard {
+        Box {
+            SettingActionRow(
+                title = "记录保留期限",
+                subtitle = "超过期限的记录会由后台维护任务自动清理",
+                value = retentionLabel(settings.retentionDays),
+                onClick = { retentionExpanded = true },
+            )
+            DropdownMenu(expanded = retentionExpanded, onDismissRequest = { retentionExpanded = false }) {
+                listOf(0, 7, 30, 90).forEach { days ->
+                    DropdownMenuItem(
+                        text = { Text(if (days == 0) "永久保留" else "$days 天") },
+                        onClick = {
+                            onSetRetention(days)
+                            retentionExpanded = false
+                        },
+                        trailingIcon = {
+                            if (settings.retentionDays == days) {
+                                Icon(Icons.Rounded.Check, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
+                            }
+                        },
+                    )
+                }
+            }
+        }
+        RowDivider()
+        Box {
+            SettingActionRow(
+                title = "最多保留",
+                subtitle = "本地最多保存的记录条数（当前 $recordCount 条）",
+                value = maxRecordsLabel(settings.maxRecords),
+                onClick = { maxExpanded = true },
+            )
+            DropdownMenu(expanded = maxExpanded, onDismissRequest = { maxExpanded = false }) {
+                listOf(500, 1000, 5000).forEach { max ->
+                    DropdownMenuItem(
+                        text = { Text("$max 条") },
+                        onClick = {
+                            onSetMaxRecords(max)
+                            maxExpanded = false
+                        },
+                        trailingIcon = {
+                            if (settings.maxRecords == max) {
+                                Icon(Icons.Rounded.Check, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
+                            }
+                        },
+                    )
+                }
+            }
+        }
+        RowDivider()
+        SettingActionRow(
+            title = "立即清理",
+            subtitle = "按当前保留策略删除过期/超量记录",
+            icon = Icons.Rounded.Delete,
+            onClick = onPruneNow,
+        )
     }
 }
 
