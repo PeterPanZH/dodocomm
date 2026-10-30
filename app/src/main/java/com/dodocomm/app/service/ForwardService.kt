@@ -62,6 +62,14 @@ class ForwardService : Service() {
 
             ACTION_TEST_PUSH -> handleTestPush()
 
+            ACTION_PAUSE_30 -> {
+                applicationContext.appContainer.serviceController.pauseFor(30)
+            }
+
+            ACTION_RESUME -> {
+                applicationContext.appContainer.serviceController.resumeNow()
+            }
+
             ACTION_REFRESH, ACTION_START, null -> Unit
 
             else -> Log.w(TAG, "未知 action=${intent.action}")
@@ -146,6 +154,8 @@ class ForwardService : Service() {
         const val ACTION_STOP = "com.dodocomm.app.action.STOP"
         const val ACTION_REFRESH = "com.dodocomm.app.action.REFRESH"
         const val ACTION_TEST_PUSH = "com.dodocomm.app.action.TEST_PUSH"
+        const val ACTION_PAUSE_30 = "com.dodocomm.app.action.PAUSE_30"
+        const val ACTION_RESUME = "com.dodocomm.app.action.RESUME"
 
         private const val TAG = "SMS2BARK"
         private const val TEST_PUSH_TIMEOUT_MS = 30_000L

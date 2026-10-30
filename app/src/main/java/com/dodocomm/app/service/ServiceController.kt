@@ -68,7 +68,8 @@ class ServiceController(
      * pushing old messages in the background.
      */
     fun setForwardingEnabled(enabled: Boolean) {
-        container.settings.update { it.copy(forwardingEnabled = enabled) }
+        container.settings.update { it.copy(forwardingEnabled = enabled, pauseUntil = 0L) }
+        if (!enabled) container.workScheduler.cancelPauseResume()
         if (enabled) {
             startIfEnabled()
             container.workScheduler.ensureMaintenanceScheduled()
@@ -77,6 +78,23 @@ class ServiceController(
             container.workScheduler.cancelRetry()
             stop()
         }
+    }
+
+    /** Pauses forwarding for [minutes] without stopping the foreground service. */
+    fun pauseFor(minutes: Int) {
+        val until = System.currentTimeMillis() + minutes * 60_000L
+        container.settings.update { it.copy(pauseUntil = until) }
+        container.workScheduler.schedulePauseResume(until)
+        refreshNotification()
+        Log.i(TAG, "临时暂停转发 $minutes 分钟")
+    }
+
+    /** Clears a temporary pause early. */
+    fun resumeNow() {
+        container.settings.update { it.copy(pauseUntil = 0L) }
+        container.workScheduler.cancelPauseResume()
+        refreshNotification()
+        Log.i(TAG, "手动恢复转发")
     }
 
     /** Rebuilds the ongoing notification only when the service is running. */

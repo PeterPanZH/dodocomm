@@ -66,6 +66,27 @@ class WorkScheduler(context: Context) {
         }
     }
 
+    /** Schedules automatic clearing of a temporary pause at [untilEpochMillis]. */
+    fun schedulePauseResume(untilEpochMillis: Long) {
+        val delay = (untilEpochMillis - System.currentTimeMillis()).coerceAtLeast(0L)
+        val request = OneTimeWorkRequestBuilder<ResumeWorker>()
+            .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+            .build()
+        runCatching {
+            WorkManager.getInstance(appContext).enqueueUniqueWork(
+                WORK_PAUSE_RESUME,
+                ExistingWorkPolicy.REPLACE,
+                request,
+            )
+        }
+    }
+
+    fun cancelPauseResume() {
+        runCatching {
+            WorkManager.getInstance(appContext).cancelUniqueWork(WORK_PAUSE_RESUME)
+        }
+    }
+
     fun cancelRetry() {
         runCatching {
             WorkManager.getInstance(appContext).cancelUniqueWork(WORK_RETRY)
@@ -75,11 +96,13 @@ class WorkScheduler(context: Context) {
     fun cancelAll() {
         cancelMaintenance()
         cancelRetry()
+        cancelPauseResume()
     }
 
     companion object {
         const val WORK_MAINTENANCE = "sms2bark_maintenance"
         const val WORK_RETRY = "sms2bark_retry"
+        const val WORK_PAUSE_RESUME = "sms2bark_pause_resume"
 
         /** WorkManager's minimum periodic interval. */
         const val MAINTENANCE_INTERVAL_MINUTES = 15L

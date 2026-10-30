@@ -73,7 +73,11 @@ data class AppSettings(
     val maxRecords: Int = 500,
     /** Check GitHub Releases for a new version at most once per 24h. */
     val autoUpdateCheck: Boolean = true,
+    /** Temporary pause from the ongoing notification; 0 = not paused. */
+    val pauseUntil: Long = 0L,
 ) {
+    fun isPaused(now: Long = System.currentTimeMillis()): Boolean = pauseUntil > now
+
     /** True once the user has configured a server and a device key. */
     val isConfigured: Boolean get() = serverUrl.isNotBlank() && deviceKey.isNotBlank()
 

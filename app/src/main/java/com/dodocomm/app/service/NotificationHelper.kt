@@ -35,6 +35,8 @@ object NotificationHelper {
     private const val REQUEST_CODE_OPEN = 100
     private const val REQUEST_CODE_PAUSE = 101
     private const val REQUEST_CODE_TEST = 102
+    private const val REQUEST_CODE_PAUSE_30 = 104
+    private const val REQUEST_CODE_RESUME = 105
     private const val REQUEST_CODE_BOOT_RECOVERY = 103
 
     @Volatile
@@ -84,8 +86,10 @@ object NotificationHelper {
         val settings = container.settings.current()
         val stats = container.history.stats.value
         val last = container.history.lastRecord()
+        val pausedMinutes = ((settings.pauseUntil - System.currentTimeMillis()) / 60_000L).toInt() + 1
         val text = statusText ?: when {
             !settings.forwardingEnabled -> context.getString(R.string.notify_paused)
+            settings.isPaused() -> context.getString(R.string.notify_paused_until, pausedMinutes.coerceAtLeast(1))
             last != null -> context.getString(
                 R.string.notify_ongoing_last,
                 stats.sent,
@@ -100,8 +104,14 @@ object NotificationHelper {
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setContentIntent(openAppIntent(context))
-            .addAction(R.drawable.ic_stat_notify, context.getString(R.string.notify_action_pause), pauseIntent(context))
-            .addAction(R.drawable.ic_stat_notify, context.getString(R.string.notify_action_test), testPushIntent(context))
+            .apply {
+                if (settings.isPaused()) {
+                    addAction(R.drawable.ic_stat_notify, context.getString(R.string.notify_action_resume), resumeIntent(context))
+                } else {
+                    addAction(R.drawable.ic_stat_notify, context.getString(R.string.notify_action_pause_30), pause30Intent(context))
+                }
+                addAction(R.drawable.ic_stat_notify, context.getString(R.string.notify_action_test), testPushIntent(context))
+            }
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setSilent(true)
@@ -200,6 +210,12 @@ object NotificationHelper {
 
     private fun pauseIntent(context: Context): PendingIntent =
         serviceAction(context, ForwardService.ACTION_STOP, REQUEST_CODE_PAUSE)
+
+    private fun pause30Intent(context: Context): PendingIntent =
+        serviceAction(context, ForwardService.ACTION_PAUSE_30, REQUEST_CODE_PAUSE_30)
+
+    private fun resumeIntent(context: Context): PendingIntent =
+        serviceAction(context, ForwardService.ACTION_RESUME, REQUEST_CODE_RESUME)
 
     private fun testPushIntent(context: Context): PendingIntent =
         serviceAction(context, ForwardService.ACTION_TEST_PUSH, REQUEST_CODE_TEST)

@@ -18,7 +18,10 @@
     <string name="notify_paused">转发已暂停，点击开关可恢复</string>
     <string name="notify_unknown_sender">未知号码</string>
     <string name="notify_action_pause">暂停</string>
+    <string name="notify_action_pause_30">暂停30分</string>
+    <string name="notify_action_resume">恢复转发</string>
     <string name="notify_action_test">测试</string>
+    <string name="notify_paused_until">已临时暂停转发 · 约 %1$d 分钟后自动恢复</string>
 
     <!-- Boot recovery: shown when the system/OEM refuses the boot-time FGS start -->
     <string name="notify_boot_recovery_title">嘟嘟可暂时掉线了</string>

@@ -76,6 +76,7 @@ class SettingsRepository(context: Context) {
             retentionDays = prefs.getInt(KEY_RETENTION_DAYS, defaults.retentionDays),
             maxRecords = prefs.getInt(KEY_MAX_RECORDS, defaults.maxRecords),
             autoUpdateCheck = prefs.getBoolean(KEY_AUTO_UPDATE_CHECK, defaults.autoUpdateCheck),
+            pauseUntil = prefs.getLong(KEY_PAUSE_UNTIL, defaults.pauseUntil),
         )
     }
 
@@ -111,6 +112,7 @@ class SettingsRepository(context: Context) {
             .putInt(KEY_RETENTION_DAYS, settings.retentionDays)
             .putInt(KEY_MAX_RECORDS, settings.maxRecords)
             .putBoolean(KEY_AUTO_UPDATE_CHECK, settings.autoUpdateCheck)
+            .putLong(KEY_PAUSE_UNTIL, settings.pauseUntil)
             .commit()
     }
 
@@ -147,6 +149,7 @@ class SettingsRepository(context: Context) {
         private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_RECORD_FILTERED = "record_filtered"
         private const val KEY_AUTO_UPDATE_CHECK = "auto_update_check"
+        private const val KEY_PAUSE_UNTIL = "pause_until"
 
         fun encodeList(values: List<String>): String {
             val array = JSONArray()

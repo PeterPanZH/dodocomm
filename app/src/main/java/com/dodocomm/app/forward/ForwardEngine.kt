@@ -51,6 +51,10 @@ class ForwardEngine(
     suspend fun handleIncoming(payload: SmsPayload): ForwardRecord? {
         val settings = container.settings.current()
         if (!settings.forwardingEnabled) return null
+        if (settings.isPaused()) {
+            Log.i(TAG, "临时暂停中，跳过短信 sender=${payload.sender}")
+            return null
+        }
 
         val decision = FilterRules.evaluate(settings, payload)
         if (!decision.forward && !settings.recordFilteredMessages) {
@@ -158,7 +162,7 @@ class ForwardEngine(
         if (!retryMutex.tryLock()) return false // another retry pass is already running
         try {
             val settings = container.settings.current()
-            if (!settings.forwardingEnabled || !settings.isConfigured) return false
+            if (!settings.forwardingEnabled || !settings.isConfigured || settings.isPaused()) return false
 
             val candidates = container.history.listForRetry(
                 limit = RETRY_BATCH_SIZE,
