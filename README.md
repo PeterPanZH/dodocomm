@@ -11,7 +11,7 @@
 | --- | --- | --- |
 | ![首页](screenshots/home_light.png) | ![记录](screenshots/history_light.png) | ![后台选项](screenshots/settings_light_reliability.png) |
 
-> 深色模式、记录详情、设置页等更多截图见 [`screenshots/`](screenshots/)。
+> 深色模式、记录详情、设置页、应用内更新等更多截图见 [`screenshots/`](screenshots/)。
 
 ## 功能
 
@@ -118,7 +118,7 @@ sms2bark/
 │   └── ui/         Compose 界面与主题
 ├── docs/           架构、UI 规范、使用说明
 ├── scripts/        模拟器 / Mock Bark / E2E 脚本
-├── screenshots/    真机界面截图（模拟器实拍）
+├── screenshots/    界面截图（模拟器实拍）
 └── release/        交付 APK
 ```
 
