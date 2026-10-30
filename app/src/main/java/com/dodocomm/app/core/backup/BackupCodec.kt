@@ -15,6 +15,8 @@ data class BackupInfo(
     val hasDeviceWrapper: Boolean,
 )
 
+data class WrappedKey(val iv: ByteArray, val ciphertext: ByteArray)
+
 /**
  * Password + device-key protection for a backup file.
  *
@@ -35,7 +37,7 @@ object BackupCodec {
     fun encode(
         payload: String,
         password: String,
-        deviceKey: ByteArray?,
+        deviceWrap: ((ByteArray) -> WrappedKey)? = null,
     ): ByteArray {
         require(password.length >= 8) { "备份密码至少 8 位" }
         val random = SecureRandom()
@@ -61,12 +63,10 @@ object BackupCodec {
             .put("payloadIv", b64(payloadIv))
             .put("payload", b64(payloadCiphertext))
 
-        if (deviceKey != null) {
-            val deviceIv = ByteArray(GCM_IV_BYTES).also(random::nextBytes)
-            val wrappedWithDevice = aesGcm(Cipher.ENCRYPT_MODE, deviceKey, deviceIv)
-                .doFinal(dek)
-            json.put("deviceIv", b64(deviceIv))
-            json.put("deviceWrappedDek", b64(wrappedWithDevice))
+        if (deviceWrap != null) {
+            val wrapped = deviceWrap(dek)
+            json.put("deviceIv", b64(wrapped.iv))
+            json.put("deviceWrappedDek", b64(wrapped.ciphertext))
         }
         return json.toString(2).toByteArray(Charsets.UTF_8)
     }
@@ -91,14 +91,16 @@ object BackupCodec {
         return decryptPayload(json, dek)
     }
 
-    fun decodeWithDeviceKey(bytes: ByteArray, deviceKey: ByteArray): String {
+    fun decodeWithDeviceWrapper(
+        bytes: ByteArray,
+        unwrap: (iv: ByteArray, ciphertext: ByteArray) -> ByteArray,
+    ): String {
         val json = root(bytes)
         require(json.has("deviceWrappedDek")) { "该备份没有本机快速恢复信息" }
-        val dek = aesGcm(
-            Cipher.DECRYPT_MODE,
-            deviceKey,
+        val dek = unwrap(
             unb64(json.getString("deviceIv")),
-        ).doFinal(unb64(json.getString("deviceWrappedDek")))
+            unb64(json.getString("deviceWrappedDek")),
+        )
         return decryptPayload(json, dek)
     }
 

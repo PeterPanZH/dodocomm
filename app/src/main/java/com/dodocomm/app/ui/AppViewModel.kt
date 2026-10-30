@@ -299,6 +299,39 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setMaxRecords(max: Int) = updateSettings { it.copy(maxRecords = max) }
 
+    /** Exports an encrypted configuration backup to a SAF [uri]. */
+    fun exportBackup(uri: Uri, password: String) {
+        viewModelScope.launch {
+            runCatching { container.backupManager.export(uri, password, container.settings.current()) }
+                .onSuccess { postSnackbar("备份已导出（密码 + 本机密钥双重保护）") }
+                .onFailure { postSnackbar("备份导出失败：${it.message ?: "未知错误"}", isError = true) }
+        }
+    }
+
+    fun importBackupWithPassword(uri: Uri, password: String) {
+        viewModelScope.launch {
+            runCatching { container.backupManager.importWithPassword(uri, password) }
+                .onSuccess { restored ->
+                    container.settings.update { restored }
+                    container.serviceController.startIfEnabled()
+                    postSnackbar("配置已恢复")
+                }
+                .onFailure { postSnackbar("恢复失败：${it.message ?: "密码错误或文件损坏"}", isError = true) }
+        }
+    }
+
+    fun importBackupWithDevice(uri: Uri) {
+        viewModelScope.launch {
+            runCatching { container.backupManager.importWithDeviceKey(uri) }
+                .onSuccess { restored ->
+                    container.settings.update { restored }
+                    container.serviceController.startIfEnabled()
+                    postSnackbar("已通过本机密钥恢复配置")
+                }
+                .onFailure { postSnackbar("本机恢复失败：${it.message ?: "请改用密码恢复"}", isError = true) }
+        }
+    }
+
     /** Exports records to a user-picked SAF [uri]. */
     fun exportRecords(uri: Uri, format: ExportFormat, range: ExportRange, masked: Boolean) {
         viewModelScope.launch {

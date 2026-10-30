@@ -2,6 +2,7 @@
 
 package com.dodocomm.app.ui.screens
 
+import android.net.Uri
 import android.os.Build
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -52,6 +53,7 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -64,6 +66,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -71,6 +75,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
 import com.dodocomm.app.BuildConfig
 import com.dodocomm.app.core.export.ExportFormat
 import com.dodocomm.app.core.export.ExportRange
@@ -129,6 +134,23 @@ fun SettingsScreen(
                 range = ExportRange.valueOf(exportRangeName),
                 masked = exportMasked,
             )
+        }
+    }
+    var showBackupExportDialog by rememberSaveable { mutableStateOf(false) }
+    var showBackupImportDialog by rememberSaveable { mutableStateOf(false) }
+    var pendingBackupPassword by rememberSaveable { mutableStateOf("") }
+    var pendingImportUri by remember { mutableStateOf<Uri?>(null) }
+    val backupExportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/octet-stream"),
+    ) { uri ->
+        if (uri != null) viewModel.exportBackup(uri, pendingBackupPassword)
+    }
+    val backupImportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri != null) {
+            pendingImportUri = uri
+            showBackupImportDialog = true
         }
     }
     val deviceLabel = remember { OemGuides.detect().deviceLabel }
@@ -236,6 +258,8 @@ fun SettingsScreen(
                 onSetMaxRecords = viewModel::setMaxRecords,
                 onPruneNow = viewModel::pruneNow,
                 onExportRecords = { showExportDialog = true },
+                onBackup = { showBackupExportDialog = true },
+                onRestore = { backupImportLauncher.launch(arrayOf("application/octet-stream", "*/*")) },
             )
             Spacer(Modifier.height(20.dp))
         }
@@ -335,6 +359,58 @@ fun SettingsScreen(
                 showExportDialog = false
                 val date = LocalDate.now().toString()
                 exportLauncher.launch("dodocomm-records-$date.${format.extension}")
+            },
+        )
+    }
+
+    if (showBackupExportDialog) {
+        BackupPasswordDialog(
+            title = "导出配置备份",
+            confirmLabel = "导出",
+            onDismiss = { showBackupExportDialog = false },
+            onConfirm = { password ->
+                pendingBackupPassword = password
+                showBackupExportDialog = false
+                backupExportLauncher.launch("dodocomm-backup-${LocalDate.now()}.dodocomm-backup")
+            },
+        )
+    }
+
+    if (showBackupImportDialog) {
+        BackupImportDialog(
+            biometricAvailable = biometricAvailable,
+            onDismiss = {
+                showBackupImportDialog = false
+                pendingImportUri = null
+            },
+            onPassword = { password ->
+                pendingImportUri?.let { viewModel.importBackupWithPassword(it, password) }
+                showBackupImportDialog = false
+            },
+            onBiometric = {
+                val uri = pendingImportUri ?: return@BackupImportDialog
+                val activity = context as? FragmentActivity
+                if (activity == null) {
+                    viewModel.importBackupWithDevice(uri)
+                } else {
+                    val prompt = BiometricPrompt(
+                        activity,
+                        ContextCompat.getMainExecutor(activity),
+                        object : BiometricPrompt.AuthenticationCallback() {
+                            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                                viewModel.importBackupWithDevice(uri)
+                            }
+                        },
+                    )
+                    val info = BiometricPrompt.PromptInfo.Builder()
+                        .setTitle("恢复配置备份")
+                        .setSubtitle("验证指纹或面容后使用本机密钥")
+                        .setNegativeButtonText("取消")
+                        .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK)
+                        .build()
+                    runCatching { prompt.authenticate(info) }
+                }
+                showBackupImportDialog = false
             },
         )
     }
@@ -781,6 +857,8 @@ private fun DataCard(
     onSetMaxRecords: (Int) -> Unit,
     onPruneNow: () -> Unit,
     onExportRecords: () -> Unit,
+    onBackup: () -> Unit,
+    onRestore: () -> Unit,
 ) {
     var retentionExpanded by remember { mutableStateOf(false) }
     var maxExpanded by remember { mutableStateOf(false) }
@@ -834,6 +912,20 @@ private fun DataCard(
                 }
             }
         }
+        RowDivider()
+        SettingActionRow(
+            title = "备份配置",
+            subtitle = "密码短语 + 本机密钥加密，换机可恢复",
+            icon = Icons.Rounded.Lock,
+            onClick = onBackup,
+        )
+        RowDivider()
+        SettingActionRow(
+            title = "恢复配置",
+            subtitle = "从 .dodocomm-backup 文件恢复推送设置",
+            icon = Icons.Rounded.Refresh,
+            onClick = onRestore,
+        )
         RowDivider()
         SettingActionRow(
             title = "导出记录",
@@ -1032,6 +1124,103 @@ private fun ExportRecordsDialog(
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(format, range, masked) }) { Text("选择保存位置") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+    )
+}
+
+@Composable
+private fun BackupPasswordDialog(
+    title: String,
+    confirmLabel: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+) {
+    var password by remember { mutableStateOf("") }
+    var confirm by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf<String?>(null) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    "密码用于跨设备恢复；同时会绑定本机密钥，本机可用指纹快速恢复。",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("备份密码（至少 8 位）") },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                )
+                OutlinedTextField(
+                    value = confirm,
+                    onValueChange = { confirm = it },
+                    label = { Text("确认密码") },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                )
+                error?.let {
+                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                error = when {
+                    password.length < 8 -> "密码至少 8 位"
+                    password != confirm -> "两次输入的密码不一致"
+                    else -> {
+                        onConfirm(password)
+                        null
+                    }
+                }
+            }) { Text(confirmLabel) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+    )
+}
+
+@Composable
+private fun BackupImportDialog(
+    biometricAvailable: Boolean,
+    onDismiss: () -> Unit,
+    onPassword: (String) -> Unit,
+    onBiometric: () -> Unit,
+) {
+    var password by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("恢复配置备份") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    "导入会替换推送、规则、外观等设置；应用锁与历史记录保持不变。",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (biometricAvailable) {
+                    OutlinedButton(onClick = onBiometric, modifier = Modifier.fillMaxWidth()) {
+                        Text("使用本机指纹 / 面容恢复")
+                    }
+                    Text("或使用备份密码：", style = MaterialTheme.typography.labelMedium)
+                }
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("备份密码") },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                if (password.isNotEmpty()) onPassword(password)
+            }) { Text("用密码恢复") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
     )

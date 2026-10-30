@@ -5,6 +5,7 @@ import com.dodocomm.app.bark.BarkClient
 import com.dodocomm.app.core.db.HistoryDao
 import com.dodocomm.app.core.db.HistoryDatabase
 import com.dodocomm.app.core.db.HistoryRepository
+import com.dodocomm.app.core.backup.BackupManager
 import com.dodocomm.app.core.export.RecordExporter
 import com.dodocomm.app.core.settings.SettingsRepository
 import com.dodocomm.app.core.update.UpdateClient
@@ -33,6 +34,7 @@ class AppContainer(context: Context) {
     val forwardEngine: ForwardEngine by lazy { ForwardEngine(appContext, this) }
     val workScheduler: WorkScheduler by lazy { WorkScheduler(appContext) }
     val recordExporter: RecordExporter by lazy { RecordExporter(appContext) }
+    val backupManager: BackupManager by lazy { BackupManager(appContext) }
     val updateClient: UpdateClient by lazy { UpdateClient() }
     val updatePrefs: UpdatePrefs by lazy { UpdatePrefs(appContext) }
 

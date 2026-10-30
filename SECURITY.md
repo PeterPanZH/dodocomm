@@ -24,6 +24,11 @@ users at risk. Include the affected version, reproduction steps and impact.
   `local.properties`, build outputs and verification evidence are gitignored.
   GitHub Actions signs releases using encrypted repository secrets; the current
   release certificate is `CN=DodoComm, O=DodoComm Contributors`.
+- **Backup encryption**: configuration backups are encrypted with AES-256-GCM
+  using a random data key. The data key is wrapped by a PBKDF2 password-derived
+  key and by a device-bound Android Keystore key; the local path is gated behind
+  biometric authentication in the UI. Backup files never contain history or the
+  app-lock PIN.
 - **Update integrity**: in-app updates only accept a higher `versionCode`, verify
   the SHA-256 and file size from `latest.json`, verify the APK signing certificate
   matches the running app, and then hand the APK to the system installer. There is
