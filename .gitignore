@@ -1,0 +1,36 @@
+# --- build & toolchain ---
+*.iml
+.gradle/
+build/
+app/build/
+captures/
+.externalNativeBuild/
+.cxx/
+toolchain/
+.home/
+tmp/
+
+# --- local machine / signing secrets ---
+local.properties
+keystore.properties
+keystore/
+*.jks
+*.keystore
+
+# --- release binaries / archives ---
+release/
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+.DS_Store
+
+# --- screenshots that may reveal device keys or credentials ---
+# device/config screenshots are local-only
+screenshots/device_*.png
+screenshots/device_config_test*.png
+screenshots/device_config_final*.png
+screenshots/device_sony_config_test*.png
+
+# --- local verification evidence / logs ---
+verify/

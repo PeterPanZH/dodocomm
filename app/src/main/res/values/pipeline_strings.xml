@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Notification strings owned by pipeline-dev. UI strings live in the UI layer /
+  values/strings.xml (Lead). Keep all user-facing notification copy here.
+-->
+<resources>
+    <!-- Channels -->
+    <string name="notify_channel_service">短信转发服务</string>
+    <string name="notify_channel_service_desc">常驻通知，用于让系统保持短信转发服务运行</string>
+    <string name="notify_channel_alerts">转发提醒</string>
+    <string name="notify_channel_alerts_desc">转发失败等重要提醒</string>
+
+    <!-- Ongoing foreground-service notification -->
+    <string name="notify_title">嘟嘟通讯</string>
+    <string name="notify_ongoing_idle">嘟嘟可待命中 · 今日已送出 %1$d 条</string>
+    <string name="notify_ongoing_stats">嘟嘟可送信中 · 今日已送出 %1$d 条</string>
+    <string name="notify_ongoing_last">嘟嘟可刚送出一条信 · 今日 %1$d 条 · 最新 %2$s %3$s</string>
+    <string name="notify_paused">转发已暂停，点击开关可恢复</string>
+    <string name="notify_unknown_sender">未知号码</string>
+    <string name="notify_action_pause">暂停</string>
+    <string name="notify_action_test">测试</string>
+
+    <!-- Boot recovery: shown when the system/OEM refuses the boot-time FGS start -->
+    <string name="notify_boot_recovery_title">嘟嘟可暂时掉线了</string>
+    <string name="notify_boot_recovery_text">点按打开应用叫醒嘟嘟可继续送信（短信接收本身不受影响）</string>
+
+    <!-- Test push feedback shown in the ongoing notification -->
+    <string name="notify_test_sending">正在发送测试推送…</string>
+    <string name="notify_test_success">测试推送成功 ✅</string>
+    <string name="notify_test_failed">测试推送失败：%1$s</string>
+</resources>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- SMS receiving: the only sensitive permission needed. SMS bodies are only
+         sent to the Bark server configured by the user. -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <!-- The app is a phone tool; this also silences the ChromeOS hardware lint
+         check without claiming telephony when installed on non-phone devices. -->
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- Used to guide the user to the system battery-optimization screen. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!-- Optional: resolves a friendly dual-SIM label (e.g. "SIM 2 · 中国移动").
+         The app works without it. -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <!-- In-app update: only used after the user taps "download & install". -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <!-- Package visibility for OEM background-management settings screens. -->
+    <queries>
+        <package android:name="com.coloros.safecenter" />
+        <package android:name="com.oppo.safe" />
+        <package android:name="com.coloros.oppoguardelf" />
+        <package android:name="com.oplus.battery" />
+        <package android:name="com.android.settings" />
+    </queries>
+
+    <application
+        android:name=".Sms2BarkApp"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Sms2Bark"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="36">
+
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.Sms2Bark"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!-- Persistent foreground service. specialUse is time-unlimited and is
+             explicitly allowed to be started from BOOT_COMPLETED on Android 15+. -->
+        <service
+            android:name=".service.ForwardService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse"
+            android:stopWithTask="false">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Forward incoming SMS to the user's Bark push server" />
+        </service>
+
+        <!-- Manifest receiver: works even when the app process was not running. -->
+        <!-- SMS_RECEIVED is a protected system broadcast: only the telephony
+             stack can send it, so a receiver-level sender permission is not
+             needed and could vary across OEM telephony stacks. -->
+        <receiver
+            android:name=".sms.SmsReceiver"
+            android:exported="true"
+            tools:ignore="UnprotectedSmsBroadcastReceiver">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Restores the forwarding service after reboot / app update. -->
+        <receiver
+            android:name=".service.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

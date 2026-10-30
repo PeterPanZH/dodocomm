@@ -1,0 +1,275 @@
+package com.dodocomm.app.forward
+
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.util.Log
+import com.dodocomm.app.AppContainer
+import com.dodocomm.app.bark.BarkClient
+import com.dodocomm.app.core.model.BarkResult
+import com.dodocomm.app.core.model.ForwardRecord
+import com.dodocomm.app.core.model.ForwardStatus
+import com.dodocomm.app.core.model.SmsPayload
+import com.dodocomm.app.core.settings.AppSettings
+import com.dodocomm.app.core.util.Hashing
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.withContext
+
+/**
+ * The SMS → Bark pipeline: filtering, title rendering, history persistence,
+ * immediate delivery and the retry queue.
+ *
+ * All methods are safe to call from any dispatcher: database and HTTP work are
+ * delegated to [HistoryRepository] / [BarkClient], which both run on IO. A
+ * per-record in-flight guard plus a retry mutex prevent duplicate pushes when
+ * the receiver, a retry worker and a user "resend" race each other.
+ */
+class ForwardEngine(
+    context: Context,
+    private val container: AppContainer,
+) {
+    private val appContext: Context = context.applicationContext
+
+    /** Ids currently being delivered; prevents concurrent duplicate pushes. */
+    private val inFlightIds: MutableSet<Long> = ConcurrentHashMap.newKeySet()
+
+    /** Only one retry pass may scan/send at a time (worker + maintenance overlap). */
+    private val retryMutex = Mutex()
+
+    /**
+     * Handles one parsed SMS.
+     *
+     * @return the created history row, or `null` when nothing was recorded
+     *   (forwarding disabled, duplicate broadcast, or filtered-and-not-recorded).
+     */
+    suspend fun handleIncoming(payload: SmsPayload): ForwardRecord? {
+        val settings = container.settings.current()
+        if (!settings.forwardingEnabled) return null
+
+        val decision = FilterRules.evaluate(settings, payload)
+        if (!decision.forward && !settings.recordFilteredMessages) {
+            container.serviceController.refreshNotification()
+            return null
+        }
+
+        val title = TitleTemplate.render(settings.titleTemplate, payload)
+        val baseRecord = ForwardRecord(
+            sender = payload.sender.trim(),
+            body = payload.body,
+            receivedAt = payload.receivedAt,
+            createdAt = System.currentTimeMillis(),
+            simLabel = payload.simLabel?.trim()?.takeIf { it.isNotEmpty() },
+            subscriptionId = payload.subscriptionId,
+            status = if (decision.forward) ForwardStatus.PENDING else ForwardStatus.FILTERED,
+            attempts = 0,
+            error = if (decision.forward) null else decision.reason,
+            title = title,
+        )
+        val dedupeKey = Hashing.sha256("${payload.sender}|${payload.smsTimestamp}|${payload.body}")
+        val id = container.history.insert(baseRecord, dedupeKey)
+        if (id == -1L) {
+            // Duplicate broadcast / re-delivery: the original row already wins.
+            Log.i(TAG, "重复短信，跳过 sender=${payload.sender} ts=${payload.smsTimestamp}")
+            return null
+        }
+        val record = baseRecord.copy(id = id)
+
+        if (!decision.forward) {
+            Log.i(TAG, "短信被过滤 id=$id reason=${decision.reason}")
+            container.serviceController.refreshNotification()
+            return record
+        }
+
+        if (!settings.isConfigured) {
+            Log.w(TAG, "已收到短信但未配置 Bark 服务器 id=$id")
+            container.history.updateResult(
+                id = id,
+                status = ForwardStatus.FAILED,
+                attempts = 0,
+                error = BarkClient.ERROR_NOT_CONFIGURED,
+            )
+            // No retry enqueue: the periodic maintenance pass will pick this row
+            // up once the user has configured a server.
+            container.serviceController.refreshNotification()
+            return record.copy(status = ForwardStatus.FAILED, error = BarkClient.ERROR_NOT_CONFIGURED)
+        }
+
+        val result = try {
+            deliver(record, settings, scheduleRetryOnFailure = true)
+        } catch (e: CancellationException) {
+            // The receiver's 8s guard (or a cancelled service scope) interrupted
+            // the HTTP call. Keep the row retryable and make sure WorkManager
+            // will pick it up.
+            withContext(NonCancellable) {
+                markInterrupted(id)
+                container.workScheduler.enqueueRetry()
+                container.serviceController.refreshNotification()
+            }
+            throw e
+        }
+
+        Log.i(
+            TAG,
+            "短信处理完成 id=$id status=${if (result.success) "SENT" else "FAILED"} code=${result.code}",
+        )
+        return container.history.get(id) ?: record.copy(
+            status = if (result.success) ForwardStatus.SENT else ForwardStatus.FAILED,
+            attempts = record.attempts + 1,
+            error = if (result.success) null else result.message,
+            barkResponse = result.rawBody,
+        )
+    }
+
+    /** Sends a one-off test push with the current settings; never touches history. */
+    suspend fun sendTestPush(): BarkResult {
+        val settings = container.settings.current()
+        val clock = DateTimeFormatter.ofPattern("HH:mm:ss", Locale.CHINA).format(LocalTime.now())
+        return container.barkClient.send(
+            settings = settings,
+            title = "嘟嘟通讯 测试推送",
+            body = "嘟嘟可报到！测试推送成功 ✅ 时间 $clock",
+        )
+    }
+
+    /** Re-sends an existing history record (user action on the detail sheet). */
+    suspend fun resend(recordId: Long): BarkResult {
+        val settings = container.settings.current()
+        if (!settings.isConfigured) return BarkResult.failure(BarkClient.ERROR_NOT_CONFIGURED)
+        val record = container.history.get(recordId)
+            ?: return BarkResult.failure("记录不存在或已被删除")
+        return deliver(record, settings, scheduleRetryOnFailure = true)
+    }
+
+    /**
+     * Delivers a batch of PENDING/FAILED rows.
+     *
+     * @return `true` when retryable rows remain (the caller should let
+     *   WorkManager retry with backoff). Returns `false` while offline after
+     *   enqueueing a network-constrained [WorkScheduler.enqueueRetry] instead,
+     *   so no send attempts are wasted without a network.
+     */
+    suspend fun retryPending(): Boolean {
+        if (!retryMutex.tryLock()) return false // another retry pass is already running
+        try {
+            val settings = container.settings.current()
+            if (!settings.forwardingEnabled || !settings.isConfigured) return false
+
+            val candidates = container.history.listForRetry(
+                limit = RETRY_BATCH_SIZE,
+                maxAttempts = MAX_ATTEMPTS,
+            )
+            if (candidates.isEmpty()) return false
+            if (!hasNetworkConnection()) {
+                container.workScheduler.enqueueRetry()
+                return false
+            }
+
+            for (candidate in candidates) {
+                val record = container.history.get(candidate.id) ?: continue
+                if (record.status != ForwardStatus.PENDING && record.status != ForwardStatus.FAILED) continue
+                if (record.attempts >= MAX_ATTEMPTS) continue
+                deliver(record, settings, scheduleRetryOnFailure = false)
+            }
+
+            return container.history
+                .listForRetry(limit = 1, maxAttempts = MAX_ATTEMPTS)
+                .isNotEmpty()
+        } finally {
+            retryMutex.unlock()
+        }
+    }
+
+    // ------------------------------------------------------------------ internals
+
+    /**
+     * Performs exactly one Bark attempt for [record] and persists the outcome.
+     * The per-record in-flight guard makes concurrent duplicate sends impossible.
+     */
+    private suspend fun deliver(
+        record: ForwardRecord,
+        settings: AppSettings,
+        scheduleRetryOnFailure: Boolean,
+    ): BarkResult {
+        if (!inFlightIds.add(record.id)) {
+            return BarkResult.failure("该短信正在发送中，请稍后")
+        }
+        try {
+            val title = record.title?.takeIf { it.isNotBlank() }
+                ?: TitleTemplate.render(settings.titleTemplate, record.toPayload())
+            val result = container.barkClient.send(settings, title, record.body)
+            val attempts = record.attempts + 1
+            if (result.success) {
+                container.history.updateResult(
+                    id = record.id,
+                    status = ForwardStatus.SENT,
+                    attempts = attempts,
+                    error = null,
+                    response = result.rawBody,
+                )
+            } else {
+                container.history.updateResult(
+                    id = record.id,
+                    status = ForwardStatus.FAILED,
+                    attempts = attempts,
+                    error = result.message,
+                    response = result.rawBody,
+                )
+                if (scheduleRetryOnFailure) container.workScheduler.enqueueRetry()
+            }
+            return result
+        } finally {
+            inFlightIds.remove(record.id)
+            container.serviceController.refreshNotification()
+        }
+    }
+
+    /** Called under [NonCancellable] when an in-flight delivery was cancelled. */
+    private suspend fun markInterrupted(recordId: Long) {
+        val current = container.history.get(recordId) ?: return
+        if (current.status != ForwardStatus.PENDING) return
+        container.history.updateResult(
+            id = recordId,
+            status = ForwardStatus.PENDING,
+            attempts = current.attempts,
+            error = INTERRUPTED_ERROR,
+        )
+    }
+
+    private fun ForwardRecord.toPayload(): SmsPayload = SmsPayload(
+        sender = sender,
+        body = body,
+        smsTimestamp = receivedAt,
+        receivedAt = receivedAt,
+        subscriptionId = subscriptionId,
+        simLabel = simLabel,
+    )
+
+    /** Cheap network probe; used only to avoid burning retry attempts while offline. */
+    private fun hasNetworkConnection(): Boolean = try {
+        val manager = appContext.getSystemService(ConnectivityManager::class.java) ?: return true
+        val network = manager.activeNetwork ?: return false
+        val capabilities = manager.getNetworkCapabilities(network) ?: return false
+        capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    } catch (e: Exception) {
+        Log.w(TAG, "读取网络状态失败，按有网处理", e)
+        true
+    }
+
+    companion object {
+        /** A row is never attempted again after this many Bark calls. */
+        const val MAX_ATTEMPTS: Int = 5
+
+        /** Rows handled per retry pass (WorkManager batch). */
+        const val RETRY_BATCH_SIZE: Int = 10
+
+        internal const val INTERRUPTED_ERROR = "发送被中断，已加入自动重试队列"
+
+        private const val TAG = "SMS2BARK"
+    }
+}

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <g id="dodoco">
+    <circle cx="200" cy="300" r="45" fill="#FFFFFF" stroke="#C4563B" stroke-width="6"/>
+    <circle cx="200" cy="300" r="30" fill="#FFF4ED"/>
+    <path d="M 120 180 C 70 80, 110 30, 145 60 C 180 90, 170 150, 155 180 Z" fill="#D95D39" stroke="#9E361D" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M 125 160 C 90 90, 115 60, 135 80 C 155 100, 150 140, 142 160 Z" fill="#FFFFFF"/>
+    <path d="M 280 180 C 330 80, 290 30, 255 60 C 220 90, 230 150, 245 180 Z" fill="#D95D39" stroke="#9E361D" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M 275 160 C 310 90, 285 60, 265 80 C 245 100, 250 140, 258 160 Z" fill="#FFFFFF"/>
+    <ellipse cx="200" cy="210" rx="75" ry="65" fill="#D95D39" stroke="#9E361D" stroke-width="6"/>
+    <ellipse cx="200" cy="225" rx="50" ry="40" fill="#FFFFFF"/>
+    <g transform="translate(200, 175) scale(0.7)" fill="#F0714F">
+      <circle cx="-15" cy="0" r="12"/>
+      <circle cx="15" cy="0" r="12"/>
+      <circle cx="0" cy="-15" r="12"/>
+      <circle cx="0" cy="15" r="12"/>
+      <path d="M-5,5 L5,5 L0,25 Z"/>
+    </g>
+    <path d="M 160 200 L 175 210 L 160 220" fill="none" stroke="#7A3322" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 240 200 L 225 210 L 240 220" fill="none" stroke="#7A3322" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 190 222 C 190 230, 200 230, 200 222 C 200 230, 210 230, 210 222" fill="none" stroke="#7A3322" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="150" cy="225" rx="10" ry="6" fill="#F0714F" opacity="0.6"/>
+    <ellipse cx="250" cy="225" rx="10" ry="6" fill="#F0714F" opacity="0.6"/>
+    <ellipse cx="126" cy="232" rx="16" ry="12" fill="#D95D39" stroke="#9E361D" stroke-width="5"/>
+    <ellipse cx="274" cy="232" rx="16" ry="12" fill="#D95D39" stroke="#9E361D" stroke-width="5"/>
+  </g>
+</svg>
