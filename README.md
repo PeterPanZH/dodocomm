@@ -125,7 +125,7 @@ sms2bark/
 ## 已验证（Android 16 模拟器，端到端）
 
 **构建 / 质量**
-- `assembleDebug`、`assembleRelease`（R8 压缩 + 资源收缩）均构建成功；**单元测试 38/38 通过**；`lintDebug` **0 errors**（14 warnings 为风格/版本提示）。
+- `assembleDebug`、`assembleRelease`（R8 压缩 + 资源收缩）均构建成功；**单元测试 41/41 通过**；`lintDebug` **0 errors**（14 warnings 为风格/版本提示）。
 - Release APK：约 2.4 MB，V3 签名；模拟器 release 冷启动约 250 ms（debug 约 940 ms）。
 
 **功能端到端（release 构建，真实 UI 操作，无 debug 后门）**
