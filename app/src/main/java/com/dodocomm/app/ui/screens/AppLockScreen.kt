@@ -1,5 +1,6 @@
 package com.dodocomm.app.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +21,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import com.dodocomm.app.ui.components.PinDots
+import com.dodocomm.app.ui.components.PinKeypad
 import com.dodocomm.app.ui.components.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,17 +30,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dodocomm.app.R
 import com.dodocomm.app.core.security.AppLock
 import com.dodocomm.app.ui.theme.BrandGradientDark
 import com.dodocomm.app.ui.theme.BrandGradientLight
@@ -56,6 +62,14 @@ fun AppLockScreen(
     var failedAttempts by remember { mutableStateOf(0) }
     var lockedUntil by remember { mutableLongStateOf(0L) }
     var remaining by remember { mutableStateOf(0) }
+    var autoBiometricRequested by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(biometricEnabled) {
+        if (biometricEnabled && !autoBiometricRequested) {
+            autoBiometricRequested = true
+            onBiometric()
+        }
+    }
 
     LaunchedEffect(lockedUntil) {
         if (lockedUntil <= 0L) {
@@ -125,7 +139,11 @@ fun AppLockScreen(
                 modifier = Modifier.size(86.dp),
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text("D", fontSize = 38.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    Image(
+                        painter = painterResource(R.drawable.dodoco_mascot),
+                        contentDescription = null,
+                        modifier = Modifier.size(66.dp),
+                    )
                 }
             }
             Spacer(Modifier.height(22.dp))
@@ -137,20 +155,7 @@ fun AppLockScreen(
                 color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f),
             )
             Spacer(Modifier.height(26.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                repeat(AppLock.PIN_LENGTH) { index ->
-                    val filled = index < pin.length
-                    Box(
-                        modifier = Modifier
-                            .size(15.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (filled) androidx.compose.ui.graphics.Color.White
-                                else androidx.compose.ui.graphics.Color.White.copy(alpha = 0.28f),
-                            ),
-                    )
-                }
-            }
+            PinDots(filled = pin.length, length = AppLock.PIN_LENGTH)
             Spacer(Modifier.height(18.dp))
             val message = error ?: if (remaining > 0) "请等待 $remaining 秒" else null
             Text(
@@ -162,7 +167,7 @@ fun AppLockScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.weight(1f))
-            Keypad(
+            PinKeypad(
                 enabled = remaining == 0,
                 onDigit = ::tapDigit,
                 onBackspace = { pin = pin.dropLast(1); error = null },
@@ -189,58 +194,6 @@ fun AppLockScreen(
                 style = MaterialTheme.typography.labelSmall,
                 color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.7f),
             )
-        }
-    }
-}
-
-@Composable
-private fun Keypad(
-    enabled: Boolean,
-    onDigit: (Char) -> Unit,
-    onBackspace: () -> Unit,
-) {
-    val haptic = LocalHapticFeedback.current
-    val keys = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "⌫")
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        keys.chunked(3).forEach { row ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-            ) {
-                row.forEach { key ->
-                    if (key.isEmpty()) {
-                        Spacer(Modifier.size(72.dp))
-                    } else {
-                        Surface(
-                            onClick = {
-                                if (!enabled) return@Surface
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                if (key == "⌫") onBackspace() else onDigit(key.first())
-                            },
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.16f),
-                            modifier = Modifier.size(72.dp),
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                if (key == "⌫") {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Backspace,
-                                        contentDescription = "删除",
-                                        tint = androidx.compose.ui.graphics.Color.White,
-                                        modifier = Modifier.size(24.dp),
-                                    )
-                                } else {
-                                    Text(
-                                        text = key,
-                                        fontSize = 26.sp,
-                                        color = androidx.compose.ui.graphics.Color.White,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
 }

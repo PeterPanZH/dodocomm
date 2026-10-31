@@ -52,6 +52,8 @@ import com.dodocomm.app.core.settings.AppSettings
 import com.dodocomm.app.core.system.DeviceName
 import com.dodocomm.app.forward.TitleTemplate
 import com.dodocomm.app.ui.AppViewModel
+import com.dodocomm.app.ui.components.CopyModeRow
+import com.dodocomm.app.ui.components.RowDivider
 import com.dodocomm.app.ui.components.SectionCard
 import com.dodocomm.app.ui.components.SettingTextField
 import com.dodocomm.app.ui.components.TokenChip
@@ -195,6 +197,12 @@ fun TemplateEditorScreen(
                     label = "设备名称",
                     placeholder = systemDeviceName,
                     supportingText = "用于 {device} 变量；留空时读取系统里的手机名称",
+                )
+                Spacer(Modifier.height(8.dp))
+                RowDivider()
+                CopyModeRow(
+                    selected = settings.copyMode,
+                    onSelect = viewModel::setCopyMode,
                 )
             }
 

@@ -98,7 +98,6 @@ import com.dodocomm.app.core.export.ExportFormat
 import com.dodocomm.app.core.export.ExportRange
 import com.dodocomm.app.core.settings.AppLanguage
 import com.dodocomm.app.core.settings.AppSettings
-import com.dodocomm.app.core.settings.CopyMode
 import com.dodocomm.app.core.settings.PushLevel
 import com.dodocomm.app.core.settings.ThemeMode
 import com.dodocomm.app.core.system.OemGuides
@@ -107,6 +106,7 @@ import com.dodocomm.app.ui.AppViewModel
 import com.dodocomm.app.ui.components.ConfirmDialog
 import com.dodocomm.app.ui.components.FilterListEditor
 import com.dodocomm.app.ui.components.IconBubble
+import com.dodocomm.app.ui.components.CopyModeRow
 import com.dodocomm.app.ui.components.InfoNote
 import com.dodocomm.app.ui.components.MarkdownText
 import com.dodocomm.app.ui.components.RowDivider
@@ -130,7 +130,7 @@ enum class SettingsSection(
     val route: String,
 ) {
     OVERVIEW("设置", "按类别管理所有设置", "overview"),
-    PUSH("推送", "共用样式、推送通道与路由规则", "push"),
+    PUSH("推送", "推送内容、推送通道与路由规则", "push"),
     RULES("转发规则", "白名单、黑名单与关键词过滤", "rules"),
     PRIVACY("隐私与安全", "应用锁与本地数据保护", "privacy"),
     RELIABILITY("后台与可靠性", "常驻通知、开机恢复与电池优化", "reliability"),
@@ -525,7 +525,7 @@ fun SettingsScreen(
     }
 
     pinDialogMode?.let { mode ->
-        AppLockPinDialog(
+        AppLockPinScreen(
             mode = mode,
             onDismiss = { pinDialogMode = null },
             onSubmit = { currentPin, newPin, confirmPin ->
@@ -845,14 +845,12 @@ private fun PushStyleCard(
         )
         RowDivider()
         SettingActionRow(
-            title = "共用推送样式",
+            title = "推送内容",
             subtitle = "标题、消息体、设备名称与复制模式",
             value = settings.copyMode.label,
             icon = Icons.Rounded.Edit,
             onClick = onEditTemplate,
         )
-        RowDivider()
-        CopyModeRow(selected = settings.copyMode, onSelect = viewModel::setCopyMode)
     }
 }
 
@@ -1096,7 +1094,11 @@ private fun UpdateDialog(
                     )
                 }
             },
-            confirmButton = {},
+            confirmButton = {
+                TextButton(onClick = onDownloadInBackground) {
+                    Text("后台下载")
+                }
+            },
             dismissButton = {
                 TextButton(onClick = onCancelDownload) {
                     Text("取消下载")
@@ -1122,40 +1124,6 @@ private fun maxRecordsLabel(max: Int): String = when (max) {
     1000 -> "1000 条"
     5000 -> "5000 条"
     else -> "${max} 条"
-}
-
-@Composable
-private fun CopyModeRow(selected: CopyMode, onSelect: (CopyMode) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        SettingActionRow(
-            title = "自动复制",
-            subtitle = "接收端收到后复制到剪贴板",
-            value = selected.label,
-            onClick = { expanded = true },
-        )
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            CopyMode.entries.forEach { mode ->
-                DropdownMenuItem(
-                    text = { Text(mode.label) },
-                    onClick = {
-                        onSelect(mode)
-                        expanded = false
-                    },
-                    trailingIcon = {
-                        if (mode == selected) {
-                            Icon(
-                                imageVector = Icons.Rounded.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                    },
-                )
-            }
-        }
-    }
 }
 
 @Composable
@@ -1320,69 +1288,6 @@ private fun PrivacyCard(
             }
         }
     }
-}
-
-@Composable
-private fun AppLockPinDialog(
-    mode: String,
-    onDismiss: () -> Unit,
-    onSubmit: (current: String, newPin: String, confirmPin: String) -> String?,
-) {
-    var currentPin by rememberSaveable { mutableStateOf("") }
-    var newPin by rememberSaveable { mutableStateOf("") }
-    var confirmPin by rememberSaveable { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
-    val title = when (mode) {
-        "setup" -> "设置应用锁 PIN"
-        "change" -> "修改应用锁 PIN"
-        else -> "关闭应用锁"
-    }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                if (mode != "setup") {
-                    OutlinedTextField(
-                        value = currentPin,
-                        onValueChange = { currentPin = it.filter(Char::isDigit).take(6) },
-                        label = { Text("当前 PIN") },
-                        singleLine = true,
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                    )
-                }
-                if (mode != "disable") {
-                    OutlinedTextField(
-                        value = newPin,
-                        onValueChange = { newPin = it.filter(Char::isDigit).take(6) },
-                        label = { Text("新 PIN（6 位数字）") },
-                        singleLine = true,
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                    )
-                    OutlinedTextField(
-                        value = confirmPin,
-                        onValueChange = { confirmPin = it.filter(Char::isDigit).take(6) },
-                        label = { Text("确认新 PIN") },
-                        singleLine = true,
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                    )
-                }
-                error?.let {
-                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                val result = onSubmit(currentPin, newPin, confirmPin)
-                if (result == null) onDismiss() else error = result
-            }) { Text(if (mode == "disable") "关闭应用锁" else "保存") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
-    )
 }
 
 @Composable

@@ -277,6 +277,13 @@ private fun ChannelEditContent(
                 Text(channel.name, style = MaterialTheme.typography.titleLarge)
                 Text(channel.type.label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            if (channel.type != ChannelType.BARK) {
+                TextButton(onClick = { showDelete = true }) {
+                    Icon(Icons.Rounded.Delete, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("删除")
+                }
+            }
         }
         LazyColumn(
             modifier = Modifier.weight(1f),
@@ -331,14 +338,6 @@ private fun ChannelEditContent(
                 testResult?.let { result ->
                     Spacer(Modifier.height(8.dp))
                     InlineResult(text = result.message, success = result.success)
-                }
-                if (channel.type != ChannelType.BARK) {
-                    Spacer(Modifier.height(18.dp))
-                    TextButton(onClick = { showDelete = true }) {
-                        Icon(Icons.Rounded.Delete, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text("删除此通道", color = MaterialTheme.colorScheme.error)
-                    }
                 }
             }
         }

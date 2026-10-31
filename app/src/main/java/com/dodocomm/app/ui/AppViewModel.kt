@@ -74,6 +74,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private var autoUpdateCheckStarted = false
     private var updateDownloadJob: Job? = null
+    private var updateDownloadInBackground = false
 
     private val _historyFilter = MutableStateFlow(HistoryFilter.ALL)
     val historyFilter: StateFlow<HistoryFilter> = _historyFilter.asStateFlow()
@@ -195,6 +196,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (updateDownloadJob?.isActive == true) return
         val available = _updateState.value as? UpdateState.Available ?: return
         val info = available.info
+        updateDownloadInBackground = background
         UpdateDownloadNotifier.cancel(appContext)
         updateDownloadJob = viewModelScope.launch {
             _updateState.value = UpdateState.Downloading(info, 0)
@@ -206,7 +208,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val apk = container.updateClient.download(info, destination) { percent ->
                     _updateState.value = UpdateState.Downloading(info, percent)
-                    if (background) {
+                    if (updateDownloadInBackground) {
                         UpdateDownloadNotifier.showProgress(appContext, info.versionName, percent)
                     }
                 }
@@ -216,7 +218,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                         _updateDialogVisible.value = true
                         UpdateDownloadNotifier.cancel(appContext)
                     }
-                    background -> {
+                    updateDownloadInBackground -> {
                         _updateState.value = UpdateState.Ready(info, apk.absolutePath)
                         _updateDialogVisible.value = false
                         UpdateDownloadNotifier.showReady(appContext, info.versionName, apk.absolutePath)
@@ -244,8 +246,22 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } finally {
                 updateDownloadJob = null
+                updateDownloadInBackground = false
             }
         }
+    }
+
+    /** Keeps the current download running but closes the dialog and shows a notification. */
+    fun moveUpdateDownloadToBackground() {
+        val downloading = _updateState.value as? UpdateState.Downloading ?: return
+        updateDownloadInBackground = true
+        _updateDialogVisible.value = false
+        UpdateDownloadNotifier.showProgress(
+            appContext,
+            downloading.info.versionName,
+            downloading.progress,
+        )
+        postSnackbar("已转到后台下载")
     }
 
     /** Opens the installer for a background-downloaded APK. */
@@ -277,6 +293,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         val info = (_updateState.value as? UpdateState.Downloading)?.info ?: return
         updateDownloadJob?.cancel()
         updateDownloadJob = null
+        updateDownloadInBackground = false
         UpdateDownloadNotifier.cancel(appContext)
         _updateState.value = UpdateState.Available(info)
         _updateDialogVisible.value = false
