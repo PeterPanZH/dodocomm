@@ -47,6 +47,8 @@ object SettingsBackupCodec {
         put("retryBackoffSeconds", settings.retryBackoffSeconds)
         put("retryOnlyWifi", settings.retryOnlyWifi)
         put("retryMaxHours", settings.retryMaxHours)
+        put("automationEnabled", settings.automationEnabled)
+        put("automationToken", settings.automationToken)
         put("senderWhitelist", JSONArray(settings.senderWhitelist))
         put("senderBlacklist", JSONArray(settings.senderBlacklist))
         put("keywordBlacklist", JSONArray(settings.keywordBlacklist))
@@ -118,6 +120,8 @@ object SettingsBackupCodec {
             retryBackoffSeconds = json.optInt("retryBackoffSeconds", base.retryBackoffSeconds),
             retryOnlyWifi = json.optBoolean("retryOnlyWifi", base.retryOnlyWifi),
             retryMaxHours = json.optInt("retryMaxHours", base.retryMaxHours),
+            automationEnabled = json.optBoolean("automationEnabled", base.automationEnabled),
+            automationToken = json.optString("automationToken", base.automationToken),
             senderWhitelist = json.optJSONArray("senderWhitelist").toStringList(),
             senderBlacklist = json.optJSONArray("senderBlacklist").toStringList(),
             keywordBlacklist = json.optJSONArray("keywordBlacklist").toStringList(),

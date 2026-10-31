@@ -43,6 +43,7 @@ import androidx.compose.material.icons.automirrored.rounded.HelpOutline
 import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.FilterAlt
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.SmartToy
 import androidx.compose.material.icons.rounded.Storage
 import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.material.icons.rounded.Palette
@@ -178,6 +179,7 @@ private fun SettingsOverviewScreen(
     records: List<com.dodocomm.app.core.model.ForwardRecord>,
     updateState: UpdateState,
     onNavigateSection: (SettingsSection) -> Unit,
+    onNavigateAutomation: () -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -254,6 +256,14 @@ private fun SettingsOverviewScreen(
         item(key = "overview_about") {
             SectionCard {
                 OverviewRow(
+                    title = "自动化与组件",
+                    subtitle = "桌面小组件、快捷方式与 Tasker 接口",
+                    value = if (settings.automationEnabled) "已开启" else "未开启",
+                    icon = Icons.Rounded.SmartToy,
+                    onClick = onNavigateAutomation,
+                )
+                RowDivider()
+                OverviewRow(
                     title = "关于",
                     subtitle = "版本更新、帮助与项目信息",
                     value = if (updateState is UpdateState.Available) {
@@ -301,6 +311,8 @@ fun SettingsScreen(
     onNavigateTemplate: () -> Unit,
     onNavigateChannels: () -> Unit = {},
     onNavigateRouting: () -> Unit = {},
+    onNavigateDiagnostics: () -> Unit = {},
+    onNavigateAutomation: () -> Unit = {},
     section: SettingsSection = SettingsSection.OVERVIEW,
     onNavigateSection: (SettingsSection) -> Unit = {},
     onBack: () -> Unit = {},
@@ -362,6 +374,7 @@ fun SettingsScreen(
             records = records,
             updateState = updateState,
             onNavigateSection = onNavigateSection,
+            onNavigateAutomation = onNavigateAutomation,
         )
         return
     }
@@ -474,6 +487,7 @@ fun SettingsScreen(
                     recordCount = records.size,
                     autoUpdateCheck = settings.autoUpdateCheck,
                     updateState = updateState,
+                    onNavigateDiagnostics = onNavigateDiagnostics,
                     onOpenGuide = onNavigateGuide,
                     onClearHistory = { showClearDialog = true },
                     onCheckUpdates = {
@@ -1566,6 +1580,7 @@ private fun AboutCard(
     recordCount: Int,
     autoUpdateCheck: Boolean,
     updateState: UpdateState,
+    onNavigateDiagnostics: () -> Unit,
     onOpenGuide: () -> Unit,
     onClearHistory: () -> Unit,
     onCheckUpdates: () -> Unit,
@@ -1612,6 +1627,13 @@ private fun AboutCard(
             onCheckedChange = onToggleAutoUpdate,
             subtitle = "每天检查一次，失败时会自动延长间隔",
             icon = Icons.Rounded.Refresh,
+        )
+        RowDivider()
+        SettingActionRow(
+            title = "运行诊断",
+            subtitle = "检查权限、后台和推送通道",
+            icon = Icons.Rounded.CheckCircle,
+            onClick = onNavigateDiagnostics,
         )
         RowDivider()
         SettingActionRow(

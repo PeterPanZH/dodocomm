@@ -191,6 +191,8 @@ class SettingsRepository(context: Context) {
             retryBackoffSeconds = prefs.getInt(KEY_RETRY_BACKOFF_SECONDS, defaults.retryBackoffSeconds),
             retryOnlyWifi = prefs.getBoolean(KEY_RETRY_ONLY_WIFI, defaults.retryOnlyWifi),
             retryMaxHours = prefs.getInt(KEY_RETRY_MAX_HOURS, defaults.retryMaxHours),
+            automationEnabled = prefs.getBoolean(KEY_AUTOMATION_ENABLED, defaults.automationEnabled),
+            automationToken = prefs.getString(KEY_AUTOMATION_TOKEN, defaults.automationToken).orEmpty(),
         )
     }
 
@@ -236,6 +238,8 @@ class SettingsRepository(context: Context) {
             .putInt(KEY_RETRY_BACKOFF_SECONDS, settings.retryBackoffSeconds)
             .putBoolean(KEY_RETRY_ONLY_WIFI, settings.retryOnlyWifi)
             .putInt(KEY_RETRY_MAX_HOURS, settings.retryMaxHours)
+            .putBoolean(KEY_AUTOMATION_ENABLED, settings.automationEnabled)
+            .putString(KEY_AUTOMATION_TOKEN, settings.automationToken)
             .commit()
     }
 
@@ -282,6 +286,8 @@ class SettingsRepository(context: Context) {
         private const val KEY_RETRY_BACKOFF_SECONDS = "retry_backoff_seconds"
         private const val KEY_RETRY_ONLY_WIFI = "retry_only_wifi"
         private const val KEY_RETRY_MAX_HOURS = "retry_max_hours"
+        private const val KEY_AUTOMATION_ENABLED = "automation_enabled"
+        private const val KEY_AUTOMATION_TOKEN = "automation_token"
 
         fun encodeList(values: List<String>): String {
             val array = JSONArray()

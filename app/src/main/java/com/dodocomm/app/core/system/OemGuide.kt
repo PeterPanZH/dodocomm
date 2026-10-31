@@ -2,7 +2,7 @@ package com.dodocomm.app.core.system
 
 import android.os.Build
 
-enum class OemFamily { COLOROS, LINEAGEOS, GENERIC }
+enum class OemFamily { COLOROS, MIUI, SAMSUNG, LINEAGEOS, GENERIC }
 
 enum class GuideAction {
     REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
@@ -44,6 +44,12 @@ object OemGuides {
         val display = (Build.DISPLAY ?: "") + " " + (Build.HOST ?: "")
         return when {
             display.contains("lineage", ignoreCase = true) -> OemFamily.LINEAGEOS
+            manufacturer.equals("Xiaomi", true) ||
+                manufacturer.equals("Redmi", true) ||
+                manufacturer.equals("POCO", true) ||
+                display.contains("miui", ignoreCase = true) ||
+                display.contains("hyperos", ignoreCase = true) -> OemFamily.MIUI
+            manufacturer.equals("samsung", true) -> OemFamily.SAMSUNG
             manufacturer.equals("OnePlus", true) ||
                 manufacturer.equals("OPPO", true) ||
                 manufacturer.equals("realme", true) -> OemFamily.COLOROS
@@ -59,6 +65,8 @@ object OemGuides {
     fun guideFor(family: OemFamily, deviceLabel: String = defaultDeviceLabel()): OemGuide =
         when (family) {
             OemFamily.COLOROS -> colorOsGuide(deviceLabel)
+            OemFamily.MIUI -> miuiGuide(deviceLabel)
+            OemFamily.SAMSUNG -> samsungGuide(deviceLabel)
             OemFamily.LINEAGEOS -> lineageGuide(deviceLabel)
             OemFamily.GENERIC -> genericGuide(deviceLabel)
         }
@@ -109,6 +117,78 @@ object OemGuides {
             ),
         ),
         note = "ColorOS 对后台管理较严格。完成以上设置后，短信接收（系统广播）仍然是最可靠的通道；前台服务负责在网络恢复后立即补发。嘟嘟可会努力不掉线的！",
+    )
+
+    private fun miuiGuide(deviceLabel: String): OemGuide = OemGuide(
+        family = OemFamily.MIUI,
+        deviceLabel = deviceLabel.ifBlank { "MIUI / HyperOS 设备" },
+        title = "MIUI / HyperOS 后台设置向导",
+        subtitle = "适用于小米、Redmi、POCO 等 MIUI / HyperOS 系统",
+        steps = listOf(
+            GuideStep(
+                title = "允许自启动",
+                description = "设置 → 应用设置 → 应用管理 → 嘟嘟通讯 → 自启动，打开开关。重启手机后转发服务会自动恢复。",
+                actionLabel = "打开自启动设置",
+                action = GuideAction.OPEN_AUTO_START_SETTINGS,
+            ),
+            GuideStep(
+                title = "省电策略设为无限制",
+                description = "设置 → 应用设置 → 应用管理 → 嘟嘟通讯 → 省电策略，选择「无限制」，避免熄屏后被清理。",
+                actionLabel = "打开电池设置",
+                action = GuideAction.OPEN_BATTERY_SETTINGS,
+            ),
+            GuideStep(
+                title = "允许通知",
+                description = "打开通知权限，并保留常驻通知。通知栏状态稳定，系统才更愿意保留后台。",
+                actionLabel = "打开通知设置",
+                action = GuideAction.OPEN_NOTIFICATION_SETTINGS,
+            ),
+            GuideStep(
+                title = "锁定最近任务",
+                description = "在最近任务里长按「嘟嘟通讯」卡片并锁定，避免一键清理时被结束。",
+            ),
+            GuideStep(
+                title = "关闭省电模式的额外限制",
+                description = "如果开启了省电模式或睡眠模式，请把嘟嘟通讯加入白名单，或在这些模式下暂时停用。",
+                actionLabel = "打开电池优化设置",
+                action = GuideAction.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+            ),
+        ),
+        note = "MIUI / HyperOS 的省电策略比较积极。完成设置后，短信接收仍然是最可靠的通道；若系统清理了后台，下次打开 App 时会自动恢复。",
+    )
+
+    private fun samsungGuide(deviceLabel: String): OemGuide = OemGuide(
+        family = OemFamily.SAMSUNG,
+        deviceLabel = deviceLabel.ifBlank { "One UI 设备" },
+        title = "One UI 后台设置向导",
+        subtitle = "适用于三星 One UI 系统",
+        steps = listOf(
+            GuideStep(
+                title = "加入「从不休眠的应用」",
+                description = "设置 → 电池 → 后台使用限制 → 从不休眠的应用，把嘟嘟通讯加入列表。",
+                actionLabel = "打开电池设置",
+                action = GuideAction.OPEN_BATTERY_SETTINGS,
+            ),
+            GuideStep(
+                title = "关闭电池优化限制",
+                description = "设置 → 应用 → 嘟嘟通讯 → 电池 → 选择「不受限制」，让系统允许后台运行。",
+                actionLabel = "申请忽略电池优化",
+                action = GuideAction.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+            ),
+            GuideStep(
+                title = "允许通知",
+                description = "打开通知权限，并保留常驻通知，方便随时看到转发状态。",
+                actionLabel = "打开通知设置",
+                action = GuideAction.OPEN_NOTIFICATION_SETTINGS,
+            ),
+            GuideStep(
+                title = "检查后台使用限制",
+                description = "设置 → 电池 → 后台使用限制，确认嘟嘟通讯没有被列入「休眠应用」。",
+                actionLabel = "打开应用详情",
+                action = GuideAction.OPEN_APP_DETAILS,
+            ),
+        ),
+        note = "One UI 的电池管理比较严格。把应用加入「从不休眠」并允许后台活动后，转发会稳定很多。",
     )
 
     private fun lineageGuide(deviceLabel: String): OemGuide = OemGuide(

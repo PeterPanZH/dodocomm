@@ -103,6 +103,9 @@ data class AppSettings(
     val retryBackoffSeconds: Int = 15,
     val retryOnlyWifi: Boolean = false,
     val retryMaxHours: Int = 24,
+    /** Broadcast automation is off by default; commands require this token. */
+    val automationEnabled: Boolean = false,
+    val automationToken: String = "",
 ) {
     fun isPaused(now: Long = System.currentTimeMillis()): Boolean = pauseUntil > now
 

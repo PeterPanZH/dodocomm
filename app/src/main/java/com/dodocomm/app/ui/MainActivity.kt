@@ -1,8 +1,10 @@
 package com.dodocomm.app.ui
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
+import android.widget.Toast
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -15,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dodocomm.app.appContainer
 import com.dodocomm.app.core.settings.ThemeMode
@@ -24,6 +27,7 @@ import com.dodocomm.app.ui.screens.AppLockScreen
 import com.dodocomm.app.ui.theme.Sms2BarkTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class MainActivity : FragmentActivity() {
     private val _locked = MutableStateFlow(false)
@@ -54,6 +58,7 @@ class MainActivity : FragmentActivity() {
         _locked.value = current.appLockEnabled && !wasUnlocked && current.appLockPinHash.isNotBlank()
         backgroundAt = savedInstanceState?.getLong(KEY_BACKGROUND_AT, 0L) ?: 0L
         applyLockWindowFlags(current.appLockEnabled)
+        handleShortcutIntent(intent)
         setContent {
             val viewModel: AppViewModel = viewModel()
             val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -105,6 +110,54 @@ class MainActivity : FragmentActivity() {
                     )
                 } else {
                     Sms2BarkRoot(viewModel = viewModel)
+                }
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleShortcutIntent(intent)
+    }
+
+    private fun handleShortcutIntent(intent: Intent?) {
+        when (intent?.action) {
+            ACTION_SHORTCUT_TEST_PUSH -> {
+                Toast.makeText(this, "正在发送测试推送…", Toast.LENGTH_SHORT).show()
+                lifecycleScope.launch {
+                    val settings = appContainer.settings.current()
+                    val result = runCatching {
+                        appContainer.pushDispatcher.dispatch(
+                            settings = settings,
+                            title = "DodoComm 测试推送",
+                            body = "嘟嘟可报到！测试推送成功 ✅",
+                        )
+                    }.getOrNull()
+                    val message = if (result?.success == true) {
+                        "测试推送已发出"
+                    } else {
+                        "测试推送失败：${result?.message ?: "请检查推送通道"}"
+                    }
+                    Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
+                }
+            }
+            ACTION_SHORTCUT_TOGGLE_PAUSE -> {
+                val settings = appContainer.settings.current()
+                when {
+                    !settings.forwardingEnabled -> Toast.makeText(
+                        this,
+                        "请先打开转发",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                    settings.isPaused() -> {
+                        appContainer.serviceController.resumeNow()
+                        Toast.makeText(this, "已恢复转发", Toast.LENGTH_SHORT).show()
+                    }
+                    else -> {
+                        appContainer.serviceController.pauseFor(30)
+                        Toast.makeText(this, "已暂停 30 分钟", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
@@ -177,6 +230,8 @@ class MainActivity : FragmentActivity() {
     }
 
     private companion object {
+        const val ACTION_SHORTCUT_TEST_PUSH = "com.dodocomm.app.action.SHORTCUT_TEST_PUSH"
+        const val ACTION_SHORTCUT_TOGGLE_PAUSE = "com.dodocomm.app.action.SHORTCUT_TOGGLE_PAUSE"
         const val KEY_UNLOCKED = "app_lock_unlocked"
         const val KEY_BACKGROUND_AT = "app_lock_background_at"
     }

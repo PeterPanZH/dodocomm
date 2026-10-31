@@ -284,6 +284,7 @@ class ForwardEngine(
         } finally {
             inFlightIds.remove(record.id)
             container.serviceController.refreshNotification()
+            com.dodocomm.app.widget.WidgetUpdater.updateAll(appContext)
         }
     }
 

@@ -51,7 +51,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.dodocomm.app.ui.model.HistoryFilter
+import com.dodocomm.app.ui.screens.AutomationScreen
 import com.dodocomm.app.ui.screens.ChannelsScreen
+import com.dodocomm.app.ui.screens.DiagnosticsScreen
 import com.dodocomm.app.ui.screens.HistoryScreen
 import com.dodocomm.app.ui.screens.HomeScreen
 import com.dodocomm.app.ui.screens.KeepAliveGuideScreen
@@ -70,6 +73,8 @@ object Routes {
     const val SETTINGS_SECTION_PREFIX = "settings_"
     const val CHANNELS = "channels"
     const val ROUTING = "routing"
+    const val DIAGNOSTICS = "diagnostics"
+    const val AUTOMATION = "automation"
 
     val tabRoutes: Set<String> = setOf(HOME, HISTORY, SETTINGS)
 }
@@ -187,6 +192,7 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                     },
                     onNavigateSettings = { navigateToTab(Routes.SETTINGS) },
                     onNavigateGuide = { navController.navigate(Routes.GUIDE) },
+                    onNavigateDiagnostics = { navController.navigate(Routes.DIAGNOSTICS) },
                 )
             }
             composable(Routes.HISTORY) {
@@ -199,6 +205,8 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                     onNavigateTemplate = { navController.navigate(Routes.TEMPLATE) },
                     onNavigateChannels = { navController.navigate(Routes.CHANNELS) },
                     onNavigateRouting = { navController.navigate(Routes.ROUTING) },
+                    onNavigateDiagnostics = { navController.navigate(Routes.DIAGNOSTICS) },
+                    onNavigateAutomation = { navController.navigate(Routes.AUTOMATION) },
                     onNavigateSection = { section ->
                         navController.navigate(Routes.SETTINGS_SECTION_PREFIX + section.route)
                     },
@@ -222,10 +230,58 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                         onNavigateTemplate = { navController.navigate(Routes.TEMPLATE) },
                         onNavigateChannels = { navController.navigate(Routes.CHANNELS) },
                         onNavigateRouting = { navController.navigate(Routes.ROUTING) },
+                        onNavigateDiagnostics = { navController.navigate(Routes.DIAGNOSTICS) },
+                        onNavigateAutomation = { navController.navigate(Routes.AUTOMATION) },
                         section = section,
                         onBack = { navController.popBackStack() },
                     )
                 }
+            }
+            composable(
+                route = Routes.DIAGNOSTICS,
+                enterTransition = {
+                    slideInHorizontally(tween(240)) { width -> width / 4 } + fadeIn(tween(200))
+                },
+                exitTransition = { fadeOut(tween(140)) },
+                popEnterTransition = { fadeIn(tween(180)) },
+                popExitTransition = {
+                    slideOutHorizontally(tween(220)) { width -> width / 4 } + fadeOut(tween(140))
+                },
+            ) {
+                DiagnosticsScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() },
+                    onOpenChannels = { navController.navigate(Routes.CHANNELS) },
+                    onOpenRouting = { navController.navigate(Routes.ROUTING) },
+                    onOpenGuide = { navController.navigate(Routes.GUIDE) },
+                    onOpenRetryHistory = {
+                        viewModel.setHistoryFilter(HistoryFilter.RETRY)
+                        navController.navigate(Routes.HISTORY) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onOpenSettingsSection = { section ->
+                        navController.navigate(Routes.SETTINGS_SECTION_PREFIX + section.route)
+                    },
+                )
+            }
+            composable(
+                route = Routes.AUTOMATION,
+                enterTransition = {
+                    slideInHorizontally(tween(240)) { width -> width / 4 } + fadeIn(tween(200))
+                },
+                exitTransition = { fadeOut(tween(140)) },
+                popEnterTransition = { fadeIn(tween(180)) },
+                popExitTransition = {
+                    slideOutHorizontally(tween(220)) { width -> width / 4 } + fadeOut(tween(140))
+                },
+            ) {
+                AutomationScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() },
+                )
             }
             composable(
                 route = Routes.GUIDE,

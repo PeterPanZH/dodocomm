@@ -34,6 +34,7 @@ import androidx.compose.material.icons.rounded.Autorenew
 import androidx.compose.material.icons.rounded.BatterySaver
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.Lock
@@ -119,6 +120,7 @@ fun HomeScreen(
     onNavigateHistory: (HistoryFilter?) -> Unit,
     onNavigateSettings: () -> Unit,
     onNavigateGuide: () -> Unit,
+    onNavigateDiagnostics: () -> Unit,
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val stats by viewModel.stats.collectAsStateWithLifecycle()
@@ -230,6 +232,7 @@ fun HomeScreen(
             testPushState = testPushState,
             onTestPush = viewModel::sendTestPush,
             onGuide = onNavigateGuide,
+            onDiagnostics = onNavigateDiagnostics,
         )
 
         Spacer(Modifier.height(24.dp))
@@ -730,6 +733,7 @@ private fun QuickActionsSection(
     testPushState: TestPushState,
     onTestPush: () -> Unit,
     onGuide: () -> Unit,
+    onDiagnostics: () -> Unit,
 ) {
     Text(
         text = "快捷操作",
@@ -762,6 +766,18 @@ private fun QuickActionsSection(
             ),
             loading = false,
             onClick = onGuide,
+            modifier = Modifier.weight(1f),
+        )
+        QuickActionCard(
+            title = "运行诊断",
+            subtitle = "检查当前状态",
+            icon = Icons.Rounded.CheckCircle,
+            iconTonal = TonalPair(
+                container = MaterialTheme.colorScheme.tertiaryContainer,
+                content = MaterialTheme.colorScheme.onTertiaryContainer,
+            ),
+            loading = false,
+            onClick = onDiagnostics,
             modifier = Modifier.weight(1f),
         )
     }

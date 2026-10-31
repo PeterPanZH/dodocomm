@@ -86,6 +86,7 @@ class ServiceController(
         container.settings.update { it.copy(pauseUntil = until) }
         container.workScheduler.schedulePauseResume(until)
         refreshNotification()
+        com.dodocomm.app.widget.WidgetUpdater.updateAll(context)
         Log.i(TAG, "临时暂停转发 $minutes 分钟")
     }
 
@@ -94,6 +95,7 @@ class ServiceController(
         container.settings.update { it.copy(pauseUntil = 0L) }
         container.workScheduler.cancelPauseResume()
         refreshNotification()
+        com.dodocomm.app.widget.WidgetUpdater.updateAll(context)
         Log.i(TAG, "手动恢复转发")
     }
 

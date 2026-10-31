@@ -206,5 +206,9 @@
  {
   "regex": "^(\\d+) 个启用$",
   "format": "{0} enabled"
+ },
+ {
+  "regex": "^(\\d+) 项通过 · (\\d+) 项提醒 · (\\d+) 项异常$",
+  "format": "{0} passed · {1} warnings · {2} failed"
  }
 ]

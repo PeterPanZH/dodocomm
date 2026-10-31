@@ -321,6 +321,8 @@ private fun DeviceCard(
 
 private fun familyLabel(family: OemFamily): String = when (family) {
     OemFamily.COLOROS -> "ColorOS"
+    OemFamily.MIUI -> "MIUI / HyperOS"
+    OemFamily.SAMSUNG -> "One UI"
     OemFamily.LINEAGEOS -> "LineageOS"
     OemFamily.GENERIC -> "通用 Android"
 }
@@ -328,6 +330,8 @@ private fun familyLabel(family: OemFamily): String = when (family) {
 /** Short chip label so all four family options fit on one row. */
 private fun familyChipLabel(family: OemFamily): String = when (family) {
     OemFamily.COLOROS -> "ColorOS"
+    OemFamily.MIUI -> "MIUI"
+    OemFamily.SAMSUNG -> "One UI"
     OemFamily.LINEAGEOS -> "LineageOS"
     OemFamily.GENERIC -> "通用"
 }
@@ -579,7 +583,7 @@ private fun GuideShortcutsCard(family: OemFamily, context: Context) {
             icon = Icons.Rounded.BatterySaver,
             onClick = { SystemNavigator.openBatteryOptimizationSettings(context) },
         )
-        if (family != OemFamily.LINEAGEOS) {
+        if (family == OemFamily.COLOROS || family == OemFamily.MIUI || family == OemFamily.GENERIC) {
             RowDivider()
             SettingActionRow(
                 title = "打开自启动设置",

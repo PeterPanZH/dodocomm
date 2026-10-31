@@ -84,6 +84,10 @@ object SystemNavigator {
     }
 
     private val AUTO_START_COMPONENTS = listOf(
+        "com.miui.securitycenter/com.miui.permcenter.autostart.AutoStartManagementActivity",
+        "com.miui.securitycenter/com.miui.permcenter.permissions.PermissionsEditorActivity",
+        "com.samsung.android.lool/com.samsung.android.sm.ui.battery.BatteryActivity",
+        "com.samsung.android.lool/com.samsung.android.sm.battery.ui.BatteryActivity",
         "com.coloros.safecenter/com.coloros.safecenter.permission.startup.StartupAppListActivity",
         "com.coloros.safecenter/com.coloros.safecenter.startupapp.StartupAppListActivity",
         "com.coloros.safecenter/.startupapp.StartupAppListActivity",

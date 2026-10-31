@@ -1,4 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">DodoComm</string>
+    <string name="widget_title">ドドコが届けます</string>
+    <string name="widget_label_today">本日の配信済み</string>
+    <string name="widget_status_on">転送中</string>
+    <string name="widget_status_paused">一時停止中</string>
+    <string name="widget_status_off">転送オフ</string>
+    <string name="widget_status_paused_until">%1$s に再開</string>
+    <string name="widget_action_pause">30分停止</string>
+    <string name="widget_action_resume">転送を再開</string>
+    <string name="widget_action_open">アプリを開く</string>
+    <string name="shortcut_test_push_short">テスト送信</string>
+    <string name="shortcut_test_push_long">テストプッシュを送信</string>
+    <string name="shortcut_toggle_short">停止/再開</string>
+    <string name="shortcut_toggle_long">30分停止または転送を再開</string>
 </resources>

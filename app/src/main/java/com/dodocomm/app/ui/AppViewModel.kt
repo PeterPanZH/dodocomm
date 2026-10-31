@@ -97,6 +97,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun refreshSystemState() {
         _serviceRunning.value = container.serviceController.isServiceRunning()
         _permissions.value = PermissionState.read(appContext)
+        com.dodocomm.app.widget.WidgetUpdater.updateAll(appContext)
     }
 
     /** Called whenever the activity becomes visible again. */
@@ -436,6 +437,25 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun setRetryOnlyWifi(value: Boolean) = updateSettings { it.copy(retryOnlyWifi = value) }
 
     fun setRetryMaxHours(value: Int) = updateSettings { it.copy(retryMaxHours = value.coerceIn(1, 168)) }
+
+    fun setAutomationEnabled(enabled: Boolean) {
+        updateSettings { current ->
+            if (enabled && current.automationToken.isBlank()) {
+                current.copy(automationEnabled = true, automationToken = newAutomationToken())
+            } else {
+                current.copy(automationEnabled = enabled)
+            }
+        }
+        postSnackbar(if (enabled) "已开启自动化接口" else "已关闭自动化接口")
+    }
+
+    fun regenerateAutomationToken() {
+        updateSettings { it.copy(automationToken = newAutomationToken()) }
+        postSnackbar("自动化令牌已更新")
+    }
+
+    private fun newAutomationToken(): String =
+        java.util.UUID.randomUUID().toString().replace("-", "").take(24)
 
     suspend fun testChannel(id: String): com.dodocomm.app.core.channel.ChannelSendResult {
         val current = container.settings.current()

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/dodoco_mascot"
+        android:shortcutId="test_push"
+        android:shortcutLongLabel="@string/shortcut_test_push_long"
+        android:shortcutShortLabel="@string/shortcut_test_push_short">
+        <intent
+            android:action="com.dodocomm.app.action.SHORTCUT_TEST_PUSH"
+            android:targetClass="com.dodocomm.app.ui.MainActivity"
+            android:targetPackage="com.dodocomm.app" />
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/dodoco_mascot"
+        android:shortcutId="toggle_pause"
+        android:shortcutLongLabel="@string/shortcut_toggle_long"
+        android:shortcutShortLabel="@string/shortcut_toggle_short">
+        <intent
+            android:action="com.dodocomm.app.action.SHORTCUT_TOGGLE_PAUSE"
+            android:targetClass="com.dodocomm.app.ui.MainActivity"
+            android:targetPackage="com.dodocomm.app" />
+    </shortcut>
+</shortcuts>

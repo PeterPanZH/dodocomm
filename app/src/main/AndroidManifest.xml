@@ -31,6 +31,8 @@
         <package android:name="com.coloros.oppoguardelf" />
         <package android:name="com.oplus.battery" />
         <package android:name="com.android.settings" />
+        <package android:name="com.miui.securitycenter" />
+        <package android:name="com.samsung.android.lool" />
     </queries>
 
     <application
@@ -55,7 +57,30 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
+
+        <receiver
+            android:name=".automation.AutomationReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.dodocomm.app.action.AUTOMATION" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".widget.DodoWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.dodocomm.app.action.WIDGET_TOGGLE_PAUSE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/dodo_widget_info" />
+        </receiver>
 
         <provider
             android:name="androidx.core.content.FileProvider"
