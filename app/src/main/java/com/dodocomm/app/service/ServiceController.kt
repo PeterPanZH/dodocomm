@@ -76,6 +76,7 @@ class ServiceController(
         } else {
             container.workScheduler.cancelMaintenance()
             container.workScheduler.cancelRetry()
+            container.workScheduler.cancelServiceRevive()
             stop()
         }
     }

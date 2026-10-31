@@ -41,6 +41,11 @@ object NotificationHelper {
     @Volatile
     private var channelsCreated = false
 
+    fun areNotificationsAllowed(context: Context): Boolean =
+        runCatching {
+            NotificationManagerCompat.from(context).areNotificationsEnabled()
+        }.getOrDefault(false)
+
     /** Idempotent; safe to call from service, workers and receivers. */
     fun createChannels(context: Context) {
         if (channelsCreated) return

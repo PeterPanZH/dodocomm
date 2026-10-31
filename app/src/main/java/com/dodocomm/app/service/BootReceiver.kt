@@ -45,10 +45,19 @@ class BootReceiver : BroadcastReceiver() {
             // currently off: it is the self-healing hook after force-stops.
             container.workScheduler.ensureMaintenanceScheduled()
             if (!startRequested && shouldStart && settings.foregroundServiceEnabled && settings.hasAnyConfiguredChannel) {
-                // Android 16 / OEM blocked the boot-time FGS start. MainActivity
-                // onResume will start it from a user-visible context on tap.
-                NotificationHelper.showBootRecoveryNotification(appContext)
-                Log.w(TAG, "boot: FGS start blocked (Android 16/OEM), recovery notification shown")
+                // Android 12+ background-start restrictions, Android 15/16
+                // BOOT_COMPLETED FGS rules and OEM auto-start blockers can all
+                // reject this start. Try one delayed WorkManager revive and
+                // leave a tappable recovery notification; MainActivity.onResume
+                // will also start the service from a visible context.
+                container.workScheduler.enqueueServiceRevive()
+                if (NotificationHelper.areNotificationsAllowed(appContext)) {
+                    NotificationHelper.showBootRecoveryNotification(appContext)
+                }
+                Log.w(
+                    TAG,
+                    "boot: FGS start blocked (sdk=${android.os.Build.VERSION.SDK_INT}), recovery scheduled",
+                )
             }
             Log.i(
                 TAG,

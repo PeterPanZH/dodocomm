@@ -84,6 +84,11 @@ object SystemNavigator {
     }
 
     private val AUTO_START_COMPONENTS = listOf(
+        "com.huawei.systemmanager/.startupmgr.ui.StartupNormalAppListActivity",
+        "com.huawei.systemmanager/.optimize.process.ProtectActivity",
+        "com.hihonor.systemmanager/.startupmgr.ui.StartupNormalAppListActivity",
+        "com.vivo.permissionmanager/.activity.BgStartUpManagerActivity",
+        "com.iqoo.secure/.safeguard.PurviewTabActivity",
         "com.miui.securitycenter/com.miui.permcenter.autostart.AutoStartManagementActivity",
         "com.miui.securitycenter/com.miui.permcenter.permissions.PermissionsEditorActivity",
         "com.samsung.android.lool/com.samsung.android.sm.ui.battery.BatteryActivity",

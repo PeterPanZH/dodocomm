@@ -67,6 +67,26 @@ class WorkScheduler(context: Context) {
         }
     }
 
+    /** One-shot best-effort revive after boot/task removal/FGS failure. */
+    fun enqueueServiceRevive(delaySeconds: Long = 10L) {
+        val request = OneTimeWorkRequestBuilder<ServiceReviveWorker>()
+            .setInitialDelay(delaySeconds.coerceAtLeast(0L), TimeUnit.SECONDS)
+            .build()
+        runCatching {
+            WorkManager.getInstance(appContext).enqueueUniqueWork(
+                WORK_SERVICE_REVIVE,
+                ExistingWorkPolicy.REPLACE,
+                request,
+            )
+        }
+    }
+
+    fun cancelServiceRevive() {
+        runCatching {
+            WorkManager.getInstance(appContext).cancelUniqueWork(WORK_SERVICE_REVIVE)
+        }
+    }
+
     /** Schedules automatic clearing of a temporary pause at [untilEpochMillis]. */
     fun schedulePauseResume(untilEpochMillis: Long) {
         val delay = (untilEpochMillis - System.currentTimeMillis()).coerceAtLeast(0L)
@@ -98,12 +118,14 @@ class WorkScheduler(context: Context) {
         cancelMaintenance()
         cancelRetry()
         cancelPauseResume()
+        cancelServiceRevive()
     }
 
     companion object {
         const val WORK_MAINTENANCE = "sms2bark_maintenance"
         const val WORK_RETRY = "sms2bark_retry"
         const val WORK_PAUSE_RESUME = "sms2bark_pause_resume"
+        const val WORK_SERVICE_REVIVE = "sms2bark_service_revive"
 
         /** WorkManager's minimum periodic interval. */
         const val MAINTENANCE_INTERVAL_MINUTES = 15L

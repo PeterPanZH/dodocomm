@@ -2,7 +2,7 @@ package com.dodocomm.app.core.system
 
 import android.os.Build
 
-enum class OemFamily { COLOROS, MIUI, SAMSUNG, LINEAGEOS, GENERIC }
+enum class OemFamily { COLOROS, MIUI, SAMSUNG, HUAWEI, VIVO, LINEAGEOS, GENERIC }
 
 enum class GuideAction {
     REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
@@ -50,6 +50,10 @@ object OemGuides {
                 display.contains("miui", ignoreCase = true) ||
                 display.contains("hyperos", ignoreCase = true) -> OemFamily.MIUI
             manufacturer.equals("samsung", true) -> OemFamily.SAMSUNG
+            manufacturer.equals("Huawei", true) ||
+                manufacturer.equals("HONOR", true) -> OemFamily.HUAWEI
+            manufacturer.equals("vivo", true) ||
+                manufacturer.equals("iQOO", true) -> OemFamily.VIVO
             manufacturer.equals("OnePlus", true) ||
                 manufacturer.equals("OPPO", true) ||
                 manufacturer.equals("realme", true) -> OemFamily.COLOROS
@@ -67,6 +71,8 @@ object OemGuides {
             OemFamily.COLOROS -> colorOsGuide(deviceLabel)
             OemFamily.MIUI -> miuiGuide(deviceLabel)
             OemFamily.SAMSUNG -> samsungGuide(deviceLabel)
+            OemFamily.HUAWEI -> huaweiGuide(deviceLabel)
+            OemFamily.VIVO -> vivoGuide(deviceLabel)
             OemFamily.LINEAGEOS -> lineageGuide(deviceLabel)
             OemFamily.GENERIC -> genericGuide(deviceLabel)
         }
@@ -189,6 +195,70 @@ object OemGuides {
             ),
         ),
         note = "One UI 的电池管理比较严格。把应用加入「从不休眠」并允许后台活动后，转发会稳定很多。",
+    )
+
+    private fun huaweiGuide(deviceLabel: String): OemGuide = OemGuide(
+        family = OemFamily.HUAWEI,
+        deviceLabel = deviceLabel.ifBlank { "Huawei / HONOR 设备" },
+        title = "HarmonyOS / EMUI 后台设置向导",
+        subtitle = "适用于华为、HONOR 等 EMUI / HarmonyOS 系统",
+        steps = listOf(
+            GuideStep(
+                title = "允许应用启动",
+                description = "设置 → 应用和服务 → 应用启动管理，找到嘟嘟通讯，改为「手动管理」，并允许自启动、关联启动和后台活动。",
+                actionLabel = "打开自启动设置",
+                action = GuideAction.OPEN_AUTO_START_SETTINGS,
+            ),
+            GuideStep(
+                title = "关闭电池优化限制",
+                description = "设置 → 电池 → 更多电池设置，关闭「休眠时始终保持网络连接」限制，并把应用设为「不允许电池优化」。",
+                actionLabel = "申请忽略电池优化",
+                action = GuideAction.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+            ),
+            GuideStep(
+                title = "允许通知",
+                description = "打开通知权限并保留常驻通知；EMUI 会依据通知状态判断应用是否活跃。",
+                actionLabel = "打开通知设置",
+                action = GuideAction.OPEN_NOTIFICATION_SETTINGS,
+            ),
+            GuideStep(
+                title = "锁定最近任务",
+                description = "在最近任务中下拉锁定嘟嘟通讯，避免一键清理时被结束。",
+            ),
+        ),
+        note = "HarmonyOS / EMUI 的启动管理较严格。完成上述设置后，短信接收仍然可靠；若后台被清理，打开 App 会自动恢复。",
+    )
+
+    private fun vivoGuide(deviceLabel: String): OemGuide = OemGuide(
+        family = OemFamily.VIVO,
+        deviceLabel = deviceLabel.ifBlank { "vivo / iQOO 设备" },
+        title = "OriginOS / Funtouch OS 后台设置向导",
+        subtitle = "适用于 vivo、iQOO 等系统",
+        steps = listOf(
+            GuideStep(
+                title = "允许后台启动",
+                description = "设置 → 应用与权限 → 权限管理 → 自启动，找到嘟嘟通讯并允许后台启动。",
+                actionLabel = "打开自启动设置",
+                action = GuideAction.OPEN_AUTO_START_SETTINGS,
+            ),
+            GuideStep(
+                title = "关闭电池优化限制",
+                description = "设置 → 电池 → 后台耗电管理，把嘟嘟通讯设为「允许后台高耗电」；并在电池优化中设为允许。",
+                actionLabel = "申请忽略电池优化",
+                action = GuideAction.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+            ),
+            GuideStep(
+                title = "允许通知",
+                description = "打开通知权限并保留常驻通知，方便系统维持后台进程。",
+                actionLabel = "打开通知设置",
+                action = GuideAction.OPEN_NOTIFICATION_SETTINGS,
+            ),
+            GuideStep(
+                title = "锁定最近任务",
+                description = "在最近任务中下拉锁定嘟嘟通讯，避免被一键清理。",
+            ),
+        ),
+        note = "OriginOS / Funtouch OS 可能限制后台启动；允许自启动和后台高耗电后，转发会稳定很多。",
     )
 
     private fun lineageGuide(deviceLabel: String): OemGuide = OemGuide(

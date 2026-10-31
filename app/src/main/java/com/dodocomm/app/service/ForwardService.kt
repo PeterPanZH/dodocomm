@@ -31,6 +31,8 @@ import kotlinx.coroutines.withTimeout
 class ForwardService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var userStopped = false
+    private var foregroundFailed = false
 
     override fun onCreate() {
         super.onCreate()
@@ -77,8 +79,27 @@ class ForwardService : Service() {
         return START_STICKY
     }
 
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        // Swiping the task away does not stop the foreground service, but some
+        // OEMs kill it anyway. Schedule a best-effort revive; the periodic
+        // MaintenanceWorker remains the final safety net.
+        val settings = applicationContext.appContainer.settings.current()
+        if (!userStopped && !foregroundFailed &&
+            settings.forwardingEnabled && settings.foregroundServiceEnabled
+        ) {
+            applicationContext.appContainer.workScheduler.enqueueServiceRevive(10)
+        }
+        super.onTaskRemoved(rootIntent)
+    }
+
     override fun onDestroy() {
         isRunning = false
+        if (!userStopped && !foregroundFailed) {
+            val settings = applicationContext.appContainer.settings.current()
+            if (settings.forwardingEnabled && settings.foregroundServiceEnabled) {
+                applicationContext.appContainer.workScheduler.enqueueServiceRevive(10)
+            }
+        }
         NotificationHelper.cancelOngoing(this)
         scope.cancel()
         super.onDestroy()
@@ -108,6 +129,14 @@ class ForwardService : Service() {
             // stopping means the SMS broadcast path + WorkManager still work.
             Log.e(TAG, "进入前台服务失败: ${t.javaClass.simpleName}: ${t.message}", t)
             isRunning = false
+            foregroundFailed = true
+            val settings = applicationContext.appContainer.settings.current()
+            if (settings.forwardingEnabled && settings.foregroundServiceEnabled) {
+                applicationContext.appContainer.workScheduler.enqueueServiceRevive(30)
+                if (NotificationHelper.areNotificationsAllowed(this)) {
+                    runCatching { NotificationHelper.showBootRecoveryNotification(this) }
+                }
+            }
             stopSelf()
             false
         }
@@ -115,6 +144,7 @@ class ForwardService : Service() {
 
     private fun handleStop() {
         Log.i(TAG, "收到暂停指令，停止转发服务")
+        userStopped = true
         val container = applicationContext.appContainer
         // Updates settings, cancels periodic/retry work and requests service stop.
         container.serviceController.setForwardingEnabled(false)
