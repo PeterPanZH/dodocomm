@@ -23,6 +23,27 @@ class SettingsBackupCodecTest {
     )
 
     @Test
+    fun `merge adds backup channels and rules without dropping current ones`() {
+        val current = base.copy(
+            channels = listOf(com.dodocomm.app.core.channel.PushChannel(id = "current", type = com.dodocomm.app.core.channel.ChannelType.NTFY, name = "current")),
+            routingRules = listOf(
+                com.dodocomm.app.core.routing.RoutingRule(id = "current-rule", name = "current"),
+            ),
+        )
+        val restored = base.copy(
+            channels = listOf(com.dodocomm.app.core.channel.PushChannel(id = "restored", type = com.dodocomm.app.core.channel.ChannelType.TELEGRAM, name = "restored")),
+            routingRules = listOf(
+                com.dodocomm.app.core.routing.RoutingRule(id = "restored-rule", name = "restored"),
+            ),
+            defaultChannelIds = listOf("restored"),
+        )
+        val merged = SettingsBackupCodec.merge(restored, current)
+        assertEquals(2, merged.channels.size)
+        assertEquals(2, merged.routingRules.size)
+        assertEquals(listOf("restored"), merged.defaultChannelIds)
+    }
+
+    @Test
     fun `configuration round trips and preserves local app lock`() {
         val raw = SettingsBackupCodec.toJson(settings)
         val restored = SettingsBackupCodec.fromJson(raw, base)

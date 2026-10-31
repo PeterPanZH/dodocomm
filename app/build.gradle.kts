@@ -15,8 +15,8 @@ android {
         applicationId = "com.dodocomm.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 39
-        versionName = "1.11.0"
+        versionCode = 40
+        versionName = "1.11.1"
 
         // GitHub Releases is public; latest.json is attached to every release.
         buildConfigField(
@@ -84,8 +84,6 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
 
     implementation(libs.okhttp)
-    implementation("com.sun.mail:android-mail:1.6.7")
-    implementation("com.sun.mail:android-activation:1.6.7")
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

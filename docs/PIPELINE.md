@@ -2,7 +2,8 @@
 
 本文档记录转发管线实现细节、契约与已知边界。1.8.0 起管线已从 Bark-only 扩展为多通道：
 
-- `core/channel/`：Bark/ntfy/Telegram/Pushover/Email 客户端与 `PushDispatcher`
+- `core/channel/`：Bark/ntfy/Telegram/Pushover/Email 客户端与 `PushDispatcher`；
+  Email 使用内置 SMTP 客户端（STARTTLS/SSL，不依赖 JavaMail）
 - `core/routing/`：按发送者、关键词、SIM、时间路由
 - `core/db/`：历史记录与 AES-256-GCM 字段加密
 - `core/remote/`：可选的签名短信远程指令

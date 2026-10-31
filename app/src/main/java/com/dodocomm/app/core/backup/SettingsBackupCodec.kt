@@ -141,7 +141,7 @@ object SettingsBackupCodec {
     /** Additive merge used by the import preview: backup wins for matching ids. */
     fun merge(restored: AppSettings, current: AppSettings): AppSettings = restored.copy(
         channels = (current.channels + restored.channels)
-            .distinctBy { "${'$'}{it.type}:${'$'}{it.id}" },
+            .distinctBy { "${it.type}:${it.id}" },
         routingRules = (current.routingRules + restored.routingRules)
             .distinctBy { it.id },
         defaultChannelIds = (current.defaultChannelIds + restored.defaultChannelIds).distinct(),

@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.11.1] - 2026-10-31
+
+### 工程
+- 移除停止维护的 JavaMail Android 端口，Email(SMTP) 改用轻量内置 SMTP 客户端：
+  - 强制 STARTTLS 或隐式 TLS，校验证书主机名
+  - 支持 AUTH PLAIN / LOGIN，连接/读超时 4–6 秒
+  - UTF-8 主题/正文、MIME Base64 编码、防邮件头注入和 SMTP 点号转义
+  - 移除 `javax.mail` R8 keep 规则和两个 JavaMail 依赖
+- 新增 SMTP 消息构建、匿名 dispatcher、备份合并测试；共 88 个单测。
+
 ## [1.11.0] - 2026-10-31
 
 ### 记录

@@ -1,16 +1,7 @@
 package com.dodocomm.app.core.channel
 
-import com.dodocomm.app.core.settings.AppSettings
 import java.io.IOException
-import java.util.Properties
 import java.util.concurrent.TimeUnit
-import javax.mail.Authenticator
-import javax.mail.Message
-import javax.mail.PasswordAuthentication
-import javax.mail.Session
-import javax.mail.Transport
-import javax.mail.internet.InternetAddress
-import javax.mail.internet.MimeMessage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.FormBody
@@ -116,47 +107,24 @@ class PushoverClient(private val client: OkHttpClient = defaultClient()) {
 
 /** SMTP email through Android's JavaMail port. */
 class EmailClient {
+    private val smtpClient = SmtpClient()
+
     suspend fun send(channel: PushChannel, title: String, body: String): ChannelSendResult =
         withContext(Dispatchers.IO) {
             if (!channel.isConfigured()) {
                 return@withContext failure(channel, "SMTP 服务器、账号、授权码或收件人未配置")
             }
             runCatching {
-                val props = Properties().apply {
-                    put("mail.smtp.host", channel.smtpHost.trim())
-                    put("mail.smtp.port", channel.smtpPort.toString())
-                    put("mail.smtp.auth", "true")
-                    put("mail.smtp.connectiontimeout", "4000")
-                    put("mail.smtp.timeout", "6000")
-                    put("mail.smtp.writetimeout", "6000")
-                    put("mail.smtp.ssl.checkserveridentity", "true")
-                    when (channel.smtpSecurity.uppercase()) {
-                        "SSL", "SMTPS" -> put("mail.smtp.ssl.enable", "true")
-                        else -> {
-                            // STARTTLS is required; legacy NONE values are upgraded
-                            // so SMS bodies and SMTP credentials are never sent in clear.
-                            put("mail.smtp.starttls.enable", "true")
-                            put("mail.smtp.starttls.required", "true")
-                        }
-                    }
-                }
-                val session = Session.getInstance(
-                    props,
-                    object : Authenticator() {
-                        override fun getPasswordAuthentication(): PasswordAuthentication =
-                            PasswordAuthentication(channel.smtpUsername.trim(), channel.smtpPassword)
-                    },
+                smtpClient.send(
+                    host = channel.smtpHost,
+                    port = channel.smtpPort,
+                    security = channel.smtpSecurity,
+                    username = channel.smtpUsername,
+                    password = channel.smtpPassword,
+                    recipient = channel.recipient,
+                    subject = title,
+                    body = body,
                 )
-                val message = MimeMessage(session).apply {
-                    setFrom(InternetAddress(channel.smtpUsername.trim()))
-                    setRecipients(
-                        Message.RecipientType.TO,
-                        InternetAddress.parse(channel.recipient.trim()),
-                    )
-                    setSubject(title, "UTF-8")
-                    setText(body, "UTF-8")
-                }
-                Transport.send(message)
             }.fold(
                 onSuccess = { ChannelSendResult(channel.id, channel.name, channel.type, true, "邮件已发送") },
                 onFailure = { error ->
