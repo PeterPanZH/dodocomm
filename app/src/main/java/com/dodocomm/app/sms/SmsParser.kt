@@ -2,8 +2,6 @@ package com.dodocomm.app.sms
 
 import android.content.Context
 import android.content.Intent
-import android.os.Build
-import android.provider.Settings
 import android.provider.Telephony
 import android.telephony.SmsMessage
 import android.telephony.SubscriptionManager
@@ -12,6 +10,7 @@ import android.util.Log
 import com.dodocomm.app.core.model.INVALID_SUBSCRIPTION_ID
 import com.dodocomm.app.core.model.SmsPayload
 import com.dodocomm.app.core.system.AppPermissions
+import com.dodocomm.app.core.system.DeviceName
 
 /**
  * Turns an `SMS_RECEIVED` broadcast into a framework-free [SmsPayload].
@@ -59,7 +58,7 @@ object SmsParser {
             receivedAt = System.currentTimeMillis(),
             subscriptionId = subscriptionId,
             simLabel = resolveSimLabel(context, subscriptionId),
-            deviceName = resolveDeviceName(context),
+            deviceName = DeviceName.resolve(context),
             receiverNumber = resolveReceiverNumber(context, subscriptionId),
         )
     }
@@ -82,16 +81,6 @@ object SmsParser {
             if (parsed != null && parsed != INVALID_SUBSCRIPTION_ID) return parsed
         }
         return INVALID_SUBSCRIPTION_ID
-    }
-
-    /** Friendly phone name: user-set device name, else Build.MODEL / Build.DEVICE. */
-    private fun resolveDeviceName(context: Context): String {
-        val globalName = runCatching {
-            Settings.Global.getString(context.contentResolver, Settings.Global.DEVICE_NAME)
-        }.getOrNull()?.trim()
-        if (!globalName.isNullOrEmpty()) return globalName
-        val model = Build.MODEL.replace('_', ' ').trim()
-        return model.ifEmpty { Build.DEVICE.trim() }
     }
 
     /**

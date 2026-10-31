@@ -273,6 +273,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _testPushState.value = TestPushState.Idle
     }
 
+    fun setDeviceName(value: String) = updateSettings { it.copy(deviceName = value.trim()) }
+
     fun setTitleTemplate(value: String) {
         updateSettings { it.copy(titleTemplate = value) }
         _templateTestState.value = TestPushState.Idle

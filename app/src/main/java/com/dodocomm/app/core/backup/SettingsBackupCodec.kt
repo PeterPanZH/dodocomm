@@ -19,6 +19,7 @@ object SettingsBackupCodec {
         put("forwardingEnabled", settings.forwardingEnabled)
         put("serverUrl", settings.serverUrl)
         put("deviceKey", settings.deviceKey)
+        put("deviceName", settings.deviceName)
         put("titleTemplate", settings.titleTemplate)
         put("bodyTemplate", settings.bodyTemplate)
         put("pushGroup", settings.pushGroup)
@@ -51,6 +52,7 @@ object SettingsBackupCodec {
             forwardingEnabled = json.optBoolean("forwardingEnabled", base.forwardingEnabled),
             serverUrl = json.optString("serverUrl", base.serverUrl),
             deviceKey = json.optString("deviceKey", base.deviceKey),
+            deviceName = json.optString("deviceName", base.deviceName),
             titleTemplate = json.optString("titleTemplate", base.titleTemplate),
             bodyTemplate = json.optString("bodyTemplate", base.bodyTemplate),
             pushGroup = json.optString("pushGroup", base.pushGroup),

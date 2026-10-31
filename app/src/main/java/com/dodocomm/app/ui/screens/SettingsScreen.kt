@@ -53,9 +53,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Icon
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -77,7 +80,9 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -91,6 +96,9 @@ import com.dodocomm.app.core.settings.AppSettings
 import com.dodocomm.app.core.settings.CopyMode
 import com.dodocomm.app.core.settings.PushLevel
 import com.dodocomm.app.core.settings.ThemeMode
+import com.dodocomm.app.core.model.SmsPayload
+import com.dodocomm.app.core.system.DeviceName
+import com.dodocomm.app.forward.TitleTemplate
 import com.dodocomm.app.core.system.OemGuides
 import com.dodocomm.app.core.system.SystemNavigator
 import com.dodocomm.app.ui.AppViewModel
@@ -98,6 +106,7 @@ import com.dodocomm.app.ui.components.ConfirmDialog
 import com.dodocomm.app.ui.components.FilterListEditor
 import com.dodocomm.app.ui.components.IconBubble
 import com.dodocomm.app.ui.components.InfoNote
+import com.dodocomm.app.ui.components.MarkdownText
 import com.dodocomm.app.ui.components.RowDivider
 import com.dodocomm.app.ui.components.ScreenTitle
 import com.dodocomm.app.ui.components.SecretField
@@ -555,7 +564,18 @@ private fun InlineResult(text: String, success: Boolean) {
 @Composable
 private fun PushStyleCard(settings: AppSettings, viewModel: AppViewModel) {
     val templateTestState by viewModel.templateTestState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val systemDeviceName = remember { DeviceName.resolve(context) }
+    var showVariableHelp by rememberSaveable { mutableStateOf(false) }
     SectionCard {
+        SettingTextField(
+            value = settings.deviceName,
+            onCommit = viewModel::setDeviceName,
+            label = "设备名称",
+            placeholder = systemDeviceName,
+            supportingText = "用于 {device} 变量；留空时读取系统里的手机名称",
+        )
+        Spacer(Modifier.height(14.dp))
         TemplateField(
             value = settings.titleTemplate,
             onCommit = viewModel::setTitleTemplate,
@@ -574,7 +594,24 @@ private fun PushStyleCard(settings: AppSettings, viewModel: AppViewModel) {
             minLines = 3,
             maxLines = 6,
         )
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(14.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "模板变量",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = { showVariableHelp = true }) {
+                Text("变量说明")
+            }
+        }
+        TemplatePreview(
+            titleTemplate = settings.titleTemplate,
+            bodyTemplate = settings.bodyTemplate,
+            deviceName = settings.deviceName.ifBlank { systemDeviceName },
+        )
+        Spacer(Modifier.height(12.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             FilledTonalButton(
                 onClick = viewModel::sendTemplateTestPush,
@@ -663,6 +700,171 @@ private fun PushStyleCard(settings: AppSettings, viewModel: AppViewModel) {
             onCheckedChange = viewModel::setBadge,
             subtitle = "Bark App 图标显示未读数",
         )
+    }
+
+    if (showVariableHelp) {
+        TemplateVariableSheet(onDismiss = { showVariableHelp = false })
+    }
+}
+
+private data class TemplateVariable(
+    val token: String,
+    val name: String,
+    val example: String,
+    val bodyOnly: Boolean = false,
+)
+
+private val templateVariables = listOf(
+    TemplateVariable("{device}", "设备名称", "Pixel 9"),
+    TemplateVariable("{sender}", "发件号码", "95588"),
+    TemplateVariable("{body}", "短信原文", "您的验证码是 123456", bodyOnly = true),
+    TemplateVariable("{sim}", "SIM 卡 / 运营商", "SIM 1 · 中国移动"),
+    TemplateVariable("{number}", "接收号码", "13800138000（可能为空）"),
+    TemplateVariable("{time}", "接收时间", "14:32"),
+    TemplateVariable("{date}", "接收日期", "2026-10-31"),
+    TemplateVariable("{datetime}", "日期和时间", "2026-10-31 14:32"),
+)
+
+@Composable
+private fun TemplatePreview(
+    titleTemplate: String,
+    bodyTemplate: String,
+    deviceName: String,
+) {
+    val now = System.currentTimeMillis()
+    val sample = SmsPayload(
+        sender = "95588",
+        body = "【示例】您的验证码是 123456，5 分钟内有效。",
+        smsTimestamp = now,
+        receivedAt = now,
+        simLabel = "SIM 1 · 示例运营商",
+        deviceName = deviceName,
+        receiverNumber = "13800138000",
+    )
+    val title = TitleTemplate.render(titleTemplate, sample)
+    val body = TitleTemplate.renderBody(bodyTemplate, sample)
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+    ) {
+        Column(Modifier.fillMaxWidth().padding(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "模板预览",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = "示例数据",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = "标题",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = "消息体",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+                text = body,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 8,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TemplateVariableSheet(onDismiss: () -> Unit) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, end = 20.dp, bottom = 30.dp),
+        ) {
+            Text(
+                text = "模板变量说明",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "点击标题或消息体模板下方的变量标签，即可插入到光标位置。",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(14.dp))
+            templateVariables.forEach { variable ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                    ) {
+                        Text(
+                            text = variable.token,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontFamily = FontFamily.Monospace,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        )
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = variable.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            if (variable.bodyOnly) {
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    text = "仅消息体",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                        }
+                        Text(
+                            text = "示例：${variable.example}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = "{sim} 和 {number} 需要电话权限；取不到时会自动省略，不会影响短信转发。",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -852,10 +1054,8 @@ private fun UpdateDialog(
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                     Spacer(Modifier.height(6.dp))
-                    Text(
-                        text = state.info.changelog.ifBlank { "更新内容请查看 GitHub Release 页面。" },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    MarkdownText(
+                        markdown = state.info.changelog.ifBlank { "更新内容请查看 GitHub Release 页面。" },
                     )
                     Spacer(Modifier.height(12.dp))
                     Text(

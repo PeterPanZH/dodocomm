@@ -48,6 +48,7 @@ class SettingsRepository(context: Context) {
             forwardingEnabled = prefs.getBoolean(KEY_FORWARDING_ENABLED, defaults.forwardingEnabled),
             serverUrl = prefs.getString(KEY_SERVER_URL, defaults.serverUrl).orEmpty(),
             deviceKey = prefs.getString(KEY_DEVICE_KEY, defaults.deviceKey).orEmpty(),
+            deviceName = prefs.getString(KEY_DEVICE_NAME, defaults.deviceName).orEmpty(),
             titleTemplate = migrateTitleTemplate(
                 prefs.getString(KEY_TITLE_TEMPLATE, defaults.titleTemplate).orEmpty(),
             ),
@@ -92,6 +93,7 @@ class SettingsRepository(context: Context) {
             .putBoolean(KEY_FORWARDING_ENABLED, settings.forwardingEnabled)
             .putString(KEY_SERVER_URL, settings.serverUrl)
             .putString(KEY_DEVICE_KEY, settings.deviceKey)
+            .putString(KEY_DEVICE_NAME, settings.deviceName)
             .putString(KEY_TITLE_TEMPLATE, settings.titleTemplate)
             .putString(KEY_BODY_TEMPLATE, settings.bodyTemplate)
             .putString(KEY_PUSH_GROUP, settings.pushGroup)
@@ -131,6 +133,7 @@ class SettingsRepository(context: Context) {
         private const val KEY_FORWARDING_ENABLED = "forwarding_enabled"
         private const val KEY_SERVER_URL = "server_url"
         private const val KEY_DEVICE_KEY = "device_key"
+        private const val KEY_DEVICE_NAME = "device_name"
         private const val KEY_TITLE_TEMPLATE = "title_template"
         private const val KEY_BODY_TEMPLATE = "body_template"
         private const val KEY_PUSH_GROUP = "push_group"

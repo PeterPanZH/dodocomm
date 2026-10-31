@@ -178,5 +178,9 @@
  {
   "regex": "^自动识别 · (.+)$",
   "format": "Auto-detected · {0}"
+ },
+ {
+  "regex": "^示例：(.+)$",
+  "format": "Example: {0}"
  }
 ]

@@ -52,6 +52,8 @@ data class AppSettings(
     val forwardingEnabled: Boolean = true,
     val serverUrl: String = "https://api.day.app",
     val deviceKey: String = "",
+    /** Optional custom name used by the {device} template token. */
+    val deviceName: String = "",
     val titleTemplate: String = DEFAULT_TITLE_TEMPLATE,
     /** Bark notification body template; `{body}` is the original SMS text. */
     val bodyTemplate: String = DEFAULT_BODY_TEMPLATE,

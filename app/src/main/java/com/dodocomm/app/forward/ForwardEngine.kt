@@ -11,6 +11,7 @@ import com.dodocomm.app.core.model.ForwardRecord
 import com.dodocomm.app.core.model.ForwardStatus
 import com.dodocomm.app.core.model.SmsPayload
 import com.dodocomm.app.core.settings.AppSettings
+import com.dodocomm.app.core.system.DeviceName
 import com.dodocomm.app.core.util.Hashing
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -62,8 +63,11 @@ class ForwardEngine(
             return null
         }
 
-        val title = TitleTemplate.render(settings.titleTemplate, payload)
-        val barkBody = TitleTemplate.renderBody(settings.bodyTemplate, payload)
+        val templatePayload = payload.copy(
+            deviceName = settings.deviceName.trim().ifBlank { payload.deviceName },
+        )
+        val title = TitleTemplate.render(settings.titleTemplate, templatePayload)
+        val barkBody = TitleTemplate.renderBody(settings.bodyTemplate, templatePayload)
         val baseRecord = ForwardRecord(
             sender = payload.sender.trim(),
             body = payload.body,
@@ -154,7 +158,7 @@ class ForwardEngine(
             smsTimestamp = now,
             receivedAt = now,
             simLabel = "SIM 1 · 示例运营商",
-            deviceName = android.os.Build.MODEL.replace('_', ' ').trim(),
+            deviceName = settings.deviceName.trim().ifBlank { DeviceName.resolve(appContext) },
             receiverNumber = "13800138000",
         )
         return container.barkClient.send(

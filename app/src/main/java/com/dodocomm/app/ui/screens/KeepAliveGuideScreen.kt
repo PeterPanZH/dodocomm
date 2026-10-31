@@ -183,7 +183,15 @@ fun KeepAliveGuideScreen(
                 PermissionSummaryCard(
                     permissions = permissions,
                     onRequestPhonePermission = {
-                        phonePermissionLauncher.launch(Manifest.permission.READ_PHONE_STATE)
+                        runCatching {
+                            phonePermissionLauncher.launch(Manifest.permission.READ_PHONE_STATE)
+                        }.onFailure { error ->
+                            viewModel.postSnackbar(
+                                "无法请求电话权限：${error.message ?: error.javaClass.simpleName}，请在系统设置中开启",
+                                isError = true,
+                            )
+                            SystemNavigator.openAppDetails(context)
+                        }
                     },
                 )
                 Spacer(Modifier.height(20.dp))
