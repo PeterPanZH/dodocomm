@@ -18,6 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dodocomm.app.appContainer
 import com.dodocomm.app.core.settings.ThemeMode
+import com.dodocomm.app.core.system.ExternalNavigation
 import com.dodocomm.app.ui.i18n.AppLocale
 import com.dodocomm.app.ui.screens.AppLockScreen
 import com.dodocomm.app.ui.theme.Sms2BarkTheme
@@ -36,6 +37,10 @@ class MainActivity : FragmentActivity() {
      */
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
+        // Permission dialogs, SAF pickers and system settings also trigger
+        // onUserLeaveHint. Removing the task there would close the app behind
+        // the dialog; only hide for a real Home/Recents leave.
+        if (ExternalNavigation.consumeSuppression()) return
         if (appContainer.settings.current().hideFromRecents) {
             finishAndRemoveTask()
         }

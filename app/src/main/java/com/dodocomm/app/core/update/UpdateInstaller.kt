@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.core.content.FileProvider
+import com.dodocomm.app.core.system.ExternalNavigation
 import java.io.File
 import java.security.MessageDigest
 
@@ -18,6 +19,7 @@ object UpdateInstaller {
         context.packageManager.canRequestPackageInstalls()
 
     fun openInstallPermissionSettings(context: Context) {
+        ExternalNavigation.suppressNextLeave()
         val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
             data = Uri.parse("package:${context.packageName}")
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -46,6 +48,7 @@ object UpdateInstaller {
             openInstallPermissionSettings(context)
             return false
         }
+        ExternalNavigation.suppressNextLeave()
         val uri = FileProvider.getUriForFile(
             context,
             "${context.packageName}.fileprovider",

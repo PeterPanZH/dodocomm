@@ -55,6 +55,7 @@ object SystemNavigator {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             try {
+                ExternalNavigation.suppressNextLeave()
                 context.startActivity(intent)
                 return true
             } catch (_: ActivityNotFoundException) {
@@ -70,6 +71,7 @@ object SystemNavigator {
 
     private fun launch(context: Context, intent: Intent): Boolean {
         return try {
+            ExternalNavigation.suppressNextLeave()
             context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             true
         } catch (_: ActivityNotFoundException) {

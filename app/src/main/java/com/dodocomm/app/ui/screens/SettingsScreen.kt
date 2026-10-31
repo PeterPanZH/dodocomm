@@ -1502,6 +1502,7 @@ private fun BackupImportDialog(
 }
 
 private fun launchSaf(context: Context, launch: () -> Unit) {
+    com.dodocomm.app.core.system.ExternalNavigation.suppressNextLeave()
     runCatching(launch).onFailure { error ->
         Toast.makeText(
             context,

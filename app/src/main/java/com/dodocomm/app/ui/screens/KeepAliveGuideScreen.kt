@@ -66,6 +66,7 @@ import com.dodocomm.app.core.system.GuideStep
 import com.dodocomm.app.core.system.OemFamily
 import com.dodocomm.app.core.system.OemGuide
 import com.dodocomm.app.core.system.OemGuides
+import com.dodocomm.app.core.system.ExternalNavigation
 import com.dodocomm.app.core.system.SystemNavigator
 import com.dodocomm.app.ui.AppViewModel
 import com.dodocomm.app.ui.components.IconBubble
@@ -183,6 +184,7 @@ fun KeepAliveGuideScreen(
                 PermissionSummaryCard(
                     permissions = permissions,
                     onRequestPhonePermission = {
+                        ExternalNavigation.suppressNextLeave()
                         runCatching {
                             phonePermissionLauncher.launch(Manifest.permission.READ_PHONE_STATE)
                         }.onFailure { error ->

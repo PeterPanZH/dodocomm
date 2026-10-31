@@ -74,6 +74,7 @@ import com.dodocomm.app.core.model.ForwardRecord
 import com.dodocomm.app.core.model.TodayStats
 import com.dodocomm.app.core.settings.AppSettings
 import com.dodocomm.app.core.system.AppPermissions
+import com.dodocomm.app.core.system.ExternalNavigation
 import com.dodocomm.app.core.system.SystemNavigator
 import com.dodocomm.app.core.util.TimeFormatter
 import com.dodocomm.app.ui.AppViewModel
@@ -138,6 +139,7 @@ fun HomeScreen(
     val lastRecord = records.firstOrNull()
 
     fun launchPermissions() {
+        ExternalNavigation.suppressNextLeave()
         permissionLauncher.launch(corePermissions)
     }
 
