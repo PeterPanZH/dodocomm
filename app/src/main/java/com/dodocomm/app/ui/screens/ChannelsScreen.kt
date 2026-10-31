@@ -51,8 +51,10 @@ import com.dodocomm.app.core.channel.ChannelSendResult
 import com.dodocomm.app.core.channel.ChannelType
 import com.dodocomm.app.core.channel.PushChannel
 import com.dodocomm.app.core.settings.AppSettings
+import com.dodocomm.app.core.settings.CopyMode
 import com.dodocomm.app.core.settings.PushLevel
 import com.dodocomm.app.ui.AppViewModel
+import com.dodocomm.app.ui.components.CopyModeRow
 import com.dodocomm.app.ui.components.InlineResult
 import com.dodocomm.app.ui.components.SecretField
 import com.dodocomm.app.ui.components.SectionCard
@@ -392,6 +394,11 @@ private fun BarkFields(channel: PushChannel, onChange: (PushChannel) -> Unit) {
     )
     Spacer(Modifier.height(12.dp))
     BarkLevelPicker(channel, onChange)
+    Spacer(Modifier.height(8.dp))
+    CopyModeRow(
+        selected = CopyMode.fromName(channel.copyMode),
+         onSelect = { onChange(channel.copy(copyMode = it.name)) },
+    )
     Spacer(Modifier.height(12.dp))
     SettingTextField(
         value = channel.pushIcon,

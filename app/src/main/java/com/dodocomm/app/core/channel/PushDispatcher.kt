@@ -4,6 +4,7 @@ import com.dodocomm.app.bark.BarkClient
 import com.dodocomm.app.core.routing.RoutingContext
 import com.dodocomm.app.core.routing.RoutingEngine
 import com.dodocomm.app.core.settings.AppSettings
+import com.dodocomm.app.core.settings.CopyMode
 import com.dodocomm.app.core.settings.PushLevel
 
 /** Sends one rendered SMS to every enabled, configured channel. */
@@ -83,4 +84,5 @@ private fun AppSettings.forBarkChannel(channel: PushChannel): AppSettings = copy
     pushUrl = channel.pushUrl,
     isArchive = channel.isArchive,
     badgeEnabled = channel.badgeEnabled,
+    copyMode = CopyMode.fromName(channel.copyMode),
 )

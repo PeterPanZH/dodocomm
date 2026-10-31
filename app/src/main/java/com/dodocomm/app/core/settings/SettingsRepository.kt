@@ -87,6 +87,7 @@ class SettingsRepository(context: Context) {
         legacyUrl: String,
         legacyArchive: Boolean,
         legacyBadge: Boolean,
+        legacyCopyMode: String,
     ): List<PushChannel> {
         val base = if (channels.any { it.type == com.dodocomm.app.core.channel.ChannelType.BARK }) {
             channels
@@ -107,6 +108,7 @@ class SettingsRepository(context: Context) {
                     pushUrl = legacyUrl,
                     isArchive = legacyArchive,
                     badgeEnabled = legacyBadge,
+                    copyMode = legacyCopyMode,
                 )
             }
         }
@@ -128,6 +130,12 @@ class SettingsRepository(context: Context) {
         val legacyUrl = prefs.getString(KEY_PUSH_URL, defaults.pushUrl).orEmpty()
         val legacyArchive = prefs.getBoolean(KEY_IS_ARCHIVE, defaults.isArchive)
         val legacyBadge = prefs.getBoolean(KEY_BADGE_ENABLED, defaults.badgeEnabled)
+        val legacyCopyMode = CopyMode.fromName(
+            prefs.getString(
+                KEY_COPY_MODE,
+                if (prefs.getBoolean(KEY_AUTO_COPY, false)) CopyMode.FULL.name else defaults.copyMode.name,
+            ),
+        ).name
         val channels = migrateBarkChannel(
             channels = decodeChannels(prefs.getString(KEY_CHANNELS, null)),
             legacyServerUrl = legacyServerUrl,
@@ -139,6 +147,7 @@ class SettingsRepository(context: Context) {
             legacyUrl = legacyUrl,
             legacyArchive = legacyArchive,
             legacyBadge = legacyBadge,
+            legacyCopyMode = legacyCopyMode,
         )
         return AppSettings(
             forwardingEnabled = prefs.getBoolean(KEY_FORWARDING_ENABLED, defaults.forwardingEnabled),
@@ -157,12 +166,7 @@ class SettingsRepository(context: Context) {
             pushIcon = legacyIcon,
             pushUrl = legacyUrl,
             isArchive = legacyArchive,
-            copyMode = CopyMode.fromName(
-                prefs.getString(
-                    KEY_COPY_MODE,
-                    if (prefs.getBoolean(KEY_AUTO_COPY, false)) CopyMode.FULL.name else defaults.copyMode.name,
-                ),
-            ),
+            copyMode = CopyMode.fromName(legacyCopyMode),
             badgeEnabled = legacyBadge,
             foregroundServiceEnabled = prefs.getBoolean(KEY_FOREGROUND_SERVICE_ENABLED, defaults.foregroundServiceEnabled),
             autoStartOnBoot = prefs.getBoolean(KEY_AUTO_START_ON_BOOT, defaults.autoStartOnBoot),

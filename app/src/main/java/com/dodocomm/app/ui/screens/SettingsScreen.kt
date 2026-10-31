@@ -846,8 +846,7 @@ private fun PushStyleCard(
         RowDivider()
         SettingActionRow(
             title = "推送内容",
-            subtitle = "标题、消息体、设备名称与复制模式",
-            value = settings.copyMode.label,
+            subtitle = "标题、消息体与设备名称",
             icon = Icons.Rounded.Edit,
             onClick = onEditTemplate,
         )

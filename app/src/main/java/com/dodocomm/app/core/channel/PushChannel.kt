@@ -36,6 +36,7 @@ data class PushChannel(
     val pushUrl: String = "",
     val isArchive: Boolean = true,
     val badgeEnabled: Boolean = false,
+    val copyMode: String = "OFF",
     val topic: String = "",
     val token: String = "",
     val chatId: String = "",
@@ -75,6 +76,7 @@ data class PushChannel(
         put("pushUrl", pushUrl)
         put("isArchive", isArchive)
         put("badgeEnabled", badgeEnabled)
+        put("copyMode", copyMode)
         put("topic", topic)
         put("token", token)
         put("chatId", chatId)
@@ -101,6 +103,7 @@ data class PushChannel(
             pushUrl: String = "",
             isArchive: Boolean = true,
             badgeEnabled: Boolean = false,
+            copyMode: String = "OFF",
         ): PushChannel = PushChannel(
             id = "bark",
             type = ChannelType.BARK,
@@ -115,6 +118,7 @@ data class PushChannel(
             pushUrl = pushUrl,
             isArchive = isArchive,
             badgeEnabled = badgeEnabled,
+            copyMode = copyMode,
         )
 
         fun create(type: ChannelType): PushChannel {
@@ -147,6 +151,7 @@ data class PushChannel(
             pushUrl = json.optString("pushUrl"),
             isArchive = json.optBoolean("isArchive", true),
             badgeEnabled = json.optBoolean("badgeEnabled", false),
+            copyMode = json.optString("copyMode", "OFF"),
             topic = json.optString("topic"),
             token = json.optString("token"),
             chatId = json.optString("chatId"),

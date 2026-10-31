@@ -65,6 +65,7 @@ object SettingsBackupCodec {
         val legacyUrl = json.optString("pushUrl", base.pushUrl)
         val legacyArchive = json.optBoolean("isArchive", base.isArchive)
         val legacyBadge = json.optBoolean("badgeEnabled", base.badgeEnabled)
+        val legacyCopyMode = json.optString("copyMode", base.copyMode.name)
         return base.copy(
             forwardingEnabled = json.optBoolean("forwardingEnabled", base.forwardingEnabled),
             serverUrl = json.optString("serverUrl", base.serverUrl),
@@ -86,6 +87,7 @@ object SettingsBackupCodec {
                 url = legacyUrl,
                 archive = legacyArchive,
                 badge = legacyBadge,
+                copyMode = legacyCopyMode,
             ),
             routingRules = json.optJSONArray("routingRules")?.let { array ->
                 buildList {
@@ -142,6 +144,7 @@ object SettingsBackupCodec {
         url: String,
         archive: Boolean,
         badge: Boolean,
+        copyMode: String,
     ): List<PushChannel> {
         val base = if (channels.any { it.type == com.dodocomm.app.core.channel.ChannelType.BARK }) {
             channels
@@ -162,6 +165,7 @@ object SettingsBackupCodec {
                     pushUrl = url,
                     isArchive = archive,
                     badgeEnabled = badge,
+                    copyMode = copyMode,
                 )
             }
         }
