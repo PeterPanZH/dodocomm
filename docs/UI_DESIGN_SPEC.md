@@ -93,7 +93,7 @@ Dark：
 4. **后台与可靠性**：前台常驻服务开关、开机自启开关、电池优化状态行（已优化/未优化 + 去设置）、
    「保活向导」入口、WorkManager 周期任务说明（每 15 分钟补发）。
 5. **外观**：主题模式（跟随系统/浅色/深色 分段按钮）、跟随系统取色开关。
-6. **关于**：版本号（BuildConfig.VERSION_NAME）、开源/隐私说明（短信内容仅发送到你配置的 Bark 服务器；
+6. **关于**：版本号（BuildConfig.VERSION_NAME）、开源/隐私说明（短信内容仅发送到你配置的推送通道或 SMTP 服务器；
    本地保留最近 500 条记录，可清空）、使用帮助（复用保活向导 + 服务器配置提示）。
 文本输入：OutlinedTextField，圆角 16dp；文本改动仅本地状态，`onFocusChanged`/ImeAction.Done 时写回 settings；
 避免每个按键触发 commit。

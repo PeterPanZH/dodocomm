@@ -295,8 +295,6 @@
  "知道了": "Got it",
  "短信": "SMS",
  "短信内容": "SMS content",
- "短信内容仅发送到你配置的 Bark 服务器": "SMS content is only sent to the Bark server you configured",
- "短信内容仅发送到你配置的 Bark 服务器，不经过任何第三方；本地只保留最近 500 条记录，随时可以清空。": "SMS content is only sent to the Bark server you configured without going through any third party; only the latest 500 records are retained locally and can be cleared at any time.",
  "短信广播中没有 PDU": "There are no PDUs in SMS broadcasts",
  "短信未转发（重复/关闭/过滤且不记录）": "SMS not forwarded (duplicated/closed/filtered and not logged)",
  "短信权限": "SMS permissions",
@@ -636,5 +634,7 @@
  "输入当前 6 位 PIN": "Enter your current 6-digit PIN",
  "设置 6 位 PIN": "Set a 6-digit PIN",
  "再次输入确认": "Enter it again to confirm",
- "6 位数字，用于解锁嘟嘟通讯": "6 digits used to unlock DodoComm"
+ "6 位数字，用于解锁嘟嘟通讯": "6 digits used to unlock DodoComm",
+ "短信内容仅发送到你配置的推送通道或 SMTP 服务器": "SMS content is only sent to the push channels or SMTP server you configured.",
+ "短信内容仅发送到你配置的推送通道或 SMTP 服务器，不经过应用自己的服务器；本地只保留最近 500 条记录，随时可以清空。": "SMS content is only sent to your configured push channels or SMTP server, not through a server owned by the app; only the latest 500 records are kept locally and can be cleared at any time."
 }

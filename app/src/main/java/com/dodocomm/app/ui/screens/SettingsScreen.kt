@@ -1633,7 +1633,7 @@ private fun AboutCard(
         )
         Spacer(Modifier.height(8.dp))
         InfoNote(
-            text = "短信内容仅发送到你配置的 Bark 服务器，不经过任何第三方；本地只保留最近 500 条记录，随时可以清空。",
+            text = "短信内容仅发送到你配置的推送通道或 SMTP 服务器，不经过任何第三方；本地只保留最近 500 条记录，随时可以清空。",
         )
     }
 }

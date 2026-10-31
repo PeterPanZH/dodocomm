@@ -845,7 +845,7 @@ private fun PrivacyFooter() {
         )
         Spacer(Modifier.width(5.dp))
         Text(
-            text = "短信内容仅发送到你配置的 Bark 服务器",
+            text = "短信内容仅发送到你配置的推送通道或 SMTP 服务器",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
         )
