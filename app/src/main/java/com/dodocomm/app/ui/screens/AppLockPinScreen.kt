@@ -81,8 +81,20 @@ fun AppLockPinScreen(
         when (step) {
             PinStep.CURRENT -> {
                 currentPin = value
-                stepIndex = nextIndex
-                entry = ""
+                if (stepIndex == steps.lastIndex) {
+                    // Disabling the lock has only one step: verify and finish here.
+                    val result = onSubmit(value, "", "")
+                    if (result == null) {
+                        onDismiss()
+                    } else {
+                        error = result
+                        currentPin = ""
+                        entry = ""
+                    }
+                } else {
+                    stepIndex = nextIndex
+                    entry = ""
+                }
             }
             PinStep.NEW -> {
                 newPin = value

@@ -518,6 +518,7 @@ fun SettingsScreen(
             state = updateState,
             onDownload = viewModel::downloadAndInstallUpdate,
             onDownloadInBackground = viewModel::downloadUpdateInBackground,
+            onMoveDownloadToBackground = viewModel::moveUpdateDownloadToBackground,
             onCancelDownload = viewModel::cancelUpdateDownload,
             onInstallReady = viewModel::installReadyUpdate,
             onDismiss = viewModel::dismissUpdateDialog,
@@ -1011,6 +1012,7 @@ private fun UpdateDialog(
     state: UpdateState,
     onDownload: () -> Unit,
     onDownloadInBackground: () -> Unit,
+    onMoveDownloadToBackground: () -> Unit,
     onCancelDownload: () -> Unit,
     onInstallReady: () -> Unit,
     onDismiss: () -> Unit,
@@ -1094,7 +1096,7 @@ private fun UpdateDialog(
                 }
             },
             confirmButton = {
-                TextButton(onClick = onDownloadInBackground) {
+                TextButton(onClick = onMoveDownloadToBackground) {
                     Text("后台下载")
                 }
             },
