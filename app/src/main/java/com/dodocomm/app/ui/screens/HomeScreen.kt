@@ -300,7 +300,7 @@ private fun HomeHeroCard(
                             fontWeight = FontWeight.SemiBold,
                         )
                         Text(
-                            text = "嘟嘟可传信 · 短信即时送达",
+                            text = "嘟嘟可传信 · 短信一响就出发",
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.White.copy(alpha = 0.74f),
                         )
@@ -310,12 +310,12 @@ private fun HomeHeroCard(
                             .size(40.dp)
                             .clip(CircleShape)
                             .background(Color.White.copy(alpha = 0.16f))
-                            .clickable(onClickLabel = "打开保活向导", onClick = onGuideClick),
+                            .clickable(onClickLabel = "打开后台设置向导", onClick = onGuideClick),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Bolt,
-                            contentDescription = "保活向导",
+                            contentDescription = "后台设置向导",
                             modifier = Modifier.size(20.dp),
                             tint = Color.White,
                         )
@@ -362,7 +362,7 @@ private fun HomeHeroCard(
                     )
                 }
 
-                val hintText: String? = if (!configured) "去配置 Bark 服务器" else null
+                val hintText: String? = if (!configured) "去配置推送通道" else null
                 if (hintText != null) {
                     Spacer(Modifier.height(14.dp))
                     Row(
@@ -571,7 +571,7 @@ private fun buildSetupItems(settings: AppSettings, permissions: PermissionState)
         SetupItem(
             id = SetupIds.SMS,
             title = "短信读取权限",
-            subtitle = if (smsReady) "已授权，可以接收短信广播" else "未授权，无法接收短信",
+            subtitle = if (smsReady) "已授权，可以接收新短信" else "未授权，无法接收短信",
             done = smsReady,
             actionLabel = if (smsReady) "已授权" else "去授权",
         ),
@@ -676,7 +676,7 @@ private fun WaitingCard() {
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text = "收到短信后会自动推送，并在这里留下记录。",
+                    text = "可莉已经把嘟嘟可放出去啦，一有短信就飞过来。",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -753,7 +753,7 @@ private fun QuickActionsSection(
             modifier = Modifier.weight(1f),
         )
         QuickActionCard(
-            title = "保活向导",
+            title = "后台设置向导",
             subtitle = "提升后台稳定性",
             icon = Icons.Rounded.Bolt,
             iconTonal = TonalPair(

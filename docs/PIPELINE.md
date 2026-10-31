@@ -1,4 +1,4 @@
-# SMS2Bark · 转发管线实现说明（pipeline-dev）
+# DodoComm · 转发管线实现说明
 
 本文档记录 `bark/`、`forward/`、`sms/`、`service/`、`work/` 五个包的实现细节、契约与已知边界。
 架构总览见 [`ARCHITECTURE.md`](ARCHITECTURE.md)。

@@ -221,7 +221,7 @@ private fun SettingsOverviewScreen(
                 RowDivider()
                 OverviewRow(
                     title = "后台与可靠性",
-                    subtitle = "常驻通知、开机恢复、电池优化与保活向导",
+                    subtitle = "后台收信、开机恢复与省电设置",
                     value = if (settings.foregroundServiceEnabled) "常驻通知" else "广播模式",
                     icon = Icons.Rounded.Bolt,
                     onClick = { onNavigateSection(SettingsSection.RELIABILITY) },
@@ -434,7 +434,7 @@ fun SettingsScreen(
             }
             item(key = "reliability_note", contentType = "note") {
                 InfoNote(
-                    text = "关闭常驻通知栏会停用前台服务，改为短信广播 + 每 15 分钟定时补发；后台可靠性会下降，但不需要常驻通知。后台隐藏只影响最近任务列表。",
+                    text = "关闭常驻通知后，系统可能延迟处理新短信。建议保留常驻通知，让嘟嘟可随时待命。",
                 )
                 Spacer(Modifier.height(16.dp))
             }
@@ -766,7 +766,7 @@ private fun RetryPolicyCard(settings: AppSettings, viewModel: AppViewModel) {
         Box {
             SettingActionRow(
                 title = "重试退避",
-                subtitle = "每次失败后的等待时间按指数增长",
+                subtitle = "失败后等待时间会逐渐变长",
                 value = when (settings.retryBackoffSeconds) {
                     60 -> "1 分钟"
                     300 -> "5 分钟"
@@ -811,7 +811,7 @@ private fun RetryPolicyCard(settings: AppSettings, viewModel: AppViewModel) {
             title = "仅 Wi-Fi 重试",
             checked = settings.retryOnlyWifi,
             onCheckedChange = viewModel::setRetryOnlyWifi,
-            subtitle = "开启后失败重试只会在不计量网络下执行",
+            subtitle = "开启后只在 Wi-Fi 下重试",
         )
     }
 }
@@ -947,9 +947,9 @@ private fun ReliabilityCard(
             checked = settings.foregroundServiceEnabled,
             onCheckedChange = onToggleForegroundService,
             subtitle = if (settings.foregroundServiceEnabled) {
-                "开启前台服务，通知栏显示常驻通知"
+                "开启后通知栏会显示转发状态，后台更稳定"
             } else {
-                "已关闭：不显示常驻通知，仅靠短信广播 + 定时补发"
+                "关闭后不显示常驻通知，后台收信可能变慢"
             },
             icon = Icons.Rounded.NotificationsActive,
         )
@@ -973,7 +973,7 @@ private fun ReliabilityCard(
         SettingActionRow(
             title = "电池优化",
             subtitle = if (permissions.batteryOptimizationsIgnored) {
-                "已豁免，系统不会冻结后台服务"
+                "已豁免，系统不会限制后台运行"
             } else {
                 "未豁免，熄屏后可能被系统限制"
             },
@@ -983,7 +983,7 @@ private fun ReliabilityCard(
         )
         RowDivider()
         SettingActionRow(
-            title = "保活向导",
+            title = "后台设置向导",
             subtitle = "针对 $deviceLabel 的分步设置说明",
             icon = Icons.Rounded.Bolt,
             onClick = onOpenGuide,
@@ -992,13 +992,13 @@ private fun ReliabilityCard(
 }
 
 private fun updateSubtitle(state: UpdateState): String = when (state) {
-    is UpdateState.Checking -> "正在连接 GitHub Releases…"
+    is UpdateState.Checking -> "正在检查新版本…"
     is UpdateState.UpToDate -> "已是最新版本"
     is UpdateState.Available -> "发现新版本 v${state.info.versionName}，点击查看"
     is UpdateState.Downloading -> "正在下载更新：${state.progress}%"
     is UpdateState.Error -> state.message
     is UpdateState.Ready -> "更新已下载，点击安装"
-    UpdateState.Idle -> "当前版本，点击检查 GitHub Releases"
+    UpdateState.Idle -> "点击检查新版本"
 }
 
 private fun formatSize(bytes: Long): String = when {
@@ -1050,7 +1050,7 @@ private fun UpdateDialog(
                     )
                     Spacer(Modifier.height(12.dp))
                     Text(
-                        text = "更新会保留本地设置与转发记录；安装包校验 SHA-256 与签名后才交给系统安装器。",
+                        text = "更新不会影响你的设置和记录，下载完成后会先检查安装包再安装。",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -1207,7 +1207,7 @@ private fun DataCard(
         RowDivider()
         SettingActionRow(
             title = "导出记录",
-            subtitle = "CSV / JSON，可选择范围和脱敏",
+            subtitle = "选择格式、时间范围和是否隐藏敏感信息",
             icon = Icons.Rounded.Delete,
             onClick = onExportRecords,
         )
@@ -1610,13 +1610,13 @@ private fun AboutCard(
             title = "自动检查更新",
             checked = autoUpdateCheck,
             onCheckedChange = onToggleAutoUpdate,
-            subtitle = "成功时每 24 小时一次；失败按 1h→2h→…→24h 指数退避",
+            subtitle = "每天检查一次，失败时会自动延长间隔",
             icon = Icons.Rounded.Refresh,
         )
         RowDivider()
         SettingActionRow(
             title = "使用帮助",
-            subtitle = "服务器配置与后台保活说明",
+            subtitle = "推送设置与后台说明",
             icon = Icons.AutoMirrored.Rounded.HelpOutline,
             onClick = onOpenGuide,
         )
@@ -1634,7 +1634,7 @@ private fun AboutCard(
         )
         Spacer(Modifier.height(8.dp))
         InfoNote(
-            text = "短信内容仅发送到你配置的推送通道或 SMTP 服务器，不经过任何第三方；本地只保留最近 500 条记录，随时可以清空。",
+            text = "短信只会发送到你配置的推送通道，不经过我们自己的服务器；本地只保留最近 500 条记录，随时可以清空。",
         )
     }
 }

@@ -214,7 +214,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 when {
                     !UpdateInstaller.verifyApkSignature(appContext, apk) -> {
-                        _updateState.value = UpdateState.Error("更新包签名与当前应用不一致，已拒绝安装")
+                        _updateState.value = UpdateState.Error("更新包可能已损坏，已停止安装，请重试")
                         _updateDialogVisible.value = true
                         UpdateDownloadNotifier.cancel(appContext)
                     }
@@ -225,9 +225,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                         postSnackbar("更新已在后台下载完成，点按通知安装")
                     }
                     !UpdateInstaller.install(appContext, apk) -> {
-                        _updateState.value = UpdateState.Error("请允许本应用安装未知来源应用，然后重试")
+                        _updateState.value = UpdateState.Error("请在系统设置中允许安装应用，然后重试")
                         _updateDialogVisible.value = true
-                        postSnackbar("需要「安装未知应用」权限才能继续更新", isError = true)
+                        postSnackbar("请允许安装应用后继续更新", isError = true)
                     }
                     else -> {
                         _updateDialogVisible.value = false
@@ -274,11 +274,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 _updateDialogVisible.value = true
             }
             !UpdateInstaller.verifyApkSignature(appContext, file) -> {
-                _updateState.value = UpdateState.Error("更新包签名与当前应用不一致，已拒绝安装")
+                _updateState.value = UpdateState.Error("更新包可能已损坏，已停止安装，请重试")
                 _updateDialogVisible.value = true
             }
             !UpdateInstaller.install(appContext, file) -> {
-                _updateState.value = UpdateState.Error("请允许本应用安装未知来源应用，然后重试")
+                _updateState.value = UpdateState.Error("请在系统设置中允许安装应用，然后重试")
                 _updateDialogVisible.value = true
             }
             else -> {
@@ -477,7 +477,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun exportBackup(uri: Uri, password: String) {
         viewModelScope.launch {
             runCatching { container.backupManager.export(uri, password, container.settings.current()) }
-                .onSuccess { postSnackbar("备份已导出（密码 + 本机密钥双重保护）") }
+                .onSuccess { postSnackbar("备份已导出，请妥善保管密码") }
                 .onFailure { postSnackbar("备份导出失败：${it.message ?: "未知错误"}", isError = true) }
         }
     }
@@ -520,7 +520,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             }.onSuccess { count ->
                 postSnackbar("已导出 $count 条记录")
             }.onFailure { error ->
-                postSnackbar("导出失败：${error.message?.ifBlank { error.javaClass.simpleName } ?: "未知错误"}", isError = true)
+                postSnackbar("导出失败，请重试", isError = true)
             }
         }
     }
@@ -596,10 +596,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             if (container.settings.current().forwardingEnabled) {
                 container.serviceController.start()
             }
-            postSnackbar("已开启常驻通知栏")
+            postSnackbar("已开启常驻通知")
         } else {
             container.serviceController.stop()
-            postSnackbar("已关闭常驻通知栏，仅通过短信广播接收")
+            postSnackbar("已关闭常驻通知，后台收信可能变慢")
         }
         refreshSystemState()
     }

@@ -146,7 +146,7 @@ fun KeepAliveGuideScreen(
             Spacer(Modifier.width(4.dp))
             Column(Modifier.weight(1f)) {
                 Text(
-                    text = "保活向导",
+                    text = "后台设置向导",
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onBackground,
                 )
@@ -610,7 +610,7 @@ private fun honestNote(guide: OemGuide): String = buildString {
     append("\n\n")
     append(
         "为什么这些是正规方式：短信接收使用系统 SMS_RECEIVED 广播，进程被清理也能收到；" +
-            "常驻通知是前台服务的官方形态；电池优化豁免与自启动都是厂商公开的系统设置。",
+            "保留常驻通知、允许自启动、关闭电池优化，可以让后台收信更稳定。",
     )
     append("\n\n")
     append(

@@ -1,6 +1,6 @@
-# SMS2Bark · 架构与协作契约
+# DodoComm · 架构与协作契约
 
-Android 应用「嘟嘟通讯」：把收到的短信转发到自建/官方 Bark 服务器，推送到 iPhone。命名灵感来自原神「嘟嘟通讯」活动（内部工程名仍为 SMS2Bark，包名 com.dodocomm.app 保持不变）。
+Android 应用「嘟嘟通讯」：把收到的短信转发到用户配置的推送通道。命名灵感来自原神「嘟嘟通讯」活动（包名 com.dodocomm.app 保持不变）。
 目标系统：Android 8–17；对 ColorOS / LineageOS 等定制系统提供保活向导。
 包名：`com.dodocomm.app`。
 

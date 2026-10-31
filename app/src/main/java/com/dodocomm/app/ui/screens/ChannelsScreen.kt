@@ -106,7 +106,7 @@ fun ChannelsScreen(
                     color = MaterialTheme.colorScheme.onBackground,
                 )
                 Text(
-                    text = "启用的通道会同时接收短信",
+                    text = "配置好的通道会一起收到短信",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -120,7 +120,7 @@ fun ChannelsScreen(
         ) {
             item(key = "intro") {
                 Text(
-                    text = "短信会发送到所有已启用且配置完整的通道；至少保留一个通道。",
+                    text = "每个启用并填写完整的通道都会收到短信，至少保留一个。",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -150,12 +150,6 @@ fun ChannelsScreen(
                     Spacer(Modifier.width(8.dp))
                     Text("添加推送通道")
                 }
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    text = "Bark 负责 iOS 通知；其他通道可作为备份或在不同设备上接收。",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
         }
     }
@@ -238,11 +232,11 @@ private fun channelStatus(channel: PushChannel, configured: Boolean): String = w
 }
 
 private fun channelTypeDescription(type: ChannelType): String = when (type) {
-    ChannelType.BARK -> "Bark 推送，沿用 Bark 服务器配置"
-    ChannelType.NTFY -> "开源自建推送，支持 UTF-8 标题和优先级"
-    ChannelType.TELEGRAM -> "Telegram Bot，推送到指定 Chat"
-    ChannelType.PUSHOVER -> "Pushover，适合多设备提醒"
-    ChannelType.EMAIL -> "SMTP 邮件，使用邮箱授权码"
+    ChannelType.BARK -> "Bark 推送"
+    ChannelType.NTFY -> "轻量推送，支持自建服务器"
+    ChannelType.TELEGRAM -> "通过 Telegram 机器人接收"
+    ChannelType.PUSHOVER -> "适合手机、平板等多设备"
+    ChannelType.EMAIL -> "把短信发到你的邮箱"
 }
 
 @Composable
@@ -474,7 +468,7 @@ private fun NtfyFields(channel: PushChannel, onChange: (PushChannel) -> Unit) {
     SecretField(
         value = channel.token,
         onCommit = { onChange(channel.copy(token = it.trim())) },
-        label = "Bearer Token（可选）",
+        label = "访问令牌（可选）",
         placeholder = "ntfy access token",
     )
     Spacer(Modifier.height(12.dp))
@@ -491,14 +485,14 @@ private fun TelegramFields(channel: PushChannel, onChange: (PushChannel) -> Unit
     SecretField(
         value = channel.botToken,
         onCommit = { onChange(channel.copy(botToken = it.trim())) },
-        label = "Bot Token",
+        label = "机器人 Token",
         placeholder = "123456:ABC…",
     )
     Spacer(Modifier.height(12.dp))
     SettingTextField(
         value = channel.chatId,
         onCommit = { onChange(channel.copy(chatId = it.trim())) },
-        label = "Chat ID",
+        label = "会话 ID",
         placeholder = "例如 123456789",
     )
     Spacer(Modifier.height(8.dp))
@@ -514,14 +508,14 @@ private fun PushoverFields(channel: PushChannel, onChange: (PushChannel) -> Unit
     SecretField(
         value = channel.userKey,
         onCommit = { onChange(channel.copy(userKey = it.trim())) },
-        label = "User Key",
+        label = "用户 Key",
         placeholder = "Pushover user key",
     )
     Spacer(Modifier.height(12.dp))
     SecretField(
         value = channel.appToken,
         onCommit = { onChange(channel.copy(appToken = it.trim())) },
-        label = "App Token",
+        label = "应用 Token",
         placeholder = "Pushover application token",
     )
     Spacer(Modifier.height(12.dp))
@@ -538,7 +532,7 @@ private fun EmailFields(channel: PushChannel, onChange: (PushChannel) -> Unit) {
     SettingTextField(
         value = channel.smtpHost,
         onCommit = { onChange(channel.copy(smtpHost = it.trim())) },
-        label = "SMTP 服务器",
+        label = "邮箱服务器",
         placeholder = "smtp.example.com",
     )
     Spacer(Modifier.height(12.dp))
@@ -562,7 +556,7 @@ private fun EmailFields(channel: PushChannel, onChange: (PushChannel) -> Unit) {
         value = channel.smtpPassword,
         onCommit = { onChange(channel.copy(smtpPassword = it)) },
         label = "授权码（不是邮箱密码）",
-        placeholder = "SMTP authorization code",
+        placeholder = "邮箱授权码",
     )
     Spacer(Modifier.height(12.dp))
     SettingTextField(
