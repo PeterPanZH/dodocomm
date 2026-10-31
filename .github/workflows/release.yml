@@ -79,16 +79,43 @@ jobs:
           echo "VERSION_CODE=$VERSION_CODE" >> "$GITHUB_ENV"
           echo "TAG=v${VERSION}" >> "$GITHUB_ENV"
           echo "APK_SHA=$SHA" >> "$GITHUB_ENV"
-          cat > latest.json <<EOF
-          {
-            "versionCode": ${VERSION_CODE},
-            "versionName": "${VERSION}",
-            "apkUrl": "https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/DodoComm-${VERSION}.apk",
-            "sha256": "${SHA}",
-            "size": ${SIZE},
-            "changelog": "DodoComm ${VERSION}。更新内容请查看 GitHub Release 说明。"
+          CHANGELOG="$(python3 - "$VERSION" <<'PY'
+          import re
+          import sys
+
+          version = sys.argv[1]
+          text = open("CHANGELOG.md", encoding="utf-8").read()
+          match = re.search(
+              r"^## \[?" + re.escape(version) + r"\]?.*?$", text, re.MULTILINE
+          )
+          if not match:
+              print("")
+          else:
+              start = match.end()
+              next_header = re.search(r"^## ", text[start:], re.MULTILINE)
+              body = text[start:start + next_header.start()] if next_header else text[start:]
+              print(body.strip())
+          PY
+          )"
+          export CHANGELOG
+          VERSION="$VERSION" VERSION_CODE="$VERSION_CODE" SHA="$SHA" SIZE="$SIZE" GITHUB_REPOSITORY="$GITHUB_REPOSITORY" python3 - <<'PY'
+          import json
+          import os
+
+          version = os.environ["VERSION"]
+          changelog = os.environ.get("CHANGELOG", "").strip() or f"DodoComm {version} 更新。"
+          data = {
+              "versionCode": int(os.environ["VERSION_CODE"]),
+              "versionName": version,
+              "apkUrl": f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/download/v{version}/DodoComm-{version}.apk",
+              "sha256": os.environ["SHA"],
+              "size": int(os.environ["SIZE"]),
+              "changelog": changelog,
           }
-          EOF
+          with open("latest.json", "w", encoding="utf-8") as f:
+              json.dump(data, f, ensure_ascii=False, indent=2)
+          PY
+          printf '%s\n' "$CHANGELOG" > release-notes.md
           cat latest.json
 
       - name: Create or update GitHub Release
@@ -106,10 +133,10 @@ jobs:
           echo "Release tag: $TAG"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "DodoComm-${VERSION}.apk" SHA256SUMS.txt latest.json --clobber
-            gh release edit "$TAG" --title "嘟嘟通讯 DodoComm v${VERSION}" --latest
+            gh release edit "$TAG" --title "嘟嘟通讯 DodoComm v${VERSION}" --notes-file release-notes.md --latest
           else
             gh release create "$TAG" "DodoComm-${VERSION}.apk" SHA256SUMS.txt latest.json \
               --title "嘟嘟通讯 DodoComm v${VERSION}" \
-              --generate-notes \
+              --notes-file release-notes.md \
               --target "$GITHUB_SHA"
           fi

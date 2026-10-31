@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 
 package com.dodocomm.app.ui.screens
 
@@ -11,6 +11,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -231,34 +233,42 @@ fun HistoryScreen(viewModel: AppViewModel) {
 
         Spacer(Modifier.height(10.dp))
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            HistoryFilter.entries.forEach { item ->
-                val count = counts[item] ?: 0
-                FilterChip(
-                    selected = filter == item,
-                    onClick = { viewModel.setHistoryFilter(item) },
-                    label = {
-                        Text(
-                            text = if (count > 0) "${item.label} $count" else item.label,
-                            style = MaterialTheme.typography.labelMedium,
-                            maxLines = 1,
-                        )
-                    },
-                    shape = CircleShape,
-                    colors = FilterChipDefaults.filterChipColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    ),
-                )
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .horizontalScroll(rememberScrollState())
+                    .padding(start = 20.dp, end = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                HistoryFilter.entries.forEach { item ->
+                    val count = counts[item] ?: 0
+                    FilterChip(
+                        selected = filter == item,
+                        onClick = { viewModel.setHistoryFilter(item) },
+                        label = {
+                            Text(
+                                text = if (count > 0) "${item.label} $count" else item.label,
+                                style = MaterialTheme.typography.labelMedium,
+                                maxLines = 1,
+                            )
+                        },
+                        shape = CircleShape,
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        ),
+                    )
+                }
             }
-            IconButton(onClick = { showFilterSheet = true }) {
+            IconButton(
+                onClick = { showFilterSheet = true },
+                modifier = Modifier.padding(end = 8.dp),
+            ) {
                 Icon(
                     imageVector = Icons.Rounded.FilterAlt,
                     contentDescription = "筛选",
@@ -430,7 +440,10 @@ private fun RecordFilterSheet(
                 modifier = Modifier.fillMaxWidth(),
             )
             Text("时间范围", style = MaterialTheme.typography.labelMedium)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 RecordDateFilter.entries.forEach { option ->
                     val label = when (option) {
                         RecordDateFilter.ALL -> "全部"
@@ -680,6 +693,7 @@ private fun RecordDetailSheet(
                         } else {
                             "发送失败：${result.message.ifBlank { "未知原因" }}"
                         },
+                        modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.bodySmall,
                         color = if (result.success) {
                             MaterialTheme.colorScheme.secondary

@@ -143,6 +143,27 @@ class ForwardEngine(
         )
     }
 
+    /** Sends a sample SMS rendered with the user's title/body templates. */
+    suspend fun sendTemplateTestPush(): BarkResult {
+        val settings = container.settings.current()
+        if (!settings.isConfigured) return BarkResult.failure(BarkClient.ERROR_NOT_CONFIGURED)
+        val now = System.currentTimeMillis()
+        val payload = SmsPayload(
+            sender = "95588",
+            body = "【测试】您的验证码是 123456，5 分钟内有效。",
+            smsTimestamp = now,
+            receivedAt = now,
+            simLabel = "SIM 1 · 示例运营商",
+            deviceName = android.os.Build.MODEL.replace('_', ' ').trim(),
+            receiverNumber = "13800138000",
+        )
+        return container.barkClient.send(
+            settings = settings,
+            title = TitleTemplate.render(settings.titleTemplate, payload),
+            body = TitleTemplate.renderBody(settings.bodyTemplate, payload),
+        )
+    }
+
     /** Re-sends an existing history record (user action on the detail sheet). */
     suspend fun resend(recordId: Long): BarkResult {
         val settings = container.settings.current()

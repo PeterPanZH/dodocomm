@@ -273,7 +273,7 @@
  "正在连接…": "Connecting…",
  "永久": "Forever",
  "永久保留": "reserved permanently",
- "浅色": "light color",
+ "浅色": "Light",
  "测试": "test",
  "测试推送失败": "Test push failed",
  "测试推送超时，请检查 Bark 服务器地址与网络": "Test push timeout, please check Bark server address and network",
@@ -442,5 +442,14 @@
  "消息体模板": "Body template",
  "{body} 是短信原文；不含 {body} 时原文仍会保留，来源信息附在下方": "{body} is the original SMS. If omitted, the original is still kept and source info is appended below.",
  "已开启转发，新短信会自动推送到 iPhone": "Forwarding is on. New messages will be pushed to your iPhone.",
- "今日已送达": "Delivered today"
+ "今日已送达": "Delivered today",
+ "系统": "System",
+ "本次更新内容": "What's new",
+ "更新内容请查看 GitHub Release 页面。": "See the GitHub Release page for details.",
+ "当前版本 v": "Current version v",
+ "新版本 v": "new version v",
+ "测试模板推送": "Test template push",
+ "正在发送…": "Sending…",
+ "用当前标题/消息体模板发一条示例短信": "Send a sample SMS using the current title/body templates",
+ "模板测试推送已发送": "Template test push sent"
 }

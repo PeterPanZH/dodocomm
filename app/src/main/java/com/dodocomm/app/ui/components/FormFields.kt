@@ -204,7 +204,10 @@ fun TemplateField(
     Column(modifier = modifier.fillMaxWidth()) {
         OutlinedTextField(
             value = field,
-            onValueChange = { field = it },
+            onValueChange = {
+                field = it
+                if (it.text != value) onCommit(it.text)
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .onFocusChanged { focusState ->

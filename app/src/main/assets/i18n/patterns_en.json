@@ -170,5 +170,9 @@
  {
   "regex": "^推送失败：(.*)$",
   "format": "Push failed: {0}"
+ },
+ {
+  "regex": "^当前版本 v(.+) → 新版本 v(.+)$",
+  "format": "Current v{0} → new v{1}"
  }
 ]

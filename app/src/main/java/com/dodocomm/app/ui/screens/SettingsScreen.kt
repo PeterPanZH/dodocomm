@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 
 package com.dodocomm.app.ui.screens
 
@@ -9,15 +9,20 @@ import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -502,6 +507,7 @@ private fun BarkServerCard(
 
                 else -> Text(
                     text = "发一条测试推送验证配置",
+                    modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -548,6 +554,7 @@ private fun InlineResult(text: String, success: Boolean) {
 
 @Composable
 private fun PushStyleCard(settings: AppSettings, viewModel: AppViewModel) {
+    val templateTestState by viewModel.templateTestState.collectAsStateWithLifecycle()
     SectionCard {
         TemplateField(
             value = settings.titleTemplate,
@@ -567,6 +574,46 @@ private fun PushStyleCard(settings: AppSettings, viewModel: AppViewModel) {
             minLines = 3,
             maxLines = 6,
         )
+        Spacer(Modifier.height(10.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            FilledTonalButton(
+                onClick = viewModel::sendTemplateTestPush,
+                enabled = templateTestState !is TestPushState.Loading,
+                shape = RoundedCornerShape(14.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
+            ) {
+                if (templateTestState is TestPushState.Loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("正在发送…")
+                } else {
+                    Text("测试模板推送")
+                }
+            }
+            Spacer(Modifier.width(10.dp))
+            Text(
+                text = "用当前标题/消息体模板发一条示例短信",
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        val templateTestMessage = when (val state = templateTestState) {
+            is TestPushState.Success -> state.message
+            is TestPushState.Failure -> state.message
+            else -> null
+        }
+        if (templateTestMessage != null) {
+            Spacer(Modifier.height(8.dp))
+            InlineResult(
+                text = templateTestMessage,
+                success = templateTestState is TestPushState.Success,
+            )
+        }
         Spacer(Modifier.height(16.dp))
         SettingTextField(
             value = settings.pushGroup,
@@ -782,17 +829,35 @@ private fun UpdateDialog(
             onDismissRequest = onDismiss,
             title = { Text("发现新版本 v${state.info.versionName}") },
             text = {
-                Column {
+                Column(
+                    modifier = Modifier
+                        .heightIn(max = 440.dp)
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    Text(
+                        text = "当前版本 v${BuildConfig.VERSION_NAME} → 新版本 v${state.info.versionName}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(Modifier.height(4.dp))
                     Text(
                         text = "安装包大小：${formatSize(state.info.size)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    if (state.info.changelog.isNotBlank()) {
-                        Spacer(Modifier.height(8.dp))
-                        Text(state.info.changelog.take(1200))
-                    }
-                    Spacer(Modifier.height(10.dp))
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = "本次更新内容",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = state.info.changelog.ifBlank { "更新内容请查看 GitHub Release 页面。" },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(12.dp))
                     Text(
                         text = "更新会保留本地设置与转发记录；安装包校验 SHA-256 与签名后才交给系统安装器。",
                         style = MaterialTheme.typography.bodySmall,
@@ -1125,7 +1190,10 @@ private fun ExportRecordsDialog(
                     }
                 }
                 Text("范围", style = MaterialTheme.typography.labelMedium)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     ExportRange.entries.forEach { item ->
                         FilterChip(
                             selected = range == item,

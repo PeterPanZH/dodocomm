@@ -57,6 +57,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _testPushState = MutableStateFlow<TestPushState>(TestPushState.Idle)
     val testPushState: StateFlow<TestPushState> = _testPushState.asStateFlow()
 
+    private val _templateTestState = MutableStateFlow<TestPushState>(TestPushState.Idle)
+    val templateTestState: StateFlow<TestPushState> = _templateTestState.asStateFlow()
+
     private val _updateState = MutableStateFlow<UpdateState>(UpdateState.Idle)
     val updateState: StateFlow<UpdateState> = _updateState.asStateFlow()
 
@@ -270,9 +273,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _testPushState.value = TestPushState.Idle
     }
 
-    fun setTitleTemplate(value: String) = updateSettings { it.copy(titleTemplate = value) }
+    fun setTitleTemplate(value: String) {
+        updateSettings { it.copy(titleTemplate = value) }
+        _templateTestState.value = TestPushState.Idle
+    }
 
-    fun setBodyTemplate(value: String) = updateSettings { it.copy(bodyTemplate = value) }
+    fun setBodyTemplate(value: String) {
+        updateSettings { it.copy(bodyTemplate = value) }
+        _templateTestState.value = TestPushState.Idle
+    }
 
     fun setPushGroup(value: String) = updateSettings { it.copy(pushGroup = value.trim()) }
 
@@ -434,6 +443,30 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // -- actions ------------------------------------------------------------
+
+    fun sendTemplateTestPush() {
+        if (_templateTestState.value is TestPushState.Loading) return
+        val current = container.settings.current()
+        if (!current.isConfigured) {
+            _templateTestState.value = TestPushState.Failure("请先填写服务器地址和 Device Key")
+            postSnackbar("请先配置 Bark 服务器", isError = true)
+            return
+        }
+        _templateTestState.value = TestPushState.Loading
+        viewModelScope.launch {
+            val result = runCatching { container.forwardEngine.sendTemplateTestPush() }
+                .getOrElse { error -> BarkResult.failure(error.message ?: "模板测试推送失败") }
+            _templateTestState.value = if (result.success) {
+                TestPushState.Success(result.message.ifBlank { "模板测试推送成功" })
+            } else {
+                TestPushState.Failure(result.message.ifBlank { "模板测试推送失败" })
+            }
+            postSnackbar(
+                if (result.success) "模板测试推送已发送" else "模板测试推送失败：${result.message.ifBlank { "未知原因" }}",
+                isError = !result.success,
+            )
+        }
+    }
 
     fun sendTestPush() {
         if (_testPushState.value is TestPushState.Loading) return
