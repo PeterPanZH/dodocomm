@@ -65,7 +65,8 @@ object AppStrings {
             val match = entry.regex.matchEntire(source) ?: continue
             var result = entry.format
             match.groupValues.drop(1).forEachIndexed { index, value ->
-                result = result.replace("{$index}", value)
+                val translatedValue = if (value == source) value else translate(value, language)
+                result = result.replace("{$index}", translatedValue)
             }
             return result
         }

@@ -174,5 +174,9 @@
  {
   "regex": "^当前版本 v(.+) → 新版本 v(.+)$",
   "format": "Current v{0} → new v{1}"
+ },
+ {
+  "regex": "^自动识别 · (.+)$",
+  "format": "Auto-detected · {0}"
  }
 ]

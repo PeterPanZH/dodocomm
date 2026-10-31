@@ -2,7 +2,10 @@
 
 package com.dodocomm.app.ui.screens
 
+import android.Manifest
 import android.content.Context
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +22,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -32,7 +34,6 @@ import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.Sms
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
@@ -57,7 +58,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -102,7 +102,9 @@ fun KeepAliveGuideScreen(
         runCatching { OemFamily.valueOf(manualFamilyName) }.getOrDefault(detectedFamily)
     }
     val guide = remember(selectedFamily) { OemGuides.guideFor(selectedFamily) }
-    var acknowledgedMask by rememberSaveable { mutableStateOf(0) }
+    val phonePermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { viewModel.refreshSystemState() }
 
     fun detectedFor(step: GuideStep): Boolean? = when (step.action) {
         GuideAction.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
@@ -178,7 +180,12 @@ fun KeepAliveGuideScreen(
                 Spacer(Modifier.height(20.dp))
             }
             item(key = "status", contentType = "card") {
-                PermissionSummaryCard(permissions)
+                PermissionSummaryCard(
+                    permissions = permissions,
+                    onRequestPhonePermission = {
+                        phonePermissionLauncher.launch(Manifest.permission.READ_PHONE_STATE)
+                    },
+                )
                 Spacer(Modifier.height(20.dp))
             }
             item(key = "steps_header", contentType = "header") {
@@ -193,10 +200,6 @@ fun KeepAliveGuideScreen(
                             index = index,
                             step = step,
                             detected = detectedFor(step),
-                            acknowledged = (acknowledgedMask shr index) and 1 == 1,
-                            onToggleAcknowledged = {
-                                acknowledgedMask = acknowledgedMask xor (1 shl index)
-                            },
                             onAction = { openAction(step.action) },
                         )
                     }
@@ -392,7 +395,10 @@ private fun GuideFamilyChip(text: String, selected: Boolean, onClick: () -> Unit
 }
 
 @Composable
-private fun PermissionSummaryCard(permissions: PermissionState) {
+private fun PermissionSummaryCard(
+    permissions: PermissionState,
+    onRequestPhonePermission: () -> Unit,
+) {
     SectionCard {
         Row(Modifier.fillMaxWidth()) {
             GuideStatusCell(
@@ -407,11 +413,30 @@ private fun PermissionSummaryCard(permissions: PermissionState) {
                 ready = permissions.notificationsReady,
                 modifier = Modifier.weight(1f),
             )
+        }
+        Spacer(Modifier.height(12.dp))
+        Row(Modifier.fillMaxWidth()) {
+            GuideStatusCell(
+                icon = Icons.Rounded.PhoneAndroid,
+                label = "电话信息",
+                ready = permissions.readPhoneState,
+                modifier = Modifier.weight(1f),
+            )
             GuideStatusCell(
                 icon = Icons.Rounded.BatterySaver,
                 label = "电池优化",
                 ready = permissions.batteryOptimizationsIgnored,
                 modifier = Modifier.weight(1f),
+            )
+        }
+        if (!permissions.readPhoneState) {
+            RowDivider()
+            SettingActionRow(
+                title = "授予电话信息权限",
+                subtitle = "模板里的 {sim} / {number} 需要它；不授权也能正常转发短信",
+                value = "去授权",
+                icon = Icons.Rounded.PhoneAndroid,
+                onClick = onRequestPhonePermission,
             )
         }
     }
@@ -463,8 +488,6 @@ private fun GuideStepRow(
     index: Int,
     step: GuideStep,
     detected: Boolean?,
-    acknowledged: Boolean,
-    onToggleAcknowledged: () -> Unit,
     onAction: () -> Unit,
 ) {
     Row(
@@ -503,28 +526,6 @@ private fun GuideStepRow(
                     Text(
                         text = step.actionLabel,
                         style = MaterialTheme.typography.labelMedium,
-                    )
-                }
-            }
-            if (detected == null) {
-                Spacer(Modifier.height(4.dp))
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(10.dp))
-                        .toggleable(
-                            value = acknowledged,
-                            role = Role.Checkbox,
-                            onValueChange = { onToggleAcknowledged() },
-                        )
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Checkbox(checked = acknowledged, onCheckedChange = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = "我已了解",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }

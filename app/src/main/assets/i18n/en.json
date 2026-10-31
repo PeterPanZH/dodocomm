@@ -371,7 +371,7 @@
  "选择保存位置": "Select save location",
  "通用": "Universal",
  "通用 Android": "Universal Android",
- "通用 Android 设置": "General Android settings",
+ "通用 Android 设置": "Generic Android settings",
  "通知": "Notification",
  "通知分组": "Notification group",
  "通知声音": "Notification sounds",
@@ -451,5 +451,8 @@
  "测试模板推送": "Test template push",
  "正在发送…": "Sending…",
  "用当前标题/消息体模板发一条示例短信": "Send a sample SMS using the current title/body templates",
- "模板测试推送已发送": "Template test push sent"
+ "模板测试推送已发送": "Template test push sent",
+ "电话信息": "Phone info",
+ "授予电话信息权限": "Grant phone-info permission",
+ "模板里的 {sim} / {number} 需要它；不授权也能正常转发短信": "Needed for {sim} / {number} in templates; SMS forwarding still works without it."
 }

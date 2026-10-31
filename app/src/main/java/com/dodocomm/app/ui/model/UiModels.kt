@@ -26,6 +26,7 @@ data class PermissionState(
     val postNotifications: Boolean = false,
     val notificationsEnabled: Boolean = false,
     val batteryOptimizationsIgnored: Boolean = false,
+    val readPhoneState: Boolean = false,
 ) {
     val notificationsReady: Boolean get() = postNotifications && notificationsEnabled
 
@@ -35,6 +36,7 @@ data class PermissionState(
             postNotifications = AppPermissions.hasPostNotifications(context),
             notificationsEnabled = AppPermissions.areNotificationsEnabled(context),
             batteryOptimizationsIgnored = AppPermissions.isIgnoringBatteryOptimizations(context),
+            readPhoneState = AppPermissions.hasReadPhoneState(context),
         )
     }
 }
