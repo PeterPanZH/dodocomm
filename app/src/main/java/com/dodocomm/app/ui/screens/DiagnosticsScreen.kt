@@ -80,6 +80,7 @@ fun DiagnosticsScreen(
     onOpenGuide: () -> Unit,
     onOpenRetryHistory: () -> Unit,
     onOpenSettingsSection: (SettingsSection) -> Unit,
+    onOpenCrashLogs: () -> Unit,
 ) {
     val context = LocalContext.current
     val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -211,6 +212,11 @@ fun DiagnosticsScreen(
                             }
                         }
                     }
+                }
+            }
+            item(key = "crash_logs") {
+                TextButton(onClick = onOpenCrashLogs) {
+                    Text("查看本地崩溃日志")
                 }
             }
             item(key = "actions") {

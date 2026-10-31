@@ -49,6 +49,9 @@ jobs:
           GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false
         run: ./gradlew :app:assembleRelease :app:testDebugUnitTest --no-daemon --stacktrace
 
+      - name: APK size budget
+        run: bash scripts/check_apk_size.sh
+
       - name: Sign release APK
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}

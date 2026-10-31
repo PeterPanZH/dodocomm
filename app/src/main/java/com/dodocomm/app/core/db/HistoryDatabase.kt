@@ -1,11 +1,17 @@
 package com.dodocomm.app.core.db
 
+import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
+import com.dodocomm.app.core.crypto.RecordCipher
 
 /** Small, dependency-free SQLite store for the local forwarding history. */
-class HistoryDatabase(context: Context) : SQLiteOpenHelper(
+class HistoryDatabase(
+    context: Context,
+    internal val cipher: RecordCipher = RecordCipher(context),
+) : SQLiteOpenHelper(
     context.applicationContext,
     DATABASE_NAME,
     null,
@@ -46,6 +52,51 @@ class HistoryDatabase(context: Context) : SQLiteOpenHelper(
 
     override fun onDowngrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         onUpgrade(db, oldVersion, newVersion)
+    }
+
+    override fun onOpen(db: SQLiteDatabase) {
+        super.onOpen(db)
+        runCatching { encryptLegacyRows(db) }
+            .onFailure { Log.w("DODOCOMM_CRYPTO", "本地记录加密迁移失败: ${it.javaClass.simpleName}") }
+    }
+
+    /** Idempotently encrypts rows written before local encryption existed. */
+    private fun encryptLegacyRows(db: SQLiteDatabase) {
+        val fields = listOf("sender", "body", "title", "bark_body", "error", "bark_response")
+        var migrated = 0
+        db.beginTransaction()
+        try {
+            db.query(
+                TABLE_RECORDS,
+                arrayOf("id") + fields,
+                null,
+                null,
+                null,
+                null,
+                null,
+            ).use { cursor ->
+                while (cursor.moveToNext()) {
+                    val id = cursor.getLong(0)
+                    val values = ContentValues()
+                    var changed = false
+                    fields.forEachIndexed { index, field ->
+                        val value = cursor.getString(index + 1)
+                        if (!value.isNullOrEmpty() && !cipher.isEncrypted(value)) {
+                            values.put(field, cipher.encrypt(value))
+                            changed = true
+                        }
+                    }
+                    if (changed) {
+                        db.update(TABLE_RECORDS, values, "id = ?", arrayOf(id.toString()))
+                        migrated++
+                    }
+                }
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+        if (migrated > 0) Log.i("DODOCOMM_CRYPTO", "已加密 $migrated 条本地记录")
     }
 
     companion object {

@@ -193,6 +193,10 @@ class SettingsRepository(context: Context) {
             retryMaxHours = prefs.getInt(KEY_RETRY_MAX_HOURS, defaults.retryMaxHours),
             automationEnabled = prefs.getBoolean(KEY_AUTOMATION_ENABLED, defaults.automationEnabled),
             automationToken = prefs.getString(KEY_AUTOMATION_TOKEN, defaults.automationToken).orEmpty(),
+            remoteEnabled = prefs.getBoolean(KEY_REMOTE_ENABLED, defaults.remoteEnabled),
+            remoteSecret = prefs.getString(KEY_REMOTE_SECRET, defaults.remoteSecret).orEmpty(),
+            remoteTrustedNumber = prefs.getString(KEY_REMOTE_TRUSTED_NUMBER, defaults.remoteTrustedNumber).orEmpty(),
+            remoteLastNonce = prefs.getLong(KEY_REMOTE_LAST_NONCE, defaults.remoteLastNonce),
         )
     }
 
@@ -240,6 +244,10 @@ class SettingsRepository(context: Context) {
             .putInt(KEY_RETRY_MAX_HOURS, settings.retryMaxHours)
             .putBoolean(KEY_AUTOMATION_ENABLED, settings.automationEnabled)
             .putString(KEY_AUTOMATION_TOKEN, settings.automationToken)
+            .putBoolean(KEY_REMOTE_ENABLED, settings.remoteEnabled)
+            .putString(KEY_REMOTE_SECRET, settings.remoteSecret)
+            .putString(KEY_REMOTE_TRUSTED_NUMBER, settings.remoteTrustedNumber)
+            .putLong(KEY_REMOTE_LAST_NONCE, settings.remoteLastNonce)
             .commit()
     }
 
@@ -288,6 +296,10 @@ class SettingsRepository(context: Context) {
         private const val KEY_RETRY_MAX_HOURS = "retry_max_hours"
         private const val KEY_AUTOMATION_ENABLED = "automation_enabled"
         private const val KEY_AUTOMATION_TOKEN = "automation_token"
+        private const val KEY_REMOTE_ENABLED = "remote_enabled"
+        private const val KEY_REMOTE_SECRET = "remote_secret"
+        private const val KEY_REMOTE_TRUSTED_NUMBER = "remote_trusted_number"
+        private const val KEY_REMOTE_LAST_NONCE = "remote_last_nonce"
 
         fun encodeList(values: List<String>): String {
             val array = JSONArray()

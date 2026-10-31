@@ -54,7 +54,9 @@ import androidx.navigation.compose.rememberNavController
 import com.dodocomm.app.ui.model.HistoryFilter
 import com.dodocomm.app.ui.screens.AutomationScreen
 import com.dodocomm.app.ui.screens.ChannelsScreen
+import com.dodocomm.app.ui.screens.CrashLogsScreen
 import com.dodocomm.app.ui.screens.DiagnosticsScreen
+import com.dodocomm.app.ui.screens.RemoteManagementScreen
 import com.dodocomm.app.ui.screens.HistoryScreen
 import com.dodocomm.app.ui.screens.HomeScreen
 import com.dodocomm.app.ui.screens.KeepAliveGuideScreen
@@ -75,6 +77,8 @@ object Routes {
     const val ROUTING = "routing"
     const val DIAGNOSTICS = "diagnostics"
     const val AUTOMATION = "automation"
+    const val REMOTE = "remote"
+    const val CRASH_LOGS = "crash_logs"
 
     val tabRoutes: Set<String> = setOf(HOME, HISTORY, SETTINGS)
 }
@@ -265,6 +269,7 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                     onOpenSettingsSection = { section ->
                         navController.navigate(Routes.SETTINGS_SECTION_PREFIX + section.route)
                     },
+                    onOpenCrashLogs = { navController.navigate(Routes.CRASH_LOGS) },
                 )
             }
             composable(
@@ -279,6 +284,23 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                 },
             ) {
                 AutomationScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() },
+                    onOpenRemote = { navController.navigate(Routes.REMOTE) },
+                )
+            }
+            composable(
+                route = Routes.REMOTE,
+                enterTransition = {
+                    slideInHorizontally(tween(240)) { width -> width / 4 } + fadeIn(tween(200))
+                },
+                exitTransition = { fadeOut(tween(140)) },
+                popEnterTransition = { fadeIn(tween(180)) },
+                popExitTransition = {
+                    slideOutHorizontally(tween(220)) { width -> width / 4 } + fadeOut(tween(140))
+                },
+            ) {
+                RemoteManagementScreen(
                     viewModel = viewModel,
                     onBack = { navController.popBackStack() },
                 )

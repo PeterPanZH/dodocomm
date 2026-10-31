@@ -26,12 +26,18 @@ class AppContainer(context: Context) {
     private val appContext: Context = context.applicationContext
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
+    /** Application context for components that need UI-side helpers. */
+    fun context(): Context = appContext
+
     val settings: SettingsRepository by lazy { SettingsRepository(appContext) }
     val history: HistoryRepository by lazy {
         HistoryRepository(HistoryDao(HistoryDatabase(appContext)), appScope)
     }
     val barkClient: BarkClient by lazy { BarkClient() }
     val pushDispatcher: PushDispatcher by lazy { PushDispatcher(barkClient) }
+    val remoteCommandHandler: com.dodocomm.app.core.remote.RemoteCommandHandler by lazy {
+        com.dodocomm.app.core.remote.RemoteCommandHandler(this)
+    }
     val serviceController: ServiceController by lazy { ServiceController(appContext, this) }
     val forwardEngine: ForwardEngine by lazy { ForwardEngine(appContext, this) }
     val workScheduler: WorkScheduler by lazy { WorkScheduler(appContext) }

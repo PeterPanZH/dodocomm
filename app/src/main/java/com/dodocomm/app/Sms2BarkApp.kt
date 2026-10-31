@@ -10,6 +10,7 @@ class Sms2BarkApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        com.dodocomm.app.core.crash.CrashLogger.install(this)
         container = AppContainer(this)
         AppStrings.init(this)
         AppLocale.apply(container.settings.current().appLanguage)

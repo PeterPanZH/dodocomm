@@ -1302,6 +1302,8 @@ private fun PrivacyCard(
                 )
             }
         }
+        RowDivider()
+        InfoNote("本地转发记录已加密保存，加密密钥只在这台手机上，不会随备份导出。")
     }
 }
 

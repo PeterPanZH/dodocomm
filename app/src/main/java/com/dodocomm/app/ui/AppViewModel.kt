@@ -449,6 +449,30 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         postSnackbar(if (enabled) "已开启自动化接口" else "已关闭自动化接口")
     }
 
+    fun setRemoteEnabled(enabled: Boolean) {
+        updateSettings { current ->
+            if (enabled && current.remoteSecret.isBlank()) {
+                current.copy(remoteEnabled = true, remoteSecret = newRemoteSecret())
+            } else {
+                current.copy(remoteEnabled = enabled)
+            }
+        }
+        postSnackbar(if (enabled) "已开启签名短信远程管理" else "已关闭签名短信远程管理")
+    }
+
+    fun setRemoteTrustedNumber(number: String) {
+        updateSettings { it.copy(remoteTrustedNumber = number.trim()) }
+    }
+
+    fun regenerateRemoteSecret() {
+        updateSettings { it.copy(remoteSecret = newRemoteSecret()) }
+        postSnackbar("远程管理密钥已更新，旧指令会立即失效")
+    }
+
+    private fun newRemoteSecret(): String =
+        java.util.UUID.randomUUID().toString().replace("-", "") +
+            java.util.UUID.randomUUID().toString().replace("-", "").take(8)
+
     fun regenerateAutomationToken() {
         updateSettings { it.copy(automationToken = newAutomationToken()) }
         postSnackbar("自动化令牌已更新")

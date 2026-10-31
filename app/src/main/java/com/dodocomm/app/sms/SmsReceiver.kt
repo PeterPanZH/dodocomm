@@ -40,6 +40,10 @@ class SmsReceiver : BroadcastReceiver() {
                         "收到短信 sender=${payload.sender} subId=${payload.subscriptionId} " +
                             "sim=${payload.simLabel} length=${payload.body.length}",
                     )
+                    if (appContext.appContainer.remoteCommandHandler.handle(payload)) {
+                        Log.i(TAG, "已处理远程签名短信，不进入普通转发")
+                        return@withTimeout
+                    }
                     val record = appContext.appContainer.forwardEngine.handleIncoming(payload)
                     if (record == null) {
                         Log.i(TAG, "短信未转发（重复/关闭/过滤且不记录）")

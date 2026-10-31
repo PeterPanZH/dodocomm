@@ -59,6 +59,7 @@ import com.dodocomm.app.ui.components.Text
 fun AutomationScreen(
     viewModel: AppViewModel,
     onBack: () -> Unit,
+    onOpenRemote: () -> Unit,
 ) {
     val context = LocalContext.current
     val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -238,6 +239,20 @@ fun AutomationScreen(
                             Spacer(Modifier.height(8.dp))
                             InfoNote("接口只提供查询、测试、暂停/恢复和检查更新，不会读取短信内容，也不能删除数据。")
                         }
+                    }
+                }
+            }
+
+            item(key = "remote") {
+                Column {
+                    SectionHeader("远程管理")
+                    SectionCard {
+                        com.dodocomm.app.ui.components.SettingActionRow(
+                            title = "签名短信远程管理",
+                            subtitle = "用可信号码发签名短信暂停、恢复或查询状态",
+                            value = if (settings.remoteEnabled) "已开启" else "未开启",
+                            onClick = onOpenRemote,
+                        )
                     }
                 }
             }

@@ -49,6 +49,10 @@ object SettingsBackupCodec {
         put("retryMaxHours", settings.retryMaxHours)
         put("automationEnabled", settings.automationEnabled)
         put("automationToken", settings.automationToken)
+        put("remoteEnabled", settings.remoteEnabled)
+        put("remoteSecret", settings.remoteSecret)
+        put("remoteTrustedNumber", settings.remoteTrustedNumber)
+        put("remoteLastNonce", settings.remoteLastNonce)
         put("senderWhitelist", JSONArray(settings.senderWhitelist))
         put("senderBlacklist", JSONArray(settings.senderBlacklist))
         put("keywordBlacklist", JSONArray(settings.keywordBlacklist))
@@ -122,6 +126,10 @@ object SettingsBackupCodec {
             retryMaxHours = json.optInt("retryMaxHours", base.retryMaxHours),
             automationEnabled = json.optBoolean("automationEnabled", base.automationEnabled),
             automationToken = json.optString("automationToken", base.automationToken),
+            remoteEnabled = json.optBoolean("remoteEnabled", base.remoteEnabled),
+            remoteSecret = json.optString("remoteSecret", base.remoteSecret),
+            remoteTrustedNumber = json.optString("remoteTrustedNumber", base.remoteTrustedNumber),
+            remoteLastNonce = json.optLong("remoteLastNonce", base.remoteLastNonce),
             senderWhitelist = json.optJSONArray("senderWhitelist").toStringList(),
             senderBlacklist = json.optJSONArray("senderBlacklist").toStringList(),
             keywordBlacklist = json.optJSONArray("keywordBlacklist").toStringList(),

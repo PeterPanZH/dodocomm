@@ -106,6 +106,11 @@ data class AppSettings(
     /** Broadcast automation is off by default; commands require this token. */
     val automationEnabled: Boolean = false,
     val automationToken: String = "",
+    /** Signed SMS remote commands; off by default. */
+    val remoteEnabled: Boolean = false,
+    val remoteSecret: String = "",
+    val remoteTrustedNumber: String = "",
+    val remoteLastNonce: Long = 0L,
 ) {
     fun isPaused(now: Long = System.currentTimeMillis()): Boolean = pauseUntil > now
 

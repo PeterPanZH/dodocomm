@@ -4,28 +4,32 @@ import android.content.ContentValues
 import android.database.Cursor
 import com.dodocomm.app.core.model.ForwardRecord
 import com.dodocomm.app.core.model.ForwardStatus
+import com.dodocomm.app.core.crypto.RecordCipher
 import com.dodocomm.app.core.model.TodayStats
 
 /**
  * Plain SQLite DAO. All methods block; callers wrap them in Dispatchers.IO.
  */
-class HistoryDao(private val database: HistoryDatabase) {
+class HistoryDao(
+    private val database: HistoryDatabase,
+) {
+    private val cipher: RecordCipher = database.cipher
 
     /** @return the new row id, or -1 when the message was already recorded. */
     fun insert(record: ForwardRecord, dedupeKey: String): Long {
         val values = ContentValues().apply {
-            put("sender", record.sender)
-            put("body", record.body)
+            put("sender", cipher.encrypt(record.sender))
+            put("body", cipher.encrypt(record.body))
             put("received_at", record.receivedAt)
             put("created_at", record.createdAt)
             put("sim_label", record.simLabel)
             put("subscription_id", record.subscriptionId)
             put("status", record.status.name)
             put("attempts", record.attempts)
-            put("error", record.error)
-            put("title", record.title)
-            put("bark_body", record.barkBody)
-            put("bark_response", record.barkResponse)
+            put("error", cipher.encrypt(record.error))
+            put("title", cipher.encrypt(record.title))
+            put("bark_body", cipher.encrypt(record.barkBody))
+            put("bark_response", cipher.encrypt(record.barkResponse))
             put("dedupe_key", dedupeKey)
         }
         return database.writableDatabase.insertWithOnConflict(
@@ -46,8 +50,8 @@ class HistoryDao(private val database: HistoryDatabase) {
         val values = ContentValues().apply {
             put("status", status.name)
             put("attempts", attempts)
-            put("error", error)
-            put("bark_response", response)
+            put("error", cipher.encrypt(error))
+            put("bark_response", cipher.encrypt(response))
         }
         database.writableDatabase.update(
             HistoryDatabase.TABLE_RECORDS,
@@ -157,18 +161,18 @@ class HistoryDao(private val database: HistoryDatabase) {
 
     private fun Cursor.toRecord(): ForwardRecord = ForwardRecord(
         id = getLong(getColumnIndexOrThrow("id")),
-        sender = getString(getColumnIndexOrThrow("sender")).orEmpty(),
-        body = getString(getColumnIndexOrThrow("body")).orEmpty(),
+        sender = cipher.decrypt(getString(getColumnIndexOrThrow("sender"))).orEmpty(),
+        body = cipher.decrypt(getString(getColumnIndexOrThrow("body"))).orEmpty(),
         receivedAt = getLong(getColumnIndexOrThrow("received_at")),
         createdAt = getLong(getColumnIndexOrThrow("created_at")),
         simLabel = getString(getColumnIndexOrThrow("sim_label")),
         subscriptionId = getInt(getColumnIndexOrThrow("subscription_id")),
         status = ForwardStatus.fromStorage(getString(getColumnIndexOrThrow("status"))),
         attempts = getInt(getColumnIndexOrThrow("attempts")),
-        error = getString(getColumnIndexOrThrow("error")),
-        title = getString(getColumnIndexOrThrow("title")),
-        barkBody = getString(getColumnIndexOrThrow("bark_body")),
-        barkResponse = getString(getColumnIndexOrThrow("bark_response")),
+        error = cipher.decrypt(getString(getColumnIndexOrThrow("error"))),
+        title = cipher.decrypt(getString(getColumnIndexOrThrow("title"))),
+        barkBody = cipher.decrypt(getString(getColumnIndexOrThrow("bark_body"))),
+        barkResponse = cipher.decrypt(getString(getColumnIndexOrThrow("bark_response"))),
     )
 
     companion object {
