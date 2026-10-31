@@ -182,5 +182,9 @@
  {
   "regex": "^示例：(.+)$",
   "format": "Example: {0}"
+ },
+ {
+  "regex": "^有新版本 v(.+)$",
+  "format": "New version v{0} available"
  }
 ]

@@ -38,7 +38,12 @@ import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.HelpOutline
+import androidx.compose.material.icons.rounded.Cloud
+import androidx.compose.material.icons.rounded.FilterAlt
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Storage
 import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Refresh
@@ -57,6 +62,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -117,11 +123,193 @@ import com.dodocomm.app.ui.model.TestPushState
 import com.dodocomm.app.ui.theme.FieldShape
 import java.time.LocalDate
 
+enum class SettingsSection(
+    val title: String,
+    val subtitle: String,
+    val route: String,
+) {
+    OVERVIEW("设置", "按类别管理所有设置", "overview"),
+    BARK("Bark 服务", "服务器地址、Device Key 与连接测试", "bark"),
+    PUSH("推送样式", "通知模板、声音、级别与复制行为", "push"),
+    RULES("转发规则", "白名单、黑名单与关键词过滤", "rules"),
+    PRIVACY("隐私与安全", "应用锁与本地数据保护", "privacy"),
+    RELIABILITY("后台与可靠性", "常驻通知、开机恢复与电池优化", "reliability"),
+    DATA("数据", "记录保留、导出与加密备份", "data"),
+    APPEARANCE("外观", "主题、语言与动态取色", "appearance"),
+    ABOUT("关于", "版本更新、帮助与项目信息", "about"),
+}
+
+@Composable
+private fun SettingsSubpageHeader(
+    title: String,
+    subtitle: String,
+    onBack: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(onClick = onBack) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                contentDescription = "返回",
+                tint = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+        Spacer(Modifier.width(4.dp))
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingsOverviewScreen(
+    settings: AppSettings,
+    records: List<com.dodocomm.app.core.model.ForwardRecord>,
+    updateState: UpdateState,
+    onNavigateSection: (SettingsSection) -> Unit,
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 14.dp, bottom = 44.dp),
+    ) {
+        item(key = "overview_title") {
+            ScreenTitle(title = "设置", subtitle = "所有设置已分区，修改后立即生效")
+            Spacer(Modifier.height(20.dp))
+        }
+
+        item(key = "overview_connection") {
+            SectionCard {
+                OverviewRow(
+                    title = "Bark 服务",
+                    subtitle = if (settings.isConfigured) settings.normalizedServerBase() else "填写服务器地址与 Device Key",
+                    value = if (settings.isConfigured) "已配置" else "未配置",
+                    icon = Icons.Rounded.Cloud,
+                    onClick = { onNavigateSection(SettingsSection.BARK) },
+                )
+                RowDivider()
+                OverviewRow(
+                    title = "推送样式",
+                    subtitle = "标题/消息体模板、通知声音、级别与复制模式",
+                    value = settings.copyMode.label,
+                    icon = Icons.Rounded.NotificationsActive,
+                    onClick = { onNavigateSection(SettingsSection.PUSH) },
+                )
+                RowDivider()
+                OverviewRow(
+                    title = "转发规则",
+                    subtitle = "白名单、黑名单与关键词过滤",
+                    value = if (settings.hasFilters) "已启用" else "未设置",
+                    icon = Icons.Rounded.FilterAlt,
+                    onClick = { onNavigateSection(SettingsSection.RULES) },
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+
+        item(key = "overview_security") {
+            SectionCard {
+                OverviewRow(
+                    title = "隐私与安全",
+                    subtitle = "应用锁、自动锁定与生物识别",
+                    value = if (settings.appLockEnabled) "已开启" else "未开启",
+                    icon = Icons.Rounded.Lock,
+                    onClick = { onNavigateSection(SettingsSection.PRIVACY) },
+                )
+                RowDivider()
+                OverviewRow(
+                    title = "后台与可靠性",
+                    subtitle = "常驻通知、开机恢复、电池优化与保活向导",
+                    value = if (settings.foregroundServiceEnabled) "常驻通知" else "广播模式",
+                    icon = Icons.Rounded.Bolt,
+                    onClick = { onNavigateSection(SettingsSection.RELIABILITY) },
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+
+        item(key = "overview_data") {
+            SectionCard {
+                OverviewRow(
+                    title = "数据",
+                    subtitle = "记录保留策略、导出与加密配置备份",
+                    value = "${records.size} 条记录",
+                    icon = Icons.Rounded.Storage,
+                    onClick = { onNavigateSection(SettingsSection.DATA) },
+                )
+                RowDivider()
+                OverviewRow(
+                    title = "外观",
+                    subtitle = "主题模式、界面语言与动态取色",
+                    value = settings.themeMode.label,
+                    icon = Icons.Rounded.Palette,
+                    onClick = { onNavigateSection(SettingsSection.APPEARANCE) },
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+
+        item(key = "overview_about") {
+            SectionCard {
+                OverviewRow(
+                    title = "关于",
+                    subtitle = "版本更新、帮助与项目信息",
+                    value = if (updateState is UpdateState.Available) {
+                        "有新版本 v${updateState.info.versionName}"
+                    } else {
+                        "v${BuildConfig.VERSION_NAME}"
+                    },
+                    icon = Icons.Rounded.Info,
+                    onClick = { onNavigateSection(SettingsSection.ABOUT) },
+                )
+            }
+            Spacer(Modifier.height(18.dp))
+            Text(
+                text = "本地运行 · 无账号 · 无广告",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun OverviewRow(
+    title: String,
+    subtitle: String,
+    value: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+) {
+    SettingActionRow(
+        title = title,
+        subtitle = subtitle,
+        value = value,
+        icon = icon,
+        onClick = onClick,
+    )
+}
+
 @Composable
 fun SettingsScreen(
     viewModel: AppViewModel,
     onNavigateGuide: () -> Unit,
     onNavigateTemplate: () -> Unit,
+    section: SettingsSection = SettingsSection.OVERVIEW,
+    onNavigateSection: (SettingsSection) -> Unit = {},
+    onBack: () -> Unit = {},
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val testPushState by viewModel.testPushState.collectAsStateWithLifecycle()
@@ -175,154 +363,155 @@ fun SettingsScreen(
         }.getOrDefault(false)
     }
 
+    if (section == SettingsSection.OVERVIEW) {
+        SettingsOverviewScreen(
+            settings = settings,
+            records = records,
+            updateState = updateState,
+            onNavigateSection = onNavigateSection,
+        )
+        return
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 14.dp, bottom = 44.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 44.dp),
     ) {
-        item(key = "title", contentType = "header") {
-            ScreenTitle(title = "设置", subtitle = "修改后立即生效，自动保存")
-            Spacer(Modifier.height(20.dp))
+        item(key = "subpage_title", contentType = "header") {
+            SettingsSubpageHeader(
+                title = section.title,
+                subtitle = section.subtitle,
+                onBack = onBack,
+            )
+            Spacer(Modifier.height(18.dp))
         }
 
-        stickyHeader(key = "bark_header", contentType = "header") {
-            StickySectionHeader("Bark 服务器")
-        }
-        item(key = "bark_card", contentType = "card") {
-            BarkServerCard(
-                settings = settings,
-                testPushState = testPushState,
-                onServerUrlCommit = viewModel::setServerUrl,
-                onDeviceKeyCommit = viewModel::setDeviceKey,
-                onTest = viewModel::sendTestPush,
-            )
-            Spacer(Modifier.height(20.dp))
+        if (section == SettingsSection.BARK) {
+            item(key = "bark_card", contentType = "card") {
+                BarkServerCard(
+                    settings = settings,
+                    testPushState = testPushState,
+                    onServerUrlCommit = viewModel::setServerUrl,
+                    onDeviceKeyCommit = viewModel::setDeviceKey,
+                    onTest = viewModel::sendTestPush,
+                )
+            }
         }
 
-        stickyHeader(key = "push_header", contentType = "header") {
-            StickySectionHeader("推送样式")
-        }
-        item(key = "push_card", contentType = "card") {
-            PushStyleCard(
-                settings = settings,
-                viewModel = viewModel,
-                onEditTemplate = onNavigateTemplate,
-            )
-            Spacer(Modifier.height(20.dp))
+        if (section == SettingsSection.PUSH) {
+            item(key = "push_card", contentType = "card") {
+                PushStyleCard(
+                    settings = settings,
+                    viewModel = viewModel,
+                    onEditTemplate = onNavigateTemplate,
+                )
+            }
         }
 
-        stickyHeader(key = "rules_header", contentType = "header") {
-            StickySectionHeader("转发规则")
-        }
-        item(key = "rules_note", contentType = "note") {
-            InfoNote(
-                text = "白名单非空时只转发列表中的号码，白名单优先于黑名单；号码按后缀匹配（如 138 可匹配 +86138…），关键词命中即过滤。",
-            )
-            Spacer(Modifier.height(10.dp))
-        }
-        item(key = "rules_card", contentType = "card") {
-            ForwardingRulesCard(settings = settings, viewModel = viewModel)
-            Spacer(Modifier.height(20.dp))
+        if (section == SettingsSection.RULES) {
+            item(key = "rules_note", contentType = "note") {
+                InfoNote(
+                    text = "白名单非空时只转发列表中的号码，白名单优先于黑名单；号码按后缀匹配（如 138 可匹配 +86138…），关键词命中即过滤。",
+                )
+                Spacer(Modifier.height(10.dp))
+            }
+            item(key = "rules_card", contentType = "card") {
+                ForwardingRulesCard(settings = settings, viewModel = viewModel)
+            }
         }
 
-        stickyHeader(key = "privacy_header", contentType = "header") {
-            StickySectionHeader("隐私与安全")
-        }
-        item(key = "privacy_card", contentType = "card") {
-            PrivacyCard(
-                settings = settings,
-                biometricAvailable = biometricAvailable,
-                onToggleAppLock = { enabled ->
-                    pinDialogMode = if (enabled) "setup" else "disable"
-                },
-                onChangePin = { pinDialogMode = "change" },
-                onSetAutoLockMinutes = viewModel::setAutoLockMinutes,
-                onToggleBiometric = viewModel::setBiometricUnlock,
-            )
-            Spacer(Modifier.height(20.dp))
+        if (section == SettingsSection.PRIVACY) {
+            item(key = "privacy_card", contentType = "card") {
+                PrivacyCard(
+                    settings = settings,
+                    biometricAvailable = biometricAvailable,
+                    onToggleAppLock = { enabled ->
+                        pinDialogMode = if (enabled) "setup" else "disable"
+                    },
+                    onChangePin = { pinDialogMode = "change" },
+                    onSetAutoLockMinutes = viewModel::setAutoLockMinutes,
+                    onToggleBiometric = viewModel::setBiometricUnlock,
+                )
+            }
         }
 
-        stickyHeader(key = "reliability_header", contentType = "header") {
-            StickySectionHeader("后台与可靠性")
-        }
-        item(key = "reliability_card", contentType = "card") {
-            ReliabilityCard(
-                settings = settings,
-                permissions = permissions,
-                deviceLabel = deviceLabel,
-                onToggleForegroundService = viewModel::setForegroundServiceEnabled,
-                onToggleAutoStart = viewModel::setAutoStartOnBoot,
-                onToggleHideFromRecents = viewModel::setHideFromRecents,
-                onOpenGuide = onNavigateGuide,
-                onOpenBatterySettings = { SystemNavigator.requestIgnoreBatteryOptimizations(context) },
-            )
-            Spacer(Modifier.height(10.dp))
-        }
-        item(key = "reliability_note", contentType = "note") {
-            InfoNote(
-                text = "关闭常驻通知栏会停用前台服务，改为短信广播 + 每 15 分钟定时补发；后台可靠性会下降，但不需要常驻通知。后台隐藏只影响最近任务列表。",
-            )
-            Spacer(Modifier.height(20.dp))
+        if (section == SettingsSection.RELIABILITY) {
+            item(key = "reliability_card", contentType = "card") {
+                ReliabilityCard(
+                    settings = settings,
+                    permissions = permissions,
+                    deviceLabel = deviceLabel,
+                    onToggleForegroundService = viewModel::setForegroundServiceEnabled,
+                    onToggleAutoStart = viewModel::setAutoStartOnBoot,
+                    onToggleHideFromRecents = viewModel::setHideFromRecents,
+                    onOpenGuide = onNavigateGuide,
+                    onOpenBatterySettings = { SystemNavigator.requestIgnoreBatteryOptimizations(context) },
+                )
+                Spacer(Modifier.height(10.dp))
+            }
+            item(key = "reliability_note", contentType = "note") {
+                InfoNote(
+                    text = "关闭常驻通知栏会停用前台服务，改为短信广播 + 每 15 分钟定时补发；后台可靠性会下降，但不需要常驻通知。后台隐藏只影响最近任务列表。",
+                )
+            }
         }
 
-        stickyHeader(key = "data_header", contentType = "header") {
-            StickySectionHeader("数据")
-        }
-        item(key = "data_card", contentType = "card") {
-            DataCard(
-                settings = settings,
-                recordCount = records.size,
-                onSetRetention = viewModel::setRetentionDays,
-                onSetMaxRecords = viewModel::setMaxRecords,
-                onPruneNow = viewModel::pruneNow,
-                onExportRecords = { showExportDialog = true },
-                onBackup = { showBackupExportDialog = true },
-                onRestore = {
-                    launchSaf(context) {
-                        backupImportLauncher.launch(arrayOf("*/*"))
-                    }
-                },
-            )
-            Spacer(Modifier.height(20.dp))
+        if (section == SettingsSection.DATA) {
+            item(key = "data_card", contentType = "card") {
+                DataCard(
+                    settings = settings,
+                    recordCount = records.size,
+                    onSetRetention = viewModel::setRetentionDays,
+                    onSetMaxRecords = viewModel::setMaxRecords,
+                    onPruneNow = viewModel::pruneNow,
+                    onExportRecords = { showExportDialog = true },
+                    onBackup = { showBackupExportDialog = true },
+                    onRestore = {
+                        launchSaf(context) {
+                            backupImportLauncher.launch(arrayOf("*/*"))
+                        }
+                    },
+                )
+            }
         }
 
-        stickyHeader(key = "appearance_header", contentType = "header") {
-            StickySectionHeader("外观")
-        }
-        item(key = "appearance_card", contentType = "card") {
-            AppearanceCard(settings = settings, viewModel = viewModel)
-            Spacer(Modifier.height(20.dp))
+        if (section == SettingsSection.APPEARANCE) {
+            item(key = "appearance_card", contentType = "card") {
+                AppearanceCard(settings = settings, viewModel = viewModel)
+            }
         }
 
-        stickyHeader(key = "about_header", contentType = "header") {
-            StickySectionHeader("关于")
-        }
-        item(key = "about_card", contentType = "card") {
-            AboutCard(
-                recordCount = records.size,
-                autoUpdateCheck = settings.autoUpdateCheck,
-                updateState = updateState,
-                onOpenGuide = onNavigateGuide,
-                onClearHistory = { showClearDialog = true },
-                onCheckUpdates = {
-                    if (updateState is UpdateState.Available || updateState is UpdateState.Error) {
-                        viewModel.showUpdateDialog()
-                    } else {
-                        viewModel.checkForUpdates()
-                    }
-                },
-                onToggleAutoUpdate = viewModel::setAutoUpdateCheck,
-            )
-            Spacer(Modifier.height(20.dp))
-        }
-
-        item(key = "footer", contentType = "footer") {
-            Text(
-                text = "本地运行 · 无账号 · 无广告",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-            )
+        if (section == SettingsSection.ABOUT) {
+            item(key = "about_card", contentType = "card") {
+                AboutCard(
+                    recordCount = records.size,
+                    autoUpdateCheck = settings.autoUpdateCheck,
+                    updateState = updateState,
+                    onOpenGuide = onNavigateGuide,
+                    onClearHistory = { showClearDialog = true },
+                    onCheckUpdates = {
+                        if (updateState is UpdateState.Available ||
+                            updateState is UpdateState.Error ||
+                            updateState is UpdateState.Ready
+                        ) {
+                            viewModel.showUpdateDialog()
+                        } else {
+                            viewModel.checkForUpdates()
+                        }
+                    },
+                    onToggleAutoUpdate = viewModel::setAutoUpdateCheck,
+                )
+                Spacer(Modifier.height(20.dp))
+            }
+            item(key = "footer", contentType = "footer") {
+                Text(
+                    text = "本地运行 · 无账号 · 无广告",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
     }
 
@@ -341,6 +530,9 @@ fun SettingsScreen(
         UpdateDialog(
             state = updateState,
             onDownload = viewModel::downloadAndInstallUpdate,
+            onDownloadInBackground = viewModel::downloadUpdateInBackground,
+            onCancelDownload = viewModel::cancelUpdateDownload,
+            onInstallReady = viewModel::installReadyUpdate,
             onDismiss = viewModel::dismissUpdateDialog,
         )
     }
@@ -770,6 +962,7 @@ private fun updateSubtitle(state: UpdateState): String = when (state) {
     is UpdateState.Available -> "发现新版本 v${state.info.versionName}，点击查看"
     is UpdateState.Downloading -> "正在下载更新：${state.progress}%"
     is UpdateState.Error -> state.message
+    is UpdateState.Ready -> "更新已下载，点击安装"
     UpdateState.Idle -> "当前版本，点击检查 GitHub Releases"
 }
 
@@ -783,6 +976,9 @@ private fun formatSize(bytes: Long): String = when {
 private fun UpdateDialog(
     state: UpdateState,
     onDownload: () -> Unit,
+    onDownloadInBackground: () -> Unit,
+    onCancelDownload: () -> Unit,
+    onInstallReady: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     when (state) {
@@ -824,12 +1020,33 @@ private fun UpdateDialog(
                     )
                 }
             },
-            confirmButton = { TextButton(onClick = onDownload) { Text("下载并安装") } },
+            confirmButton = {
+                Row {
+                    TextButton(onClick = onDownloadInBackground) {
+                        Text("后台下载")
+                    }
+                    TextButton(onClick = onDownload) {
+                        Text("下载并安装")
+                    }
+                }
+            },
+            dismissButton = { TextButton(onClick = onDismiss) { Text("稍后") } },
+        )
+
+        is UpdateState.Ready -> AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("更新已下载") },
+            text = {
+                Text("已下载并校验完成，点按安装即可。")
+            },
+            confirmButton = {
+                TextButton(onClick = onInstallReady) { Text("立即安装") }
+            },
             dismissButton = { TextButton(onClick = onDismiss) { Text("稍后") } },
         )
 
         is UpdateState.Downloading -> AlertDialog(
-            onDismissRequest = {},
+            onDismissRequest = onCancelDownload,
             title = { Text("正在下载更新") },
             text = {
                 Column {
@@ -838,10 +1055,16 @@ private fun UpdateDialog(
                     LinearProgressIndicator(
                         progress = { state.progress / 100f },
                         modifier = Modifier.fillMaxWidth(),
+                        drawStopIndicator = {},
                     )
                 }
             },
             confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = onCancelDownload) {
+                    Text("取消下载")
+                }
+            },
         )
 
         is UpdateState.Error -> AlertDialog(
@@ -1421,6 +1644,7 @@ private fun AboutCard(
                 is UpdateState.Available -> "v${updateState.info.versionName}"
                 is UpdateState.Checking -> "检查中…"
                 is UpdateState.Downloading -> "${updateState.progress}%"
+                is UpdateState.Ready -> "可安装"
                 else -> "检查"
             },
             icon = Icons.Rounded.Refresh,

@@ -16,6 +16,7 @@ import com.dodocomm.app.core.settings.AppLanguage
 import com.dodocomm.app.core.settings.CopyMode
 import com.dodocomm.app.core.settings.PushLevel
 import com.dodocomm.app.core.settings.ThemeMode
+import com.dodocomm.app.core.update.UpdateDownloadNotifier
 import com.dodocomm.app.core.update.UpdateInstaller
 import com.dodocomm.app.ui.model.HistoryFilter
 import com.dodocomm.app.ui.model.PermissionState
@@ -23,6 +24,8 @@ import com.dodocomm.app.ui.model.SnackbarEvent
 import com.dodocomm.app.ui.model.TestPushState
 import com.dodocomm.app.ui.model.UpdateState
 import java.io.File
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,6 +70,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val updateDialogVisible: StateFlow<Boolean> = _updateDialogVisible.asStateFlow()
 
     private var autoUpdateCheckStarted = false
+    private var updateDownloadJob: Job? = null
 
     private val _historyFilter = MutableStateFlow(HistoryFilter.ALL)
     val historyFilter: StateFlow<HistoryFilter> = _historyFilter.asStateFlow()
@@ -166,7 +170,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun showUpdateDialog() {
         if (_updateState.value is UpdateState.Available ||
             _updateState.value is UpdateState.Error ||
-            _updateState.value is UpdateState.Downloading
+            _updateState.value is UpdateState.Downloading ||
+            _updateState.value is UpdateState.Ready
         ) {
             _updateDialogVisible.value = true
         }
@@ -178,42 +183,101 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /** Downloads, verifies (SHA-256 + signing certificate) and installs the APK. */
-    fun downloadAndInstallUpdate() {
+    fun downloadAndInstallUpdate() = startUpdateDownload(background = false)
+
+    /** Starts a download that keeps going after the dialog is dismissed. */
+    fun downloadUpdateInBackground() = startUpdateDownload(background = true)
+
+    private fun startUpdateDownload(background: Boolean) {
+        if (updateDownloadJob?.isActive == true) return
         val available = _updateState.value as? UpdateState.Available ?: return
         val info = available.info
-        viewModelScope.launch {
+        UpdateDownloadNotifier.cancel(appContext)
+        updateDownloadJob = viewModelScope.launch {
             _updateState.value = UpdateState.Downloading(info, 0)
-            val destination = File(appContext.cacheDir, "updates/DodoComm-${info.versionName}.apk")
-            val result = runCatching {
-                container.updateClient.download(info, destination) { percent ->
-                    _updateState.value = UpdateState.Downloading(info, percent)
-                }
+            if (background) {
+                _updateDialogVisible.value = false
+                UpdateDownloadNotifier.showProgress(appContext, info.versionName, 0)
             }
-            result.fold(
-                onSuccess = { apk ->
-                    when {
-                        !UpdateInstaller.verifyApkSignature(appContext, apk) -> {
-                            _updateState.value = UpdateState.Error("更新包签名与当前应用不一致，已拒绝安装")
-                            _updateDialogVisible.value = true
-                        }
-                        !UpdateInstaller.install(appContext, apk) -> {
-                            _updateState.value = UpdateState.Error("请允许本应用安装未知来源应用，然后重试")
-                            _updateDialogVisible.value = true
-                            postSnackbar("需要「安装未知应用」权限才能继续更新", isError = true)
-                        }
-                        else -> {
-                            _updateDialogVisible.value = false
-                            _updateState.value = UpdateState.Idle
-                            postSnackbar("更新包已下载，请按系统提示完成安装")
-                        }
+            val destination = File(appContext.cacheDir, "updates/DodoComm-${info.versionName}.apk")
+            try {
+                val apk = container.updateClient.download(info, destination) { percent ->
+                    _updateState.value = UpdateState.Downloading(info, percent)
+                    if (background) {
+                        UpdateDownloadNotifier.showProgress(appContext, info.versionName, percent)
                     }
-                },
-                onFailure = { error ->
+                }
+                when {
+                    !UpdateInstaller.verifyApkSignature(appContext, apk) -> {
+                        _updateState.value = UpdateState.Error("更新包签名与当前应用不一致，已拒绝安装")
+                        _updateDialogVisible.value = true
+                        UpdateDownloadNotifier.cancel(appContext)
+                    }
+                    background -> {
+                        _updateState.value = UpdateState.Ready(info, apk.absolutePath)
+                        _updateDialogVisible.value = false
+                        UpdateDownloadNotifier.showReady(appContext, info.versionName, apk.absolutePath)
+                        postSnackbar("更新已在后台下载完成，点按通知安装")
+                    }
+                    !UpdateInstaller.install(appContext, apk) -> {
+                        _updateState.value = UpdateState.Error("请允许本应用安装未知来源应用，然后重试")
+                        _updateDialogVisible.value = true
+                        postSnackbar("需要「安装未知应用」权限才能继续更新", isError = true)
+                    }
+                    else -> {
+                        _updateDialogVisible.value = false
+                        _updateState.value = UpdateState.Idle
+                        postSnackbar("更新包已下载，请按系统提示完成安装")
+                    }
+                }
+            } catch (cancel: CancellationException) {
+                UpdateDownloadNotifier.cancel(appContext)
+                throw cancel
+            } catch (error: Throwable) {
+                UpdateDownloadNotifier.cancel(appContext)
+                if (_updateState.value is UpdateState.Downloading) {
                     _updateState.value = UpdateState.Error(error.readableUpdateError())
                     _updateDialogVisible.value = true
-                },
-            )
+                }
+            } finally {
+                updateDownloadJob = null
+            }
         }
+    }
+
+    /** Opens the installer for a background-downloaded APK. */
+    fun installReadyUpdate() {
+        val ready = _updateState.value as? UpdateState.Ready ?: return
+        val file = File(ready.apkPath)
+        when {
+            !file.exists() -> {
+                _updateState.value = UpdateState.Error("更新包不存在，请重新下载")
+                _updateDialogVisible.value = true
+            }
+            !UpdateInstaller.verifyApkSignature(appContext, file) -> {
+                _updateState.value = UpdateState.Error("更新包签名与当前应用不一致，已拒绝安装")
+                _updateDialogVisible.value = true
+            }
+            !UpdateInstaller.install(appContext, file) -> {
+                _updateState.value = UpdateState.Error("请允许本应用安装未知来源应用，然后重试")
+                _updateDialogVisible.value = true
+            }
+            else -> {
+                UpdateDownloadNotifier.cancel(appContext)
+                _updateDialogVisible.value = false
+            }
+        }
+    }
+
+    /** Cancels an in-flight APK download and returns to the available state. */
+    fun cancelUpdateDownload() {
+        val info = (_updateState.value as? UpdateState.Downloading)?.info ?: return
+        updateDownloadJob?.cancel()
+        updateDownloadJob = null
+        UpdateDownloadNotifier.cancel(appContext)
+        _updateState.value = UpdateState.Available(info)
+        _updateDialogVisible.value = false
+        postSnackbar("已取消下载")
     }
 
     private fun Throwable.readableUpdateError(): String =

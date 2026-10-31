@@ -94,6 +94,10 @@
 
         <!-- Restores the forwarding service after reboot / app update. -->
         <receiver
+            android:name=".core.update.UpdateInstallReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".service.BootReceiver"
             android:exported="true">
             <intent-filter>

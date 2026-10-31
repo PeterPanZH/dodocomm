@@ -55,6 +55,7 @@ import com.dodocomm.app.ui.screens.HistoryScreen
 import com.dodocomm.app.ui.screens.HomeScreen
 import com.dodocomm.app.ui.screens.KeepAliveGuideScreen
 import com.dodocomm.app.ui.screens.SettingsScreen
+import com.dodocomm.app.ui.screens.SettingsSection
 import com.dodocomm.app.ui.screens.TemplateEditorScreen
 
 /** All navigation destinations. */
@@ -64,6 +65,7 @@ object Routes {
     const val SETTINGS = "settings"
     const val GUIDE = "guide"
     const val TEMPLATE = "template"
+    const val SETTINGS_SECTION_PREFIX = "settings_"
 
     val tabRoutes: Set<String> = setOf(HOME, HISTORY, SETTINGS)
 }
@@ -191,7 +193,31 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                     viewModel = viewModel,
                     onNavigateGuide = { navController.navigate(Routes.GUIDE) },
                     onNavigateTemplate = { navController.navigate(Routes.TEMPLATE) },
+                    onNavigateSection = { section ->
+                        navController.navigate(Routes.SETTINGS_SECTION_PREFIX + section.route)
+                    },
                 )
+            }
+            SettingsSection.entries.filter { it != SettingsSection.OVERVIEW }.forEach { section ->
+                composable(
+                    route = Routes.SETTINGS_SECTION_PREFIX + section.route,
+                    enterTransition = {
+                        slideInHorizontally(tween(240)) { width -> width / 4 } + fadeIn(tween(200))
+                    },
+                    exitTransition = { fadeOut(tween(140)) },
+                    popEnterTransition = { fadeIn(tween(180)) },
+                    popExitTransition = {
+                        slideOutHorizontally(tween(220)) { width -> width / 4 } + fadeOut(tween(140))
+                    },
+                ) {
+                    SettingsScreen(
+                        viewModel = viewModel,
+                        onNavigateGuide = { navController.navigate(Routes.GUIDE) },
+                        onNavigateTemplate = { navController.navigate(Routes.TEMPLATE) },
+                        section = section,
+                        onBack = { navController.popBackStack() },
+                    )
+                }
             }
             composable(
                 route = Routes.GUIDE,
