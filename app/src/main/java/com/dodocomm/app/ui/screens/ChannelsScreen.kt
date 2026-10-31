@@ -240,7 +240,7 @@ private fun channelStatus(channel: PushChannel, configured: Boolean): String = w
 }
 
 private fun channelTypeDescription(type: ChannelType): String = when (type) {
-    ChannelType.BARK -> "iOS Bark 推送，沿用 Bark 服务器配置"
+    ChannelType.BARK -> "Bark 推送，沿用 Bark 服务器配置"
     ChannelType.NTFY -> "开源自建推送，支持 UTF-8 标题和优先级"
     ChannelType.TELEGRAM -> "Telegram Bot，推送到指定 Chat"
     ChannelType.PUSHOVER -> "Pushover，适合多设备提醒"

@@ -300,7 +300,7 @@ private fun HomeHeroCard(
                             fontWeight = FontWeight.SemiBold,
                         )
                         Text(
-                            text = "嘟嘟可传信 · iPhone 秒收",
+                            text = "嘟嘟可传信 · 短信即时送达",
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.White.copy(alpha = 0.74f),
                         )
@@ -346,10 +346,10 @@ private fun HomeHeroCard(
                         Spacer(Modifier.height(4.dp))
                         Text(
                             text = when {
-                                !configured -> "先配置 Bark 服务器，短信才能送达 iPhone"
+                                !configured -> "先配置推送通道，短信才能送达"
                                 !forwardingEnabled -> "点击开启转发，短信会自动推送"
                                 todaySent > 0 -> "今日已送达 $todaySent 条"
-                                else -> "已开启转发，新短信会自动推送到 iPhone"
+                                else -> "已开启转发，新短信会自动推送"
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.White.copy(alpha = 0.82f),
@@ -645,7 +645,7 @@ private fun ServerPromptCard(onClick: () -> Unit) {
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "填入服务器地址和 Device Key，收到的短信就会推送到 iPhone。",
+                text = "填入推送通道配置后，收到的短信就会自动推送。",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f),
                 textAlign = TextAlign.Center,

@@ -185,7 +185,7 @@ private fun SettingsOverviewScreen(
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 14.dp, bottom = 44.dp),
     ) {
         item(key = "overview_title") {
-            ScreenTitle(title = "设置", subtitle = "所有设置已分区，修改后立即生效")
+            ScreenTitle(title = "设置")
             Spacer(Modifier.height(20.dp))
         }
 
@@ -931,7 +931,7 @@ private fun PushLevelRow(selected: PushLevel, onSelect: (PushLevel) -> Unit) {
     Box {
         SettingActionRow(
             title = "推送级别",
-            subtitle = "决定 iPhone 如何提醒这条推送",
+            subtitle = "决定接收端如何提醒这条推送",
             value = selected.label,
             onClick = { expanded = true },
         )
@@ -1199,7 +1199,7 @@ private fun CopyModeRow(selected: CopyMode, onSelect: (CopyMode) -> Unit) {
     Box {
         SettingActionRow(
             title = "自动复制",
-            subtitle = "Bark 在 iPhone 上收到后复制到剪贴板",
+            subtitle = "接收端收到后复制到剪贴板",
             value = selected.label,
             onClick = { expanded = true },
         )

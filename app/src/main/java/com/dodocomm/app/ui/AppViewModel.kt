@@ -634,7 +634,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 ensureServiceRunning()
             }
             postSnackbar(
-                if (result.success) "嘟嘟可已把测试推送送到 iPhone ✅" else "嘟嘟可送信失败：${result.message.ifBlank { "未知原因" }}",
+                if (result.success) "嘟嘟可已把测试推送发出 ✅" else "嘟嘟可送信失败：${result.message.ifBlank { "未知原因" }}",
                 isError = !result.success,
             )
             container.history.refresh()

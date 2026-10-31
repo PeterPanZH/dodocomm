@@ -215,7 +215,7 @@ fun TemplateEditorScreen(
                     modifier = Modifier.fillMaxWidth(),
                     textStyle = MaterialTheme.typography.bodyLarge,
                     placeholder = { Text("{device} · {sender}") },
-                    supportingText = { Text("显示在 iPhone 通知的第一行") },
+                    supportingText = { Text("显示在通知的第一行") },
                     singleLine = true,
                     shape = FieldShape,
                 )
