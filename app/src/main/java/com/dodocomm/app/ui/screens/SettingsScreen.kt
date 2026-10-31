@@ -309,6 +309,7 @@ fun SettingsScreen(
     onNavigateGuide: () -> Unit,
     onNavigateTemplate: () -> Unit,
     onNavigateChannels: () -> Unit = {},
+    onNavigateRouting: () -> Unit = {},
     section: SettingsSection = SettingsSection.OVERVIEW,
     onNavigateSection: (SettingsSection) -> Unit = {},
     onBack: () -> Unit = {},
@@ -407,6 +408,7 @@ fun SettingsScreen(
                     viewModel = viewModel,
                     onEditTemplate = onNavigateTemplate,
                     onNavigateChannels = onNavigateChannels,
+                    onNavigateRouting = onNavigateRouting,
                 )
             }
         }
@@ -456,6 +458,10 @@ fun SettingsScreen(
                 InfoNote(
                     text = "关闭常驻通知栏会停用前台服务，改为短信广播 + 每 15 分钟定时补发；后台可靠性会下降，但不需要常驻通知。后台隐藏只影响最近任务列表。",
                 )
+                Spacer(Modifier.height(16.dp))
+            }
+            item(key = "retry_card", contentType = "card") {
+                RetryPolicyCard(settings = settings, viewModel = viewModel)
             }
         }
 
@@ -752,6 +758,85 @@ private fun InlineResult(text: String, success: Boolean) {
     }
 }
 
+@Composable
+private fun RetryPolicyCard(settings: AppSettings, viewModel: AppViewModel) {
+    var attemptsExpanded by remember { mutableStateOf(false) }
+    var backoffExpanded by remember { mutableStateOf(false) }
+    var hoursExpanded by remember { mutableStateOf(false) }
+    SectionCard {
+        Box {
+            SettingActionRow(
+                title = "最大重试次数",
+                subtitle = "失败记录超过次数后不再自动重试",
+                value = "${settings.maxRetryAttempts} 次",
+                onClick = { attemptsExpanded = true },
+            )
+            DropdownMenu(expanded = attemptsExpanded, onDismissRequest = { attemptsExpanded = false }) {
+                listOf(1, 3, 5, 10).forEach { attempts ->
+                    DropdownMenuItem(
+                        text = { Text("$attempts 次") },
+                        onClick = {
+                            viewModel.setMaxRetryAttempts(attempts)
+                            attemptsExpanded = false
+                        },
+                    )
+                }
+            }
+        }
+        RowDivider()
+        Box {
+            SettingActionRow(
+                title = "重试退避",
+                subtitle = "每次失败后的等待时间按指数增长",
+                value = when (settings.retryBackoffSeconds) {
+                    60 -> "1 分钟"
+                    300 -> "5 分钟"
+                    else -> "15 秒"
+                },
+                onClick = { backoffExpanded = true },
+            )
+            DropdownMenu(expanded = backoffExpanded, onDismissRequest = { backoffExpanded = false }) {
+                listOf(15 to "15 秒", 60 to "1 分钟", 300 to "5 分钟").forEach { (seconds, label) ->
+                    DropdownMenuItem(
+                        text = { Text(label) },
+                        onClick = {
+                            viewModel.setRetryBackoffSeconds(seconds)
+                            backoffExpanded = false
+                        },
+                    )
+                }
+            }
+        }
+        RowDivider()
+        Box {
+            SettingActionRow(
+                title = "最大重试时长",
+                subtitle = "超过时长的失败记录不再自动重试",
+                value = "${settings.retryMaxHours} 小时",
+                onClick = { hoursExpanded = true },
+            )
+            DropdownMenu(expanded = hoursExpanded, onDismissRequest = { hoursExpanded = false }) {
+                listOf(1, 6, 24).forEach { hours ->
+                    DropdownMenuItem(
+                        text = { Text("$hours 小时") },
+                        onClick = {
+                            viewModel.setRetryMaxHours(hours)
+                            hoursExpanded = false
+                        },
+                    )
+                }
+            }
+        }
+        RowDivider()
+        SettingSwitchRow(
+            title = "仅 Wi-Fi 重试",
+            checked = settings.retryOnlyWifi,
+            onCheckedChange = viewModel::setRetryOnlyWifi,
+            subtitle = "开启后失败重试只会在不计量网络下执行",
+        )
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Push style
 // ---------------------------------------------------------------------------
@@ -762,6 +847,7 @@ private fun PushStyleCard(
     viewModel: AppViewModel,
     onEditTemplate: () -> Unit,
     onNavigateChannels: () -> Unit,
+    onNavigateRouting: () -> Unit,
 ) {
     SectionCard {
         SettingActionRow(
@@ -770,6 +856,14 @@ private fun PushStyleCard(
             value = "${settings.channels.count { it.enabled }} 个启用",
             icon = Icons.Rounded.NotificationsActive,
             onClick = onNavigateChannels,
+        )
+        RowDivider()
+        SettingActionRow(
+            title = "路由规则",
+            subtitle = "按发送者、关键词、SIM 或时间段选择通道",
+            value = if (settings.routingRules.isEmpty()) "默认" else "${settings.routingRules.size} 条",
+            icon = Icons.Rounded.FilterAlt,
+            onClick = onNavigateRouting,
         )
         RowDivider()
         SettingActionRow(

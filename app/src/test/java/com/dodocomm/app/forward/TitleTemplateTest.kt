@@ -14,12 +14,13 @@ class TitleTemplateTest {
 
     private fun payload(
         sender: String = "95588",
+        body: String = "您的验证码是 123456",
         simLabel: String? = "SIM 2 · 中国移动",
         deviceName: String? = "Pixel 9",
         receiverNumber: String? = "13800138000",
     ) = SmsPayload(
         sender = sender,
-        body = "您的验证码是 123456",
+        body = body,
         smsTimestamp = timestamp,
         receivedAt = timestamp + 5_000L,
         subscriptionId = 2,
@@ -98,6 +99,12 @@ class TitleTemplateTest {
     fun `body template can replace the SMS with a custom layout`() {
         val body = TitleTemplate.renderBody("[{sender}] {body}", payload())
         assertEquals("[95588] 您的验证码是 123456", body)
+    }
+
+    @Test
+    fun `code token extracts the verification code`() {
+        assertEquals("123456", TitleTemplate.render("{code}", payload()))
+        assertEquals("Pixel 9 · 95588", TitleTemplate.render("{code}", payload(body = "没有验证码")))
     }
 
     @Test

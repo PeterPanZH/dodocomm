@@ -1,5 +1,6 @@
 package com.dodocomm.app.core.update
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -15,6 +16,7 @@ object UpdateDownloadNotifier {
     const val NOTIFICATION_ID = 10_003
     const val CHANNEL_ID = "update_download"
 
+    @SuppressLint("MissingPermission")
     fun showProgress(context: Context, versionName: String, percent: Int) {
         createChannel(context)
         val manager = NotificationManagerCompat.from(context)
@@ -35,6 +37,7 @@ object UpdateDownloadNotifier {
         runCatching { manager.notify(NOTIFICATION_ID, notification) }
     }
 
+    @SuppressLint("MissingPermission")
     fun showReady(context: Context, versionName: String, apkPath: String) {
         createChannel(context)
         val manager = NotificationManagerCompat.from(context)

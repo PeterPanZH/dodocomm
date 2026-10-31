@@ -2,6 +2,7 @@ package com.dodocomm.app.core.settings
 
 import android.content.Context
 import com.dodocomm.app.core.channel.PushChannel
+import com.dodocomm.app.core.routing.RoutingRule
 import org.json.JSONArray
 import org.json.JSONObject
 import android.content.SharedPreferences
@@ -59,6 +60,22 @@ class SettingsRepository(context: Context) {
         }.getOrDefault(listOf(PushChannel.bark()))
     }
 
+    private fun encodeRules(rules: List<RoutingRule>): String {
+        val array = JSONArray()
+        rules.forEach { array.put(it.toJson()) }
+        return array.toString()
+    }
+
+    private fun decodeRules(raw: String?): List<RoutingRule> {
+        if (raw.isNullOrBlank()) return emptyList()
+        return runCatching {
+            val array = JSONArray(raw)
+            buildList {
+                for (index in 0 until array.length()) add(RoutingRule.fromJson(array.getJSONObject(index)))
+            }
+        }.getOrDefault(emptyList())
+    }
+
     private fun migrateTitleTemplate(raw: String): String =
         if (raw == AppSettings.LEGACY_TITLE_TEMPLATE) AppSettings.DEFAULT_TITLE_TEMPLATE else raw
 
@@ -69,6 +86,7 @@ class SettingsRepository(context: Context) {
             serverUrl = prefs.getString(KEY_SERVER_URL, defaults.serverUrl).orEmpty(),
             deviceKey = prefs.getString(KEY_DEVICE_KEY, defaults.deviceKey).orEmpty(),
             channels = decodeChannels(prefs.getString(KEY_CHANNELS, null)),
+            routingRules = decodeRules(prefs.getString(KEY_ROUTING_RULES, null)),
             deviceName = prefs.getString(KEY_DEVICE_NAME, defaults.deviceName).orEmpty(),
             titleTemplate = migrateTitleTemplate(
                 prefs.getString(KEY_TITLE_TEMPLATE, defaults.titleTemplate).orEmpty(),
@@ -106,6 +124,10 @@ class SettingsRepository(context: Context) {
             maxRecords = prefs.getInt(KEY_MAX_RECORDS, defaults.maxRecords),
             autoUpdateCheck = prefs.getBoolean(KEY_AUTO_UPDATE_CHECK, defaults.autoUpdateCheck),
             pauseUntil = prefs.getLong(KEY_PAUSE_UNTIL, defaults.pauseUntil),
+            maxRetryAttempts = prefs.getInt(KEY_MAX_RETRY_ATTEMPTS, defaults.maxRetryAttempts),
+            retryBackoffSeconds = prefs.getInt(KEY_RETRY_BACKOFF_SECONDS, defaults.retryBackoffSeconds),
+            retryOnlyWifi = prefs.getBoolean(KEY_RETRY_ONLY_WIFI, defaults.retryOnlyWifi),
+            retryMaxHours = prefs.getInt(KEY_RETRY_MAX_HOURS, defaults.retryMaxHours),
         )
     }
 
@@ -115,6 +137,7 @@ class SettingsRepository(context: Context) {
             .putString(KEY_SERVER_URL, settings.serverUrl)
             .putString(KEY_DEVICE_KEY, settings.deviceKey)
             .putString(KEY_CHANNELS, encodeChannels(settings.channels))
+            .putString(KEY_ROUTING_RULES, encodeRules(settings.routingRules))
             .putString(KEY_DEVICE_NAME, settings.deviceName)
             .putString(KEY_TITLE_TEMPLATE, settings.titleTemplate)
             .putString(KEY_BODY_TEMPLATE, settings.bodyTemplate)
@@ -146,6 +169,10 @@ class SettingsRepository(context: Context) {
             .putInt(KEY_MAX_RECORDS, settings.maxRecords)
             .putBoolean(KEY_AUTO_UPDATE_CHECK, settings.autoUpdateCheck)
             .putLong(KEY_PAUSE_UNTIL, settings.pauseUntil)
+            .putInt(KEY_MAX_RETRY_ATTEMPTS, settings.maxRetryAttempts)
+            .putInt(KEY_RETRY_BACKOFF_SECONDS, settings.retryBackoffSeconds)
+            .putBoolean(KEY_RETRY_ONLY_WIFI, settings.retryOnlyWifi)
+            .putInt(KEY_RETRY_MAX_HOURS, settings.retryMaxHours)
             .commit()
     }
 
@@ -156,6 +183,7 @@ class SettingsRepository(context: Context) {
         private const val KEY_SERVER_URL = "server_url"
         private const val KEY_DEVICE_KEY = "device_key"
         private const val KEY_CHANNELS = "push_channels"
+        private const val KEY_ROUTING_RULES = "routing_rules"
         private const val KEY_DEVICE_NAME = "device_name"
         private const val KEY_TITLE_TEMPLATE = "title_template"
         private const val KEY_BODY_TEMPLATE = "body_template"
@@ -187,6 +215,10 @@ class SettingsRepository(context: Context) {
         private const val KEY_RECORD_FILTERED = "record_filtered"
         private const val KEY_AUTO_UPDATE_CHECK = "auto_update_check"
         private const val KEY_PAUSE_UNTIL = "pause_until"
+        private const val KEY_MAX_RETRY_ATTEMPTS = "max_retry_attempts"
+        private const val KEY_RETRY_BACKOFF_SECONDS = "retry_backoff_seconds"
+        private const val KEY_RETRY_ONLY_WIFI = "retry_only_wifi"
+        private const val KEY_RETRY_MAX_HOURS = "retry_max_hours"
 
         fun encodeList(values: List<String>): String {
             val array = JSONArray()

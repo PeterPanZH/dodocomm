@@ -55,6 +55,7 @@ import com.dodocomm.app.ui.screens.ChannelsScreen
 import com.dodocomm.app.ui.screens.HistoryScreen
 import com.dodocomm.app.ui.screens.HomeScreen
 import com.dodocomm.app.ui.screens.KeepAliveGuideScreen
+import com.dodocomm.app.ui.screens.RoutingRulesScreen
 import com.dodocomm.app.ui.screens.SettingsScreen
 import com.dodocomm.app.ui.screens.SettingsSection
 import com.dodocomm.app.ui.screens.TemplateEditorScreen
@@ -68,6 +69,7 @@ object Routes {
     const val TEMPLATE = "template"
     const val SETTINGS_SECTION_PREFIX = "settings_"
     const val CHANNELS = "channels"
+    const val ROUTING = "routing"
 
     val tabRoutes: Set<String> = setOf(HOME, HISTORY, SETTINGS)
 }
@@ -196,6 +198,7 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                     onNavigateGuide = { navController.navigate(Routes.GUIDE) },
                     onNavigateTemplate = { navController.navigate(Routes.TEMPLATE) },
                     onNavigateChannels = { navController.navigate(Routes.CHANNELS) },
+                    onNavigateRouting = { navController.navigate(Routes.ROUTING) },
                     onNavigateSection = { section ->
                         navController.navigate(Routes.SETTINGS_SECTION_PREFIX + section.route)
                     },
@@ -218,6 +221,7 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                         onNavigateGuide = { navController.navigate(Routes.GUIDE) },
                         onNavigateTemplate = { navController.navigate(Routes.TEMPLATE) },
                         onNavigateChannels = { navController.navigate(Routes.CHANNELS) },
+                        onNavigateRouting = { navController.navigate(Routes.ROUTING) },
                         section = section,
                         onBack = { navController.popBackStack() },
                     )
@@ -256,6 +260,22 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                     onEditBark = {
                         navController.navigate(Routes.SETTINGS_SECTION_PREFIX + SettingsSection.BARK.route)
                     },
+                )
+            }
+            composable(
+                route = Routes.ROUTING,
+                enterTransition = {
+                    slideInHorizontally(tween(240)) { width -> width / 4 } + fadeIn(tween(200))
+                },
+                exitTransition = { fadeOut(tween(140)) },
+                popEnterTransition = { fadeIn(tween(180)) },
+                popExitTransition = {
+                    slideOutHorizontally(tween(220)) { width -> width / 4 } + fadeOut(tween(140))
+                },
+            ) {
+                RoutingRulesScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() },
                 )
             }
             composable(

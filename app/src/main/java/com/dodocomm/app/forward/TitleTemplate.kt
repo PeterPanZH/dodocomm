@@ -2,6 +2,7 @@ package com.dodocomm.app.forward
 
 import com.dodocomm.app.core.model.SmsPayload
 import com.dodocomm.app.core.settings.AppSettings
+import com.dodocomm.app.core.util.OtpExtractor
 import com.dodocomm.app.core.util.TimeFormatter
 import java.time.Instant
 import java.time.ZoneId
@@ -31,6 +32,7 @@ object TitleTemplate {
     private const val TOKEN_DEVICE = "{device}"
     private const val TOKEN_NUMBER = "{number}"
     private const val TOKEN_BODY = "{body}"
+    private const val TOKEN_CODE = "{code}"
     private const val FALLBACK_TITLE = "新短信"
     private const val BODY_SENTINEL = "\u0000BODY\u0000"
 
@@ -80,6 +82,7 @@ object TitleTemplate {
             .replace(TOKEN_DATETIME, datetime)
             .replace(TOKEN_DEVICE, payload.deviceName?.trim().orEmpty())
             .replace(TOKEN_NUMBER, payload.receiverNumber?.trim().orEmpty())
+            .replace(TOKEN_CODE, OtpExtractor.extract(payload.body).orEmpty())
             .replace(TOKEN_BODY, payload.body)
     }
 

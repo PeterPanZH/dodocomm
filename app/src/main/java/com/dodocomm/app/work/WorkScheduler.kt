@@ -44,16 +44,17 @@ class WorkScheduler(context: Context) {
         }
     }
 
-    fun enqueueRetry() {
+    fun enqueueRetry(backoffSeconds: Long = RETRY_BACKOFF_SECONDS, onlyWifi: Boolean = false) {
+        val networkType = if (onlyWifi) NetworkType.UNMETERED else NetworkType.CONNECTED
         val request = OneTimeWorkRequestBuilder<RetryWorker>()
             .setConstraints(
                 Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .setRequiredNetworkType(networkType)
                     .build(),
             )
             .setBackoffCriteria(
                 BackoffPolicy.EXPONENTIAL,
-                RETRY_BACKOFF_SECONDS,
+                backoffSeconds.coerceAtLeast(10L),
                 TimeUnit.SECONDS,
             )
             .build()

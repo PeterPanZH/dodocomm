@@ -186,5 +186,17 @@
  {
   "regex": "^有新版本 v(.+)$",
   "format": "New version v{0} available"
+ },
+ {
+  "regex": "^(\\d+) 个启用$",
+  "format": "{0} enabled"
+ },
+ {
+  "regex": "^(.+) · (已停用|未配置|已启用)$",
+  "format": "{0} · {1}"
+ },
+ {
+  "regex": "^(\\d+) 小时$",
+  "format": "{0} hours"
  }
 ]

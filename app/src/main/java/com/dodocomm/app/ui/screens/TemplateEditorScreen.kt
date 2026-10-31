@@ -70,6 +70,7 @@ private val templateVariables = listOf(
     TemplateVariable("{device}", "设备名称", "Pixel 9"),
     TemplateVariable("{sender}", "发件号码", "95588"),
     TemplateVariable("{body}", "短信原文", "您的验证码是 123456", bodyOnly = true),
+    TemplateVariable("{code}", "自动识别的验证码", "123456"),
     TemplateVariable("{sim}", "SIM 卡 / 运营商", "SIM 1 · 中国移动"),
     TemplateVariable("{number}", "接收号码", "13800138000（可能为空）"),
     TemplateVariable("{time}", "接收时间", "14:32"),

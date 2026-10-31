@@ -1,6 +1,7 @@
 package com.dodocomm.app.core.backup
 
 import com.dodocomm.app.core.channel.PushChannel
+import com.dodocomm.app.core.routing.RoutingRule
 import com.dodocomm.app.core.settings.AppSettings
 import com.dodocomm.app.core.settings.CopyMode
 import com.dodocomm.app.core.settings.PushLevel
@@ -21,6 +22,7 @@ object SettingsBackupCodec {
         put("serverUrl", settings.serverUrl)
         put("deviceKey", settings.deviceKey)
         put("channels", JSONArray().also { array -> settings.channels.forEach { array.put(it.toJson()) } })
+        put("routingRules", JSONArray().also { array -> settings.routingRules.forEach { array.put(it.toJson()) } })
         put("deviceName", settings.deviceName)
         put("titleTemplate", settings.titleTemplate)
         put("bodyTemplate", settings.bodyTemplate)
@@ -41,6 +43,10 @@ object SettingsBackupCodec {
         put("retentionDays", settings.retentionDays)
         put("maxRecords", settings.maxRecords)
         put("autoUpdateCheck", settings.autoUpdateCheck)
+        put("maxRetryAttempts", settings.maxRetryAttempts)
+        put("retryBackoffSeconds", settings.retryBackoffSeconds)
+        put("retryOnlyWifi", settings.retryOnlyWifi)
+        put("retryMaxHours", settings.retryMaxHours)
         put("senderWhitelist", JSONArray(settings.senderWhitelist))
         put("senderBlacklist", JSONArray(settings.senderBlacklist))
         put("keywordBlacklist", JSONArray(settings.keywordBlacklist))
@@ -61,6 +67,11 @@ object SettingsBackupCodec {
                     }
                 }
             } ?: base.channels,
+            routingRules = json.optJSONArray("routingRules")?.let { array ->
+                buildList {
+                    for (index in 0 until array.length()) add(RoutingRule.fromJson(array.getJSONObject(index)))
+                }
+            } ?: base.routingRules,
             deviceName = json.optString("deviceName", base.deviceName),
             titleTemplate = json.optString("titleTemplate", base.titleTemplate),
             bodyTemplate = json.optString("bodyTemplate", base.bodyTemplate),
@@ -81,6 +92,10 @@ object SettingsBackupCodec {
             retentionDays = json.optInt("retentionDays", base.retentionDays),
             maxRecords = json.optInt("maxRecords", base.maxRecords),
             autoUpdateCheck = json.optBoolean("autoUpdateCheck", base.autoUpdateCheck),
+            maxRetryAttempts = json.optInt("maxRetryAttempts", base.maxRetryAttempts),
+            retryBackoffSeconds = json.optInt("retryBackoffSeconds", base.retryBackoffSeconds),
+            retryOnlyWifi = json.optBoolean("retryOnlyWifi", base.retryOnlyWifi),
+            retryMaxHours = json.optInt("retryMaxHours", base.retryMaxHours),
             senderWhitelist = json.optJSONArray("senderWhitelist").toStringList(),
             senderBlacklist = json.optJSONArray("senderBlacklist").toStringList(),
             keywordBlacklist = json.optJSONArray("keywordBlacklist").toStringList(),

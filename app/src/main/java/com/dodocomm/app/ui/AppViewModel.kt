@@ -11,6 +11,7 @@ import com.dodocomm.app.core.model.BarkResult
 import com.dodocomm.app.core.channel.ChannelType
 import com.dodocomm.app.core.channel.PushChannel
 import com.dodocomm.app.core.export.ExportFormat
+import com.dodocomm.app.core.routing.RoutingRule
 import com.dodocomm.app.core.export.ExportRange
 import com.dodocomm.app.core.security.AppLock
 import com.dodocomm.app.core.settings.AppSettings
@@ -394,6 +395,30 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             current.copy(channels = current.channels.filterNot { it.id == id })
         }
     }
+
+    fun addRoutingRule(): RoutingRule {
+        val rule = RoutingRule.create()
+        updateSettings { it.copy(routingRules = it.routingRules + rule) }
+        return rule
+    }
+
+    fun updateRoutingRule(rule: RoutingRule) {
+        updateSettings { current ->
+            current.copy(routingRules = current.routingRules.map { if (it.id == rule.id) rule else it })
+        }
+    }
+
+    fun removeRoutingRule(id: String) {
+        updateSettings { current -> current.copy(routingRules = current.routingRules.filterNot { it.id == id }) }
+    }
+
+    fun setMaxRetryAttempts(value: Int) = updateSettings { it.copy(maxRetryAttempts = value.coerceIn(1, 10)) }
+
+    fun setRetryBackoffSeconds(value: Int) = updateSettings { it.copy(retryBackoffSeconds = value) }
+
+    fun setRetryOnlyWifi(value: Boolean) = updateSettings { it.copy(retryOnlyWifi = value) }
+
+    fun setRetryMaxHours(value: Int) = updateSettings { it.copy(retryMaxHours = value.coerceIn(1, 168)) }
 
     suspend fun testChannel(id: String): com.dodocomm.app.core.channel.ChannelSendResult {
         val current = container.settings.current()

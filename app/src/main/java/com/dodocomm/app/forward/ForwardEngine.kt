@@ -121,7 +121,7 @@ class ForwardEngine(
             // will pick it up.
             withContext(NonCancellable) {
                 markInterrupted(id)
-                container.workScheduler.enqueueRetry()
+                enqueueRetry(settings)
                 container.serviceController.refreshNotification()
             }
             throw e
@@ -204,25 +204,27 @@ class ForwardEngine(
             val settings = container.settings.current()
             if (!settings.forwardingEnabled || !settings.hasAnyConfiguredChannel || settings.isPaused()) return false
 
+            val maxAttempts = settings.maxRetryAttempts.coerceIn(1, 10)
+            val maxAgeMillis = settings.retryMaxHours.coerceIn(1, 168) * 3_600_000L
             val candidates = container.history.listForRetry(
                 limit = RETRY_BATCH_SIZE,
-                maxAttempts = MAX_ATTEMPTS,
-            )
+                maxAttempts = maxAttempts,
+            ).filter { System.currentTimeMillis() - it.createdAt <= maxAgeMillis }
             if (candidates.isEmpty()) return false
             if (!hasNetworkConnection()) {
-                container.workScheduler.enqueueRetry()
+                enqueueRetry(settings)
                 return false
             }
 
             for (candidate in candidates) {
                 val record = container.history.get(candidate.id) ?: continue
                 if (record.status != ForwardStatus.PENDING && record.status != ForwardStatus.FAILED) continue
-                if (record.attempts >= MAX_ATTEMPTS) continue
+                if (record.attempts >= maxAttempts) continue
                 deliver(record, settings, scheduleRetryOnFailure = false)
             }
 
             return container.history
-                .listForRetry(limit = 1, maxAttempts = MAX_ATTEMPTS)
+                .listForRetry(limit = 1, maxAttempts = maxAttempts)
                 .isNotEmpty()
         } finally {
             retryMutex.unlock()
@@ -247,7 +249,12 @@ class ForwardEngine(
             val title = record.title?.takeIf { it.isNotBlank() }
                 ?: TitleTemplate.render(settings.titleTemplate, record.toPayload())
             val body = record.barkBody?.takeIf { it.isNotBlank() } ?: record.body
-            val dispatch = container.pushDispatcher.dispatch(settings, title, body)
+            val dispatch = container.pushDispatcher.dispatch(
+                settings = settings,
+                title = title,
+                body = body,
+                routing = record.toRoutingContext(),
+            )
             val result = BarkResult(
                 success = dispatch.success,
                 code = null,
@@ -271,7 +278,7 @@ class ForwardEngine(
                     error = result.message,
                     response = result.rawBody,
                 )
-                if (scheduleRetryOnFailure) container.workScheduler.enqueueRetry()
+                if (scheduleRetryOnFailure) enqueueRetry(settings)
             }
             return result
         } finally {
@@ -289,6 +296,24 @@ class ForwardEngine(
             status = ForwardStatus.PENDING,
             attempts = current.attempts,
             error = INTERRUPTED_ERROR,
+        )
+    }
+
+    private fun enqueueRetry(settings: AppSettings) {
+        container.workScheduler.enqueueRetry(
+            backoffSeconds = settings.retryBackoffSeconds.toLong(),
+            onlyWifi = settings.retryOnlyWifi,
+        )
+    }
+
+    private fun ForwardRecord.toRoutingContext(): com.dodocomm.app.core.routing.RoutingContext {
+        val zoned = java.time.Instant.ofEpochMilli(receivedAt)
+            .atZone(java.time.ZoneId.systemDefault())
+        return com.dodocomm.app.core.routing.RoutingContext(
+            sender = sender,
+            body = body,
+            simLabel = simLabel,
+            nowMinutes = zoned.hour * 60 + zoned.minute,
         )
     }
 
@@ -314,7 +339,7 @@ class ForwardEngine(
 
     companion object {
         /** A row is never attempted again after this many Bark calls. */
-        const val MAX_ATTEMPTS: Int = 5
+        const val DEFAULT_MAX_ATTEMPTS: Int = 5
 
         /** Rows handled per retry pass (WorkManager batch). */
         const val RETRY_BATCH_SIZE: Int = 10

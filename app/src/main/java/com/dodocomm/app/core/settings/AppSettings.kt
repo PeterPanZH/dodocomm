@@ -1,6 +1,7 @@
 package com.dodocomm.app.core.settings
 
 import com.dodocomm.app.core.channel.ChannelType
+import com.dodocomm.app.core.routing.RoutingRule
 import com.dodocomm.app.core.channel.PushChannel
 
 enum class PushLevel(val apiValue: String, val label: String) {
@@ -57,6 +58,7 @@ data class AppSettings(
     val deviceKey: String = "",
     /** Enabled push destinations. Bark credentials remain in serverUrl/deviceKey. */
     val channels: List<PushChannel> = listOf(PushChannel.bark()),
+    val routingRules: List<RoutingRule> = emptyList(),
     /** Optional custom name used by the {device} template token. */
     val deviceName: String = "",
     val titleTemplate: String = DEFAULT_TITLE_TEMPLATE,
@@ -96,6 +98,11 @@ data class AppSettings(
     val autoUpdateCheck: Boolean = true,
     /** Temporary pause from the ongoing notification; 0 = not paused. */
     val pauseUntil: Long = 0L,
+    /** Retry policy for failed pushes. */
+    val maxRetryAttempts: Int = 5,
+    val retryBackoffSeconds: Int = 15,
+    val retryOnlyWifi: Boolean = false,
+    val retryMaxHours: Int = 24,
 ) {
     fun isPaused(now: Long = System.currentTimeMillis()): Boolean = pauseUntil > now
 

@@ -1,6 +1,8 @@
 package com.dodocomm.app.core.channel
 
 import com.dodocomm.app.bark.BarkClient
+import com.dodocomm.app.core.routing.RoutingContext
+import com.dodocomm.app.core.routing.RoutingEngine
 import com.dodocomm.app.core.settings.AppSettings
 
 /** Sends one rendered SMS to every enabled, configured channel. */
@@ -38,8 +40,18 @@ class PushDispatcher(
         ChannelType.EMAIL -> emailClient.send(channel, title, body)
     }
 
-    suspend fun dispatch(settings: AppSettings, title: String, body: String): DispatchResult {
-        val channels = settings.activePushChannels()
+    suspend fun dispatch(
+        settings: AppSettings,
+        title: String,
+        body: String,
+        routing: RoutingContext? = null,
+    ): DispatchResult {
+        val active = settings.activePushChannels()
+        val channels = if (routing == null) {
+            active
+        } else {
+            RoutingEngine.targets(routing, settings.routingRules, active)
+        }
         if (channels.isEmpty()) {
             return DispatchResult(
                 listOf(
