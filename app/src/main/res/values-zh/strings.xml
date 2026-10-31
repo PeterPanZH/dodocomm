@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">嘟嘟通讯</string>
+    <string name="widget_title">嘟嘟可传信</string>
+    <string name="widget_label_today">今日已送达</string>
+    <string name="widget_status_on">转发中</string>
+    <string name="widget_status_paused">已暂停</string>
+    <string name="widget_status_off">转发已关闭</string>
+    <string name="widget_status_paused_until">%1$s 恢复</string>
+    <string name="widget_action_pause">暂停 30 分钟</string>
+    <string name="widget_action_resume">恢复转发</string>
+    <string name="widget_action_open">打开 App</string>
+    <string name="shortcut_test_push_short">测试推送</string>
+    <string name="shortcut_test_push_long">发送一条测试推送</string>
+    <string name="shortcut_toggle_short">暂停/恢复</string>
+    <string name="shortcut_toggle_long">暂停 30 分钟或恢复转发</string>
+    <string name="update_channel_name">应用更新下载</string>
+    <string name="update_channel_desc">后台下载应用更新时显示进度</string>
+    <string name="update_downloading">正在下载 DodoComm v%1$s</string>
+    <string name="update_downloaded">DodoComm v%1$s 已下载</string>
+    <string name="update_tap_install">点按安装更新</string>
+    <string name="update_install">安装</string>
+    <string name="widget_desc_compact">2×2 紧凑卡片</string>
+    <string name="widget_desc_wide">4×2 横向卡片</string>
+    <string name="widget_desc_bar">4×1 状态条</string>
+    <string name="widget_desc_tall">2×3 纵向卡片</string>
+</resources>

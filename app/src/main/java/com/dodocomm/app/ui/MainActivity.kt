@@ -203,8 +203,12 @@ class MainActivity : FragmentActivity() {
         val manager = getSystemService(LocaleManager::class.java) ?: return
         val tag = when (language) {
             com.dodocomm.app.core.settings.AppLanguage.ZH -> "zh-CN"
+            com.dodocomm.app.core.settings.AppLanguage.ZH_TW -> "zh-TW"
             com.dodocomm.app.core.settings.AppLanguage.EN -> "en"
             com.dodocomm.app.core.settings.AppLanguage.JA -> "ja"
+            com.dodocomm.app.core.settings.AppLanguage.KO -> "ko"
+            com.dodocomm.app.core.settings.AppLanguage.ES -> "es"
+            com.dodocomm.app.core.settings.AppLanguage.FR -> "fr"
             com.dodocomm.app.core.settings.AppLanguage.SYSTEM -> null
         }
         runCatching {

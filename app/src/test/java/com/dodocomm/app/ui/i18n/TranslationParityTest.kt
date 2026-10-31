@@ -25,16 +25,21 @@ class TranslationParityTest {
 
     @Test
     fun `English and Japanese dictionaries have the same non-empty keys`() {
-        val en = load(File(assetsDir(), "en.json"))
-        val ja = load(File(assetsDir(), "ja.json"))
-        assertEquals(en.keys.sorted(), ja.keys.sorted())
-        assertTrue(en.values.none { it.isBlank() })
-        assertTrue(ja.values.none { it.isBlank() })
+        val languages = listOf("en", "ja", "zh-TW", "ko", "es", "fr")
+        val base = load(File(assetsDir(), "en.json"))
+        languages.forEach { language ->
+            val map = load(File(assetsDir(), "$language.json"))
+            assertEquals("$language keys", base.keys.sorted(), map.keys.sorted())
+            assertTrue("$language has empty values", map.values.none { it.isBlank() })
+        }
     }
 
     @Test
     fun `pattern files compile and reference valid placeholders`() {
-        listOf("patterns_en.json", "patterns_ja.json").forEach { name ->
+        listOf(
+            "patterns_en.json", "patterns_ja.json", "patterns_zh-TW.json",
+            "patterns_ko.json", "patterns_es.json", "patterns_fr.json",
+        ).forEach { name ->
             val array = JSONArray(File(assetsDir(), name).readText(Charsets.UTF_8))
             for (index in 0 until array.length()) {
                 val entry = array.getJSONObject(index)

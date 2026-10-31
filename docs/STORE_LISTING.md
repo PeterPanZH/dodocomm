@@ -8,7 +8,7 @@
 - 包名：`com.dodocomm.app`
 - 分类：工具 / 效率
 - 价格：免费，无广告、无账号、无统计 SDK
-- 语言：简体中文、English、日本語
+- 语言：简体中文、繁體中文、English、日本語、한국어、Español、Français
 - 系统：Android 8+（minSdk 26）
 - 项目：https://github.com/PeterPanZH/dodocomm
 

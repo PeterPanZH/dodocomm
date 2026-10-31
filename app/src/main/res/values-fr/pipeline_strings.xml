@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notify_channel_service">Service de transfert de SMS</string>
+    <string name="notify_channel_service_desc">Notification continue qui maintient le transfert de SMS en vie</string>
+    <string name="notify_channel_alerts">Transférer des alertes</string>
+    <string name="notify_channel_alerts_desc">Échecs de livraison et avis importants</string>
+    <string name="notify_title">DodoComm</string>
+    <string name="notify_ongoing_idle">Dodoco prêt · %1$d livré aujourd\'hui</string>
+    <string name="notify_ongoing_stats">Dodoco livrant · %1$d envoyé aujourd\'hui</string>
+    <string name="notify_ongoing_last">Dodoco vient d\'en livrer un · %1$d aujourd\'hui · dernier %2$s %3$s</string>
+    <string name="notify_paused">Le transfert est interrompu. Appuyez sur le commutateur pour reprendre.</string>
+    <string name="notify_unknown_sender">Expéditeur inconnu</string>
+    <string name="notify_action_pause">Pause</string>
+    <string name="notify_action_pause_30">Pause 30 minutes</string>
+    <string name="notify_action_resume">CV</string>
+    <string name="notify_action_test">Test</string>
+    <string name="notify_action_stop">Arrêt</string>
+    <string name="notify_paused_until">Temporairement mis en pause · reprend dans environ %1$d min</string>
+    <string name="notify_boot_recovery_title">Dodoco est déconnecté</string>
+    <string name="notify_boot_recovery_text">Appuyez pour ouvrir l\'application et réveiller Dodoco. La réception des SMS elle-même n\'est pas affectée.</string>
+    <string name="notify_test_sending">Envoi d’un test push…</string>
+    <string name="notify_test_success">Test push envoyé ✅</string>
+    <string name="notify_test_failed">Test push failed: %1$s</string>
+</resources>

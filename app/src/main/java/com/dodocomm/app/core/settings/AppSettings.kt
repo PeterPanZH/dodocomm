@@ -22,8 +22,12 @@ enum class PushLevel(val apiValue: String, val label: String) {
 enum class AppLanguage(val label: String) {
     SYSTEM("跟随系统"),
     ZH("简体中文"),
+    ZH_TW("繁體中文"),
     EN("English"),
-    JA("日本語");
+    JA("日本語"),
+    KO("한국어"),
+    ES("Español"),
+    FR("Français");
 
     companion object {
         fun fromName(name: String?): AppLanguage = entries.firstOrNull { it.name == name } ?: SYSTEM

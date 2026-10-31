@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DodoComm</string>
+    <string name="widget_title">DodoComm</string>
+    <string name="widget_label_today">Livrés aujourd\'hui</string>
+    <string name="widget_status_on">Transfert actif</string>
+    <string name="widget_status_paused">En pause</string>
+    <string name="widget_status_off">Transfert désactivé</string>
+    <string name="widget_status_paused_until">Reprise à %1$s</string>
+    <string name="widget_action_pause">Pause 30 min</string>
+    <string name="widget_action_resume">Reprendre</string>
+    <string name="widget_action_open">Ouvrir l\'app</string>
+    <string name="shortcut_test_push_short">Test</string>
+    <string name="shortcut_test_push_long">Envoyer une notification de test</string>
+    <string name="shortcut_toggle_short">Pause/Reprise</string>
+    <string name="shortcut_toggle_long">Pause de 30 minutes ou reprise</string>
+    <string name="update_channel_name">Téléchargement de la mise à jour</string>
+    <string name="update_channel_desc">Affiche la progression du téléchargement d\'une mise à jour</string>
+    <string name="update_downloading">Téléchargement de DodoComm v%1$s</string>
+    <string name="update_downloaded">DodoComm v%1$s téléchargé</string>
+    <string name="update_tap_install">Touchez pour installer</string>
+    <string name="update_install">Installer</string>
+    <string name="widget_desc_compact">Carte compacte 2×2</string>
+    <string name="widget_desc_wide">Carte large 4×2</string>
+    <string name="widget_desc_bar">Barre d\'état 4×1</string>
+    <string name="widget_desc_tall">Carte haute 2×3</string>
+</resources>

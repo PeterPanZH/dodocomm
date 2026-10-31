@@ -1,0 +1,246 @@
+[
+ {
+  "regex": "^(\\d+) 条$",
+  "format": "ZXQH0Z 항목"
+ },
+ {
+  "regex": "^(\\d+) 天$",
+  "format": "ZXQH0Z일"
+ },
+ {
+  "regex": "^(\\d+) 次$",
+  "format": "ZXQH0Z회"
+ },
+ {
+  "regex": "^共 (\\d+) 条 · 本地转发记录$",
+  "format": "총 ZXQH0Z · 지역 역사"
+ },
+ {
+  "regex": "^共 (\\d+) 条$",
+  "format": "ZXQH0Z 레코드"
+ },
+ {
+  "regex": "^本地最多保存的记录条数（当前 (\\d+) 条）$",
+  "format": "최대 로컬 기록(현재 ZXQH0Z)"
+ },
+ {
+  "regex": "^删除本地全部 (\\d+) 条记录$",
+  "format": "모든 ZXQH0Z 로컬 레코드 삭제"
+ },
+ {
+  "regex": "^服务运行中 · 今日已送达 (\\d+) 条$",
+  "format": "서비스 실행 중 · ZXQH0Z 오늘 배송됨"
+ },
+ {
+  "regex": "^今日已送达 (\\d+) 条$",
+  "format": "ZXQH0Z 오늘 배송됨"
+ },
+ {
+  "regex": "^还差 (\\d+) 步完成设置$",
+  "format": "설정을 완료하려면 ZXQH0Z 단계가 남았습니다."
+ },
+ {
+  "regex": "^已导出 (\\d+) 条记录$",
+  "format": "내보낸 ZXQH0Z 레코드"
+ },
+ {
+  "regex": "^发现新版本 v(.+)$",
+  "format": "새 버전 vZXQH0Z 사용 가능"
+ },
+ {
+  "regex": "^发现新版本 v(.+)，点击查看$",
+  "format": "새 버전 vZXQH0Z 사용 가능, 보려면 탭하세요."
+ },
+ {
+  "regex": "^嘟嘟通讯 ([\\d.]+)$",
+  "format": "ZXQ0Z ZXQH1Z"
+ },
+ {
+  "regex": "^已配置 (.+)$",
+  "format": "ZXQH0Z 구성됨"
+ },
+ {
+  "regex": "^(\\d+) 分钟前$",
+  "format": "ZXQH0Z분 전"
+ },
+ {
+  "regex": "^(\\d+) 小时前$",
+  "format": "ZXQH0Z시간 전"
+ },
+ {
+  "regex": "^昨天 (.+)$",
+  "format": "어제 ZXQH0Z"
+ },
+ {
+  "regex": "^本地保存的 (\\d+) 条记录会被全部删除，无法恢复。$",
+  "format": "로컬에 저장된 모든 ZXQH0Z 기록이 삭제됩니다. 이 작업은 취소할 수 없습니다."
+ },
+ {
+  "regex": "^安装包大小：(.*)$",
+  "format": "APK 크기: ZXQH0Z"
+ },
+ {
+  "regex": "^已自动识别为 (.+)，识别不准可手动切换$",
+  "format": "ZXQH0Z를 감지했습니다. 필요한 경우 수동으로 전환할 수 있습니다."
+ },
+ {
+  "regex": "^已手动选择 (.+)，可切回自动识别$",
+  "format": "ZXQH0Z를 수동으로 선택했습니다. 자동으로 다시 전환할 수 있습니다."
+ },
+ {
+  "regex": "^手动选择 · (.+)$",
+  "format": "매뉴얼 · ZXQH0Z"
+ },
+ {
+  "regex": "^发送失败：(.*)$",
+  "format": "보내기 실패: ZXQH0Z"
+ },
+ {
+  "regex": "^嘟嘟可送信失败：(.*)$",
+  "format": "ZXQ1Z 배송 실패: ZXQH1Z"
+ },
+ {
+  "regex": "^备份导出失败：(.*)$",
+  "format": "백업 내보내기 실패: ZXQH0Z"
+ },
+ {
+  "regex": "^恢复失败：(.*)$",
+  "format": "복원 실패: ZXQH0Z"
+ },
+ {
+  "regex": "^导出失败：(.*)$",
+  "format": "내보내기 실패: ZXQH0Z"
+ },
+ {
+  "regex": "^已暂停转发.*$",
+  "format": "전달이 일시중지되었습니다."
+ },
+ {
+  "regex": "^当前 (\\d+) 条$",
+  "format": "현재 ZXQH0Z"
+ },
+ {
+  "regex": "^针对 (.+) 的分步设置说明$",
+  "format": "ZXQH0Z의 단계별 설정"
+ },
+ {
+  "regex": "^正在下载更新：(\\d+)%$",
+  "format": "업데이트 다운로드 중: ZXQH0Z%"
+ },
+ {
+  "regex": "^推送失败：HTTP (\\d+) ?(.*)$",
+  "format": "푸시 실패: ZXQ14Z ZXQH1Z ZXQH2Z"
+ },
+ {
+  "regex": "^推送被拒绝：Device Key 无效或无权限（HTTP (\\d+)）$",
+  "format": "푸시 거부됨: 잘못된 ZXQ8Z 또는 권한 없음(ZXQ14Z ZXQH2Z)"
+ },
+ {
+  "regex": "^更新服务返回 HTTP (\\d+)$",
+  "format": "업데이트 서버가 ZXQ14Z ZXQH1Z를 반환했습니다."
+ },
+ {
+  "regex": "^嘟嘟可报到！测试推送成功 ✅ 时间 (.+)$",
+  "format": "ZXQ1Z 보고! 테스트 푸시 성공 ✅ ZXQH1Z에서"
+ },
+ {
+  "regex": "^发送方「(.*)」不在白名单中$",
+  "format": "발신자 \"ZXQH0Z\"가 허용 목록에 없습니다."
+ },
+ {
+  "regex": "^发送方「(.*)」命中黑名单「(.*)」$",
+  "format": "보낸 사람 \"ZXQH0Z\"가 차단 목록 \"ZXQH1Z\"와 일치함"
+ },
+ {
+  "regex": "^请等待 (\\d+) 秒$",
+  "format": "기다려주세요 ZXQH0Zs"
+ },
+ {
+  "regex": "^PIN 必须为 (\\d+) 位数字$",
+  "format": "ZXQ18Z는 ZXQH1Z 숫자여야 합니다."
+ },
+ {
+  "regex": "^本机恢复失败：(.*)$",
+  "format": "로컬 복원 실패: ZXQH0Z"
+ },
+ {
+  "regex": "^检查更新失败：(.*)$",
+  "format": "업데이트 확인 실패: ZXQH0Z"
+ },
+ {
+  "regex": "^推送失败：(.*)$",
+  "format": "푸시 실패: ZXQH0Z"
+ },
+ {
+  "regex": "^当前版本 v(.+) → 新版本 v(.+)$",
+  "format": "현재 vZXQH0Z → 새로운 vZXQH1Z"
+ },
+ {
+  "regex": "^自动识别 · (.+)$",
+  "format": "자동 감지됨 · ZXQH0Z"
+ },
+ {
+  "regex": "^示例：(.+)$",
+  "format": "예: ZXQH0Z"
+ },
+ {
+  "regex": "^有新版本 v(.+)$",
+  "format": "새 버전 vZXQH0Z 사용 가능"
+ },
+ {
+  "regex": "^(\\d+) 个启用$",
+  "format": "ZXQH0Z 활성화됨"
+ },
+ {
+  "regex": "^(.+) · (已停用|未配置|已启用)$",
+  "format": "ZXQH0Z · ZXQH1Z"
+ },
+ {
+  "regex": "^(\\d+) 小时$",
+  "format": "ZXQH0Z시간"
+ },
+ {
+  "regex": "^(\\d+) 个通道$",
+  "format": "ZXQH0Z 채널"
+ },
+ {
+  "regex": "^(\\d+) 个启用$",
+  "format": "ZXQH0Z 활성화됨"
+ },
+ {
+  "regex": "^(\\d+) 项通过 · (\\d+) 项提醒 · (\\d+) 项异常$",
+  "format": "ZXQH0Z 통과 · ZXQH1Z 경고 · ZXQH2Z 실패"
+ },
+ {
+  "regex": "^验证码 (.+)$",
+  "format": "코드 ZXQH0Z"
+ },
+ {
+  "regex": "^隐藏(.+)$",
+  "format": "ZXQH0Z 숨기기"
+ },
+ {
+  "regex": "^显示(.+)$",
+  "format": "ZXQH0Z 표시"
+ },
+ {
+  "regex": "^发送者含 (.+)$",
+  "format": "발신자에는 ZXQH0Z가 포함되어 있습니다."
+ },
+ {
+  "regex": "^内容含 (.+)$",
+  "format": "본체에는 ZXQH0Z가 포함되어 있습니다."
+ },
+ {
+  "regex": "^所有短信$",
+  "format": "모든 SMS"
+ },
+ {
+  "regex": "^约 (.+) 后自动恢复$",
+  "format": "ZXQH0Z의 이력서"
+ },
+ {
+  "regex": "^已选 (\\d+) 条$",
+  "format": "ZXQH0Z 선택됨"
+ }
+]

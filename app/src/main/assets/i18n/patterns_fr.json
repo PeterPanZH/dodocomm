@@ -1,0 +1,246 @@
+[
+ {
+  "regex": "^(\\d+) 条$",
+  "format": "Articles ZXQH0Z"
+ },
+ {
+  "regex": "^(\\d+) 天$",
+  "format": "Jours ZXQH0Z"
+ },
+ {
+  "regex": "^(\\d+) 次$",
+  "format": "ZXQH0Z fois"
+ },
+ {
+  "regex": "^共 (\\d+) 条 · 本地转发记录$",
+  "format": "Total ZXQH0Z · histoire locale"
+ },
+ {
+  "regex": "^共 (\\d+) 条$",
+  "format": "Enregistrements ZXQH0Z"
+ },
+ {
+  "regex": "^本地最多保存的记录条数（当前 (\\d+) 条）$",
+  "format": "Nombre maximum d'enregistrements locaux (actuellement ZXQH0Z)"
+ },
+ {
+  "regex": "^删除本地全部 (\\d+) 条记录$",
+  "format": "Supprimer tous les enregistrements locaux ZXQH0Z"
+ },
+ {
+  "regex": "^服务运行中 · 今日已送达 (\\d+) 条$",
+  "format": "Service en cours · ZXQH0Z livré aujourd'hui"
+ },
+ {
+  "regex": "^今日已送达 (\\d+) 条$",
+  "format": "ZXQH0Z livré aujourd'hui"
+ },
+ {
+  "regex": "^还差 (\\d+) 步完成设置$",
+  "format": "Étapes restantes pour ZXQH0Z pour terminer la configuration"
+ },
+ {
+  "regex": "^已导出 (\\d+) 条记录$",
+  "format": "Enregistrements ZXQH0Z exportés"
+ },
+ {
+  "regex": "^发现新版本 v(.+)$",
+  "format": "Nouvelle version vZXQH0Z disponible"
+ },
+ {
+  "regex": "^发现新版本 v(.+)，点击查看$",
+  "format": "Nouvelle version vZXQH0Z disponible, appuyez pour voir"
+ },
+ {
+  "regex": "^嘟嘟通讯 ([\\d.]+)$",
+  "format": "ZXQ0Z ZXQH1Z"
+ },
+ {
+  "regex": "^已配置 (.+)$",
+  "format": "ZXQH0Z configuré"
+ },
+ {
+  "regex": "^(\\d+) 分钟前$",
+  "format": "ZXQH0Z il y a min"
+ },
+ {
+  "regex": "^(\\d+) 小时前$",
+  "format": "ZXQH0Z il y a une heure"
+ },
+ {
+  "regex": "^昨天 (.+)$",
+  "format": "Hier ZXQH0Z"
+ },
+ {
+  "regex": "^本地保存的 (\\d+) 条记录会被全部删除，无法恢复。$",
+  "format": "Tous les enregistrements ZXQH0Z stockés localement seront supprimés. Cela ne peut pas être annulé."
+ },
+ {
+  "regex": "^安装包大小：(.*)$",
+  "format": "Taille de l'APK : ZXQH0Z"
+ },
+ {
+  "regex": "^已自动识别为 (.+)，识别不准可手动切换$",
+  "format": "ZXQH0Z détecté. Vous pouvez changer manuellement si nécessaire."
+ },
+ {
+  "regex": "^已手动选择 (.+)，可切回自动识别$",
+  "format": "ZXQH0Z sélectionné manuellement. Vous pouvez revenir en mode automatique."
+ },
+ {
+  "regex": "^手动选择 · (.+)$",
+  "format": "Manuel · ZXQH0Z"
+ },
+ {
+  "regex": "^发送失败：(.*)$",
+  "format": "Échec de l'envoi : ZXQH0Z"
+ },
+ {
+  "regex": "^嘟嘟可送信失败：(.*)$",
+  "format": "Échec de la livraison du ZXQ1Z : ZXQH1Z"
+ },
+ {
+  "regex": "^备份导出失败：(.*)$",
+  "format": "Échec de l'exportation de la sauvegarde : ZXQH0Z"
+ },
+ {
+  "regex": "^恢复失败：(.*)$",
+  "format": "Échec de la restauration : ZXQH0Z"
+ },
+ {
+  "regex": "^导出失败：(.*)$",
+  "format": "Échec de l'exportation : ZXQH0Z"
+ },
+ {
+  "regex": "^已暂停转发.*$",
+  "format": "Le transfert a été interrompu."
+ },
+ {
+  "regex": "^当前 (\\d+) 条$",
+  "format": "ZXQH0Z actuellement"
+ },
+ {
+  "regex": "^针对 (.+) 的分步设置说明$",
+  "format": "Configuration étape par étape pour ZXQH0Z"
+ },
+ {
+  "regex": "^正在下载更新：(\\d+)%$",
+  "format": "Téléchargement de la mise à jour : ZXQH0Z%"
+ },
+ {
+  "regex": "^推送失败：HTTP (\\d+) ?(.*)$",
+  "format": "Échec de la poussée : ZXQ14Z ZXQH1Z ZXQH2Z"
+ },
+ {
+  "regex": "^推送被拒绝：Device Key 无效或无权限（HTTP (\\d+)）$",
+  "format": "Push rejeté : ZXQ8Z invalide ou aucune autorisation (ZXQ14Z ZXQH2Z)"
+ },
+ {
+  "regex": "^更新服务返回 HTTP (\\d+)$",
+  "format": "Le serveur de mise à jour a renvoyé ZXQ14Z ZXQH1Z"
+ },
+ {
+  "regex": "^嘟嘟可报到！测试推送成功 ✅ 时间 (.+)$",
+  "format": "Rapport ZXQ1Z ! Test poussé réussi ✅ chez ZXQH1Z"
+ },
+ {
+  "regex": "^发送方「(.*)」不在白名单中$",
+  "format": "L'expéditeur \"ZXQH0Z\" n'est pas dans la liste verte"
+ },
+ {
+  "regex": "^发送方「(.*)」命中黑名单「(.*)」$",
+  "format": "L'expéditeur \"ZXQH0Z\" correspond à la liste de blocage \"ZXQH1Z\""
+ },
+ {
+  "regex": "^请等待 (\\d+) 秒$",
+  "format": "Veuillez patienter ZXQH0Zs"
+ },
+ {
+  "regex": "^PIN 必须为 (\\d+) 位数字$",
+  "format": "ZXQ18Z doit être composé de chiffres ZXQH1Z"
+ },
+ {
+  "regex": "^本机恢复失败：(.*)$",
+  "format": "Échec de la restauration locale : ZXQH0Z"
+ },
+ {
+  "regex": "^检查更新失败：(.*)$",
+  "format": "Échec de la vérification de la mise à jour : ZXQH0Z"
+ },
+ {
+  "regex": "^推送失败：(.*)$",
+  "format": "Échec de la transmission : ZXQH0Z"
+ },
+ {
+  "regex": "^当前版本 v(.+) → 新版本 v(.+)$",
+  "format": "vZXQH0Z actuel → nouveau vZXQH1Z"
+ },
+ {
+  "regex": "^自动识别 · (.+)$",
+  "format": "Détection automatique · ZXQH0Z"
+ },
+ {
+  "regex": "^示例：(.+)$",
+  "format": "Exemple : ZXQH0Z"
+ },
+ {
+  "regex": "^有新版本 v(.+)$",
+  "format": "Nouvelle version vZXQH0Z disponible"
+ },
+ {
+  "regex": "^(\\d+) 个启用$",
+  "format": "ZXQH0Z activé"
+ },
+ {
+  "regex": "^(.+) · (已停用|未配置|已启用)$",
+  "format": "ZXQH0Z · ZXQH1Z"
+ },
+ {
+  "regex": "^(\\d+) 小时$",
+  "format": "Heures ZXQH0Z"
+ },
+ {
+  "regex": "^(\\d+) 个通道$",
+  "format": "Canaux ZXQH0Z"
+ },
+ {
+  "regex": "^(\\d+) 个启用$",
+  "format": "ZXQH0Z activé"
+ },
+ {
+  "regex": "^(\\d+) 项通过 · (\\d+) 项提醒 · (\\d+) 项异常$",
+  "format": "ZXQH0Z réussi · Avertissements ZXQH1Z · ZXQH2Z a échoué"
+ },
+ {
+  "regex": "^验证码 (.+)$",
+  "format": "Code ZXQH0Z"
+ },
+ {
+  "regex": "^隐藏(.+)$",
+  "format": "Masquer ZXQH0Z"
+ },
+ {
+  "regex": "^显示(.+)$",
+  "format": "Afficher ZXQH0Z"
+ },
+ {
+  "regex": "^发送者含 (.+)$",
+  "format": "L'expéditeur contient ZXQH0Z"
+ },
+ {
+  "regex": "^内容含 (.+)$",
+  "format": "Le corps contient du ZXQH0Z"
+ },
+ {
+  "regex": "^所有短信$",
+  "format": "Tous les SMS"
+ },
+ {
+  "regex": "^约 (.+) 后自动恢复$",
+  "format": "CV dans ZXQH0Z"
+ },
+ {
+  "regex": "^已选 (\\d+) 条$",
+  "format": "ZXQH0Z sélectionné"
+ }
+]

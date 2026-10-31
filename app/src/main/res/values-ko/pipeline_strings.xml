@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notify_channel_service">SMS 전달 서비스</string>
+    <string name="notify_channel_service_desc">SMS 전달을 유지하는 지속적인 알림</string>
+    <string name="notify_channel_alerts">알림 전달</string>
+    <string name="notify_channel_alerts_desc">배송 실패 및 중요 공지사항</string>
+    <string name="notify_title">도도컴</string>
+    <string name="notify_ongoing_idle">Dodoco 준비됨 · %1$d 오늘 배송됨</string>
+    <string name="notify_ongoing_stats">Dodoco 배송중 · 오늘 %1$d개 보냈습니다</string>
+    <string name="notify_ongoing_last">Dodoco가 방금 하나를 배달했습니다 · 오늘 %1$d · 최근 %2$s %3$s</string>
+    <string name="notify_paused">전달이 일시중지되었습니다. 재개하려면 스위치를 탭하세요.</string>
+    <string name="notify_unknown_sender">알 수 없는 발신자</string>
+    <string name="notify_action_pause">정지시키다</string>
+    <string name="notify_action_pause_30">30분 일시 정지</string>
+    <string name="notify_action_resume">재개하다</string>
+    <string name="notify_action_test">시험</string>
+    <string name="notify_action_stop">멈추다</string>
+    <string name="notify_paused_until">일시적으로 일시중지되었습니다. 약 %1$d분 후에 재개됩니다.</string>
+    <string name="notify_boot_recovery_title">도도코님은 오프라인 상태입니다</string>
+    <string name="notify_boot_recovery_text">탭하여 앱을 열고 Dodoco를 깨우세요. SMS 수신 자체는 영향을 받지 않습니다.</string>
+    <string name="notify_test_sending">테스트 푸시를 보내는 중…</string>
+    <string name="notify_test_success">테스트 푸시가 전송되었습니다 ✅</string>
+    <string name="notify_test_failed">테스트 푸시 실패: %1$s</string>
+</resources>

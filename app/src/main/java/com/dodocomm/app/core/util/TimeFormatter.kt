@@ -15,17 +15,26 @@ object TimeFormatter {
 
     private fun monthDay(): DateTimeFormatter = when (LanguageState.tag) {
         LanguageTag.EN -> DateTimeFormatter.ofPattern("MMM d", Locale.ENGLISH)
-        LanguageTag.JA, LanguageTag.ZH -> DateTimeFormatter.ofPattern("M月d日", Locale.JAPANESE)
+        LanguageTag.JA, LanguageTag.ZH, LanguageTag.ZH_TW -> DateTimeFormatter.ofPattern("M月d日", Locale.JAPANESE)
+        LanguageTag.KO -> DateTimeFormatter.ofPattern("M월 d일", Locale.KOREAN)
+        LanguageTag.ES -> DateTimeFormatter.ofPattern("d MMM", Locale.forLanguageTag("es"))
+        LanguageTag.FR -> DateTimeFormatter.ofPattern("d MMM", Locale.forLanguageTag("fr"))
     }
 
     private fun yearMonthDay(): DateTimeFormatter = when (LanguageState.tag) {
         LanguageTag.EN -> DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH)
-        LanguageTag.JA, LanguageTag.ZH -> DateTimeFormatter.ofPattern("yyyy年M月d日", Locale.JAPANESE)
+        LanguageTag.JA, LanguageTag.ZH, LanguageTag.ZH_TW -> DateTimeFormatter.ofPattern("yyyy年M月d日", Locale.JAPANESE)
+        LanguageTag.KO -> DateTimeFormatter.ofPattern("yyyy년 M월 d일", Locale.KOREAN)
+        LanguageTag.ES -> DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("es"))
+        LanguageTag.FR -> DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("fr"))
     }
 
     private fun full(): DateTimeFormatter = when (LanguageState.tag) {
         LanguageTag.EN -> DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm", Locale.ENGLISH)
-        LanguageTag.JA, LanguageTag.ZH -> DateTimeFormatter.ofPattern("yyyy年M月d日 HH:mm", Locale.JAPANESE)
+        LanguageTag.JA, LanguageTag.ZH, LanguageTag.ZH_TW -> DateTimeFormatter.ofPattern("yyyy年M月d日 HH:mm", Locale.JAPANESE)
+        LanguageTag.KO -> DateTimeFormatter.ofPattern("yyyy년 M월 d일 HH:mm", Locale.KOREAN)
+        LanguageTag.ES -> DateTimeFormatter.ofPattern("d MMM yyyy HH:mm", Locale.forLanguageTag("es"))
+        LanguageTag.FR -> DateTimeFormatter.ofPattern("d MMM yyyy HH:mm", Locale.forLanguageTag("fr"))
     }
 
     fun startOfToday(now: Long = System.currentTimeMillis()): Long =
@@ -83,29 +92,49 @@ object TimeFormatter {
         LanguageTag.EN -> "Today"
         LanguageTag.JA -> "今日"
         LanguageTag.ZH -> "今天"
+        LanguageTag.ZH_TW -> "今天"
+        LanguageTag.KO -> "오늘"
+        LanguageTag.ES -> "Hoy"
+        LanguageTag.FR -> "Aujourd’hui"
     }
 
     private fun yesterdayLabel(): String = when (LanguageState.tag) {
         LanguageTag.EN -> "Yesterday"
         LanguageTag.JA -> "昨日"
         LanguageTag.ZH -> "昨天"
+        LanguageTag.ZH_TW -> "昨天"
+        LanguageTag.KO -> "어제"
+        LanguageTag.ES -> "Ayer"
+        LanguageTag.FR -> "Hier"
     }
 
     private fun justNowLabel(): String = when (LanguageState.tag) {
         LanguageTag.EN -> "just now"
         LanguageTag.JA -> "たった今"
         LanguageTag.ZH -> "刚刚"
+        LanguageTag.ZH_TW -> "剛剛"
+        LanguageTag.KO -> "방금"
+        LanguageTag.ES -> "ahora mismo"
+        LanguageTag.FR -> "à l’instant"
     }
 
     private fun minutesAgo(minutes: Long): String = when (LanguageState.tag) {
         LanguageTag.EN -> "$minutes min ago"
         LanguageTag.JA -> "${minutes}分前"
         LanguageTag.ZH -> "$minutes 分钟前"
+        LanguageTag.ZH_TW -> "$minutes 分鐘前"
+        LanguageTag.KO -> "${minutes}분 전"
+        LanguageTag.ES -> "hace $minutes min"
+        LanguageTag.FR -> "il y a $minutes min"
     }
 
     private fun hoursAgo(hours: Long): String = when (LanguageState.tag) {
         LanguageTag.EN -> "$hours hr ago"
         LanguageTag.JA -> "${hours}時間前"
         LanguageTag.ZH -> "$hours 小时前"
+        LanguageTag.ZH_TW -> "$hours 小時前"
+        LanguageTag.KO -> "${hours}시간 전"
+        LanguageTag.ES -> "hace $hours h"
+        LanguageTag.FR -> "il y a $hours h"
     }
 }
