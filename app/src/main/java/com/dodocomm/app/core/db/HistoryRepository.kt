@@ -6,6 +6,7 @@ import com.dodocomm.app.core.model.TodayStats
 import com.dodocomm.app.core.util.TimeFormatter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +20,7 @@ import kotlinx.coroutines.withContext
 class HistoryRepository(
     private val dao: HistoryDao,
     private val scope: CoroutineScope,
+    private val limitProvider: () -> Int = { HistoryDao.DEFAULT_HISTORY_LIMIT },
 ) {
     private val _records = MutableStateFlow<List<ForwardRecord>>(emptyList())
     val records: StateFlow<List<ForwardRecord>> = _records.asStateFlow()
@@ -29,20 +31,29 @@ class HistoryRepository(
     @Volatile
     private var snapshot: List<ForwardRecord> = emptyList()
 
+    @Volatile
+    private var refreshJob: Job? = null
+
     init {
         refresh()
     }
 
-    fun refresh() {
-        scope.launch {
-            val records = withContext(Dispatchers.IO) { dao.list() }
-            val stats = withContext(Dispatchers.IO) {
-                dao.todayStats(TimeFormatter.startOfToday())
-            }
-            snapshot = records
-            _records.value = records
-            _stats.value = stats
+    /** Loads the newest snapshot on IO; suspends until state is published. */
+    suspend fun refreshNow() {
+        val limit = limitProvider().coerceIn(1, HistoryDao.MAX_HISTORY_ROWS)
+        val records = withContext(Dispatchers.IO) { dao.list(limit) }
+        val stats = withContext(Dispatchers.IO) {
+            dao.todayStats(TimeFormatter.startOfToday())
         }
+        snapshot = records
+        _records.value = records
+        _stats.value = stats
+    }
+
+    /** Coalesces concurrent refresh requests so only the latest snapshot wins. */
+    fun refresh() {
+        refreshJob?.cancel()
+        refreshJob = scope.launch { refreshNow() }
     }
 
     /** @return inserted id, or -1 if [dedupeKey] was already present. */

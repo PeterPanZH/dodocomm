@@ -12,7 +12,7 @@ import com.dodocomm.app.core.model.ForwardStatus
 import com.dodocomm.app.core.model.SmsPayload
 import com.dodocomm.app.core.settings.AppSettings
 import com.dodocomm.app.core.system.DeviceName
-import com.dodocomm.app.core.util.Hashing
+import com.dodocomm.app.core.crypto.HmacDedupe
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -36,6 +36,7 @@ class ForwardEngine(
     private val container: AppContainer,
 ) {
     private val appContext: Context = context.applicationContext
+    private val hmacDedupe = HmacDedupe(appContext)
 
     /** Ids currently being delivered; prevents concurrent duplicate pushes. */
     private val inFlightIds: MutableSet<Long> = ConcurrentHashMap.newKeySet()
@@ -81,7 +82,7 @@ class ForwardEngine(
             title = title,
             barkBody = barkBody,
         )
-        val dedupeKey = Hashing.sha256("${payload.sender}|${payload.smsTimestamp}|${payload.body}")
+        val dedupeKey = hmacDedupe.token("${payload.sender}|${payload.smsTimestamp}|${payload.body}")
         val id = container.history.insert(baseRecord, dedupeKey)
         if (id == -1L) {
             // Duplicate broadcast / re-delivery: the original row already wins.
@@ -215,6 +216,13 @@ class ForwardEngine(
                 enqueueRetry(settings)
                 return false
             }
+            if (settings.retryOnlyWifi && !isOnWifi()) {
+                container.workScheduler.enqueueRetry(
+                    backoffSeconds = settings.retryBackoffSeconds.toLong(),
+                    onlyWifi = true,
+                )
+                return false
+            }
 
             for (candidate in candidates) {
                 val record = container.history.get(candidate.id) ?: continue
@@ -262,12 +270,17 @@ class ForwardEngine(
                 rawBody = dispatch.rawBody,
             )
             val attempts = record.attempts + 1
-            if (result.success) {
+            // At-least-one semantics: if any channel accepted the message, do
+            // not replay every channel on retry (that would duplicate pushes on
+            // the channels that already succeeded). Partial failures are kept in
+            // the error text for visibility.
+            val anySuccess = dispatch.results.any { it.success }
+            if (anySuccess) {
                 container.history.updateResult(
                     id = record.id,
                     status = ForwardStatus.SENT,
                     attempts = attempts,
-                    error = null,
+                    error = result.message.takeIf { dispatch.results.any { item -> !item.success } },
                     response = result.rawBody,
                 )
             } else {
@@ -326,6 +339,18 @@ class ForwardEngine(
         subscriptionId = subscriptionId,
         simLabel = simLabel,
     )
+
+    /** True when the active network is Wi-Fi/unmetered (respects retryOnlyWifi). */
+    private fun isOnWifi(): Boolean = try {
+        val manager = appContext.getSystemService(ConnectivityManager::class.java) ?: return false
+        val network = manager.activeNetwork ?: return false
+        val capabilities = manager.getNetworkCapabilities(network) ?: return false
+        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+    } catch (e: Exception) {
+        Log.w(TAG, "读取 Wi-Fi 状态失败，按非 Wi-Fi 处理", e)
+        false
+    }
 
     /** Cheap network probe; used only to avoid burning retry attempts while offline. */
     private fun hasNetworkConnection(): Boolean = try {

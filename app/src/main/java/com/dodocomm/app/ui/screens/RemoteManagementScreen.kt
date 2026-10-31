@@ -61,6 +61,7 @@ fun RemoteManagementScreen(
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     var secretVisible by rememberSaveable { mutableStateOf(false) }
     var generatedCommand by rememberSaveable { mutableStateOf("") }
+    var confirmRegenerate by rememberSaveable { mutableStateOf(false) }
     val clipboard = remember(context) { context.getSystemService(ClipboardManager::class.java) }
 
     fun copy(text: String, label: String) {
@@ -153,7 +154,7 @@ fun RemoteManagementScreen(
                                 IconButton(onClick = { copy(settings.remoteSecret, "远程管理密钥") }) {
                                     Icon(Icons.Rounded.ContentCopy, contentDescription = "复制密钥")
                                 }
-                                IconButton(onClick = viewModel::regenerateRemoteSecret) {
+                                IconButton(onClick = { confirmRegenerate = true }) {
                                     Icon(Icons.Rounded.Refresh, contentDescription = "更换密钥")
                                 }
                             }
@@ -218,5 +219,22 @@ fun RemoteManagementScreen(
                 }
             }
         }
+    }
+
+    if (confirmRegenerate) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { confirmRegenerate = false },
+            title = { Text("更换远程管理密钥？") },
+            text = { Text("旧指令会立即失效，iPhone 上保存的密钥也需要同步更新。") },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmRegenerate = false
+                    viewModel.regenerateRemoteSecret()
+                }) { Text("更换") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmRegenerate = false }) { Text("取消") }
+            },
+        )
     }
 }

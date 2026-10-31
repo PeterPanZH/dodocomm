@@ -126,10 +126,18 @@ class EmailClient {
                     put("mail.smtp.host", channel.smtpHost.trim())
                     put("mail.smtp.port", channel.smtpPort.toString())
                     put("mail.smtp.auth", "true")
+                    put("mail.smtp.connectiontimeout", "4000")
+                    put("mail.smtp.timeout", "6000")
+                    put("mail.smtp.writetimeout", "6000")
+                    put("mail.smtp.ssl.checkserveridentity", "true")
                     when (channel.smtpSecurity.uppercase()) {
                         "SSL", "SMTPS" -> put("mail.smtp.ssl.enable", "true")
-                        "NONE", "PLAIN" -> Unit
-                        else -> put("mail.smtp.starttls.enable", "true")
+                        else -> {
+                            // STARTTLS is required; legacy NONE values are upgraded
+                            // so SMS bodies and SMTP credentials are never sent in clear.
+                            put("mail.smtp.starttls.enable", "true")
+                            put("mail.smtp.starttls.required", "true")
+                        }
                     }
                 }
                 val session = Session.getInstance(
@@ -199,6 +207,8 @@ private fun OkHttpClient.execute(channel: PushChannel, request: Request): Channe
 }
 
 private fun defaultClient(): OkHttpClient = OkHttpClient.Builder()
-    .connectTimeout(15, TimeUnit.SECONDS)
-    .readTimeout(30, TimeUnit.SECONDS)
+    .connectTimeout(4, TimeUnit.SECONDS)
+    .readTimeout(6, TimeUnit.SECONDS)
+    .writeTimeout(6, TimeUnit.SECONDS)
+    .callTimeout(7, TimeUnit.SECONDS)
     .build()

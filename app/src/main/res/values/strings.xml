@@ -14,4 +14,10 @@
     <string name="shortcut_test_push_long">发送一条测试推送</string>
     <string name="shortcut_toggle_short">暂停/恢复</string>
     <string name="shortcut_toggle_long">暂停 30 分钟或恢复转发</string>
+    <string name="update_channel_name">应用更新下载</string>
+    <string name="update_channel_desc">后台下载应用更新时显示进度</string>
+    <string name="update_downloading">正在下载 DodoComm v%1$s</string>
+    <string name="update_downloaded">DodoComm v%1$s 已下载</string>
+    <string name="update_tap_install">点按安装更新</string>
+    <string name="update_install">安装</string>
 </resources>

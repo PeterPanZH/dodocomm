@@ -80,8 +80,8 @@ class RecordExporter(private val context: Context) {
                     safeCell(if (masked) maskBody(record.body) else record.body),
                     record.status.name,
                     record.attempts.toString(),
-                    safeCell(record.error.orEmpty()),
-                    safeCell(record.title.orEmpty()),
+                    safeCell(if (masked) maskedError(record.error) else record.error.orEmpty()),
+                    safeCell(if (masked) maskedTitle(record.title) else record.title.orEmpty()),
                 ).joinToString(",")
             }
             return "\uFEFF" + (listOf(header) + rows).joinToString("\r\n")
@@ -98,8 +98,8 @@ class RecordExporter(private val context: Context) {
                         put("body", if (masked) maskBody(record.body) else record.body)
                         put("status", record.status.name)
                         put("attempts", record.attempts)
-                        put("error", record.error)
-                        put("title", record.title)
+                        put("error", if (masked) maskedError(record.error) else record.error)
+                        put("title", if (masked) maskedTitle(record.title) else record.title)
                     },
                 )
             }
@@ -132,6 +132,12 @@ class RecordExporter(private val context: Context) {
 
         private fun maskDigits(value: String): String =
             if (value.length <= 7) value else value.take(3) + "*".repeat(value.length - 7) + value.takeLast(4)
+
+        private fun maskedTitle(title: String?): String =
+            title?.let { maskBody(it).replace(Regex("(?<!\\d)\\d{5,}(?!\\d)")) { match -> maskDigits(match.value) } }.orEmpty()
+
+        private fun maskedError(error: String?): String =
+            if (error.isNullOrBlank()) "" else "（原因已隐藏）"
 
         private fun safeCell(value: String): String {
             val protected = if (value.startsWith("=") || value.startsWith("+") ||

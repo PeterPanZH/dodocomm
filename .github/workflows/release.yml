@@ -78,9 +78,16 @@ jobs:
           VERSION_CODE="$(grep -oP 'versionCode\s*=\s*\K[0-9]+' app/build.gradle.kts | head -1)"
           SHA="$(sha256sum "$OUT" | awk '{print $1}')"
           SIZE="$(stat -c%s "$OUT")"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.tag }}" ]; then
+            RELEASE_TAG="${{ inputs.tag }}"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            RELEASE_TAG="${GITHUB_REF_NAME}"
+          else
+            RELEASE_TAG="v${VERSION}"
+          fi
+          echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "VERSION_CODE=$VERSION_CODE" >> "$GITHUB_ENV"
-          echo "TAG=v${VERSION}" >> "$GITHUB_ENV"
           echo "APK_SHA=$SHA" >> "$GITHUB_ENV"
           CHANGELOG="$(python3 - "$VERSION" <<'PY'
           import re
@@ -101,7 +108,7 @@ jobs:
           PY
           )"
           export CHANGELOG
-          VERSION="$VERSION" VERSION_CODE="$VERSION_CODE" SHA="$SHA" SIZE="$SIZE" GITHUB_REPOSITORY="$GITHUB_REPOSITORY" python3 - <<'PY'
+          VERSION="$VERSION" VERSION_CODE="$VERSION_CODE" SHA="$SHA" SIZE="$SIZE" RELEASE_TAG="$RELEASE_TAG" GITHUB_REPOSITORY="$GITHUB_REPOSITORY" python3 - <<'PY'
           import json
           import os
 
@@ -110,7 +117,7 @@ jobs:
           data = {
               "versionCode": int(os.environ["VERSION_CODE"]),
               "versionName": version,
-              "apkUrl": f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/download/v{version}/DodoComm-{version}.apk",
+              "apkUrl": f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/download/{os.environ['RELEASE_TAG']}/DodoComm-{version}.apk",
               "sha256": os.environ["SHA"],
               "size": int(os.environ["SIZE"]),
               "changelog": changelog,
@@ -131,7 +138,7 @@ jobs:
           elif [ "${{ github.event_name }}" = "push" ]; then
             TAG="${GITHUB_REF_NAME}"
           else
-            TAG="${TAG}"
+            TAG="${RELEASE_TAG}"
           fi
           echo "Release tag: $TAG"
           if gh release view "$TAG" >/dev/null 2>&1; then

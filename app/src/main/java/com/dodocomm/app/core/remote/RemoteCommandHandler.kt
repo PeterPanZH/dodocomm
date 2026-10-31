@@ -25,10 +25,26 @@ class RemoteCommandHandler(private val container: AppContainer) {
         }
         if (!isCommand) return false
 
-        val command = RemoteCommandParser.parse(payload.body) ?: return true
-        if (!RemoteCommandParser.nonceIsFresh(command.nonce)) return true
-        if (command.nonce <= settings.remoteLastNonce) return true
-        if (!RemoteCommandParser.verify(settings.remoteSecret, command)) return true
+        val command = RemoteCommandParser.parse(payload.body) ?: run {
+            Log.w(TAG, "远程指令格式错误")
+            return true
+        }
+        if (!RemoteCommandParser.nonceIsFresh(command.nonce)) {
+            Log.w(TAG, "远程指令时间戳过期")
+            return true
+        }
+        if (command.nonce <= settings.remoteLastNonce) {
+            Log.w(TAG, "远程指令 nonce 重放")
+            return true
+        }
+        if (!RemoteCommandParser.verify(settings.remoteSecret, command)) {
+            Log.w(TAG, "远程指令签名无效")
+            return true
+        }
+        if (!settings.forwardingEnabled) {
+            Log.w(TAG, "转发已关闭，忽略远程指令")
+            return true
+        }
 
         container.settings.update { it.copy(remoteLastNonce = command.nonce) }
         val result = when (command.action) {

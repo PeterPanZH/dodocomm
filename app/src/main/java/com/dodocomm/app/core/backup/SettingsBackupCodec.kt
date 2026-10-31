@@ -136,6 +136,17 @@ object SettingsBackupCodec {
         )
     }
 
+    /** Additive merge used by the import preview: backup wins for matching ids. */
+    fun merge(restored: AppSettings, current: AppSettings): AppSettings = restored.copy(
+        channels = (current.channels + restored.channels)
+            .distinctBy { "${'$'}{it.type}:${'$'}{it.id}" },
+        routingRules = (current.routingRules + restored.routingRules)
+            .distinctBy { it.id },
+        senderWhitelist = (current.senderWhitelist + restored.senderWhitelist).distinct(),
+        senderBlacklist = (current.senderBlacklist + restored.senderBlacklist).distinct(),
+        keywordBlacklist = (current.keywordBlacklist + restored.keywordBlacklist).distinct(),
+    )
+
     private fun JSONArray?.toStringList(): List<String> {
         if (this == null) return emptyList()
         return buildList {

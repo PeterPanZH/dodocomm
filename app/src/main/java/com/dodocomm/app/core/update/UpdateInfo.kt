@@ -34,8 +34,12 @@ object UpdateManifest {
 
         require(versionCode > 0) { "versionCode 无效" }
         require(versionName.isNotEmpty()) { "versionName 为空" }
-        require(apkUrl.startsWith("https://") || apkUrl.startsWith("http://")) {
-            "apkUrl 必须是 http(s) 地址"
+        require(
+            apkUrl.startsWith("https://") ||
+                apkUrl.startsWith("http://127.0.0.1") ||
+                apkUrl.startsWith("http://localhost"),
+        ) {
+            "apkUrl 必须是 https 地址"
         }
         require(sha256.length == 64 && sha256.all { it in "0123456789abcdef" }) {
             "sha256 格式无效"

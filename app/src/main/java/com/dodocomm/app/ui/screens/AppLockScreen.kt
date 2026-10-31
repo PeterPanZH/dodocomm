@@ -30,6 +30,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,6 +50,7 @@ import com.dodocomm.app.core.security.AppLock
 import com.dodocomm.app.ui.theme.BrandGradientDark
 import com.dodocomm.app.ui.theme.BrandGradientLight
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun AppLockScreen(
@@ -57,10 +60,12 @@ fun AppLockScreen(
     onUnlock: () -> Unit,
     onBiometric: () -> Unit,
 ) {
-    var pin by remember { mutableStateOf("") }
+    var pin by rememberSaveable { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
-    var failedAttempts by remember { mutableStateOf(0) }
-    var lockedUntil by remember { mutableLongStateOf(0L) }
+    var failedAttempts by rememberSaveable { mutableStateOf(0) }
+    var lockedUntil by rememberSaveable { mutableStateOf(0L) }
+    var verifying by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
     var remaining by remember { mutableStateOf(0) }
     var autoBiometricRequested by rememberSaveable { mutableStateOf(false) }
 
@@ -89,14 +94,18 @@ fun AppLockScreen(
     }
 
     fun submit(value: String) {
-        if (lockedUntil > System.currentTimeMillis()) return
-        when {
-            AppLock.verifyPin(value, pinSalt, pinHash) -> {
+        if (lockedUntil > System.currentTimeMillis() || verifying) return
+        verifying = true
+        coroutineScope.launch {
+            val matches = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                AppLock.verifyPin(value, pinSalt, pinHash)
+            }
+            verifying = false
+            if (matches) {
                 pin = ""
                 error = null
                 onUnlock()
-            }
-            else -> {
+            } else {
                 failedAttempts += 1
                 pin = ""
                 error = if (failedAttempts >= 5) {
@@ -110,7 +119,7 @@ fun AppLockScreen(
     }
 
     fun tapDigit(digit: Char) {
-        if (lockedUntil > System.currentTimeMillis()) return
+        if (lockedUntil > System.currentTimeMillis() || verifying) return
         if (pin.length >= AppLock.PIN_LENGTH) return
         pin += digit
         error = null
@@ -168,7 +177,7 @@ fun AppLockScreen(
             )
             Spacer(Modifier.weight(1f))
             PinKeypad(
-                enabled = remaining == 0,
+                enabled = remaining == 0 && !verifying,
                 onDigit = ::tapDigit,
                 onBackspace = { pin = pin.dropLast(1); error = null },
             )

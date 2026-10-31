@@ -14,4 +14,10 @@
     <string name="shortcut_test_push_long">テストプッシュを送信</string>
     <string name="shortcut_toggle_short">停止/再開</string>
     <string name="shortcut_toggle_long">30分停止または転送を再開</string>
+    <string name="update_channel_name">アプリ更新のダウンロード</string>
+    <string name="update_channel_desc">アプリ更新のバックグラウンド ダウンロードの進捗を表示します</string>
+    <string name="update_downloading">DodoComm v%1$s をダウンロード中</string>
+    <string name="update_downloaded">DodoComm v%1$s をダウンロードしました</string>
+    <string name="update_tap_install">タップしてインストール</string>
+    <string name="update_install">インストール</string>
 </resources>

@@ -1,8 +1,10 @@
 package com.dodocomm.app.ui
 
 import android.content.Intent
+import android.app.LocaleManager
 import android.os.Build
 import android.os.Bundle
+import android.os.LocaleList
 import android.os.SystemClock
 import android.widget.Toast
 import androidx.activity.SystemBarStyle
@@ -23,6 +25,7 @@ import com.dodocomm.app.appContainer
 import com.dodocomm.app.core.settings.ThemeMode
 import com.dodocomm.app.core.system.ExternalNavigation
 import com.dodocomm.app.ui.i18n.AppLocale
+import com.dodocomm.app.ui.i18n.AppStrings
 import com.dodocomm.app.ui.screens.AppLockScreen
 import com.dodocomm.app.ui.theme.Sms2BarkTheme
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,7 +61,7 @@ class MainActivity : FragmentActivity() {
         _locked.value = current.appLockEnabled && !wasUnlocked && current.appLockPinHash.isNotBlank()
         backgroundAt = savedInstanceState?.getLong(KEY_BACKGROUND_AT, 0L) ?: 0L
         applyLockWindowFlags(current.appLockEnabled)
-        handleShortcutIntent(intent)
+        if (savedInstanceState == null) handleShortcutIntent(intent)
         setContent {
             val viewModel: AppViewModel = viewModel()
             val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -89,6 +92,7 @@ class MainActivity : FragmentActivity() {
 
             LaunchedEffect(settings.appLanguage) {
                 AppLocale.apply(settings.appLanguage)
+                applySystemLocale(settings.appLanguage)
             }
 
             LaunchedEffect(settings.appLockEnabled) {
@@ -122,9 +126,16 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun handleShortcutIntent(intent: Intent?) {
-        when (intent?.action) {
+        // Shortcut actions are side effects: consume them once, ignore them on
+        // activity recreation, and never run them behind the app lock.
+        val action = intent?.action
+        if (_locked.value || action == null) {
+            if (intent != null) intent.action = null
+            return
+        }
+        when (action) {
             ACTION_SHORTCUT_TEST_PUSH -> {
-                Toast.makeText(this, "正在发送测试推送…", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, AppStrings.translate("正在发送测试推送…"), Toast.LENGTH_SHORT).show()
                 lifecycleScope.launch {
                     val settings = appContainer.settings.current()
                     val result = runCatching {
@@ -135,9 +146,9 @@ class MainActivity : FragmentActivity() {
                         )
                     }.getOrNull()
                     val message = if (result?.success == true) {
-                        "测试推送已发出"
+                        AppStrings.translate("测试推送已发出")
                     } else {
-                        "测试推送失败：${result?.message ?: "请检查推送通道"}"
+                        AppStrings.translate("测试推送失败：") + (result?.message ?: AppStrings.translate("请检查推送通道"))
                     }
                     Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
                 }
@@ -147,20 +158,21 @@ class MainActivity : FragmentActivity() {
                 when {
                     !settings.forwardingEnabled -> Toast.makeText(
                         this,
-                        "请先打开转发",
+                        AppStrings.translate("请先打开转发"),
                         Toast.LENGTH_SHORT,
                     ).show()
                     settings.isPaused() -> {
                         appContainer.serviceController.resumeNow()
-                        Toast.makeText(this, "已恢复转发", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, AppStrings.translate("已恢复转发"), Toast.LENGTH_SHORT).show()
                     }
                     else -> {
                         appContainer.serviceController.pauseFor(30)
-                        Toast.makeText(this, "已暂停 30 分钟", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, AppStrings.translate("已暂停 30 分钟"), Toast.LENGTH_SHORT).show()
                     }
                 }
             }
         }
+        intent.action = null
     }
 
     override fun onStart() {
@@ -184,6 +196,23 @@ class MainActivity : FragmentActivity() {
         outState.putBoolean(KEY_UNLOCKED, !_locked.value)
         outState.putLong(KEY_BACKGROUND_AT, backgroundAt)
         super.onSaveInstanceState(outState)
+    }
+
+    private fun applySystemLocale(language: com.dodocomm.app.core.settings.AppLanguage) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val manager = getSystemService(LocaleManager::class.java) ?: return
+        val tag = when (language) {
+            com.dodocomm.app.core.settings.AppLanguage.ZH -> "zh-CN"
+            com.dodocomm.app.core.settings.AppLanguage.EN -> "en"
+            com.dodocomm.app.core.settings.AppLanguage.JA -> "ja"
+            com.dodocomm.app.core.settings.AppLanguage.SYSTEM -> null
+        }
+        runCatching {
+            val desired = tag?.let(LocaleList::forLanguageTags) ?: LocaleList.getEmptyLocaleList()
+            if (manager.applicationLocales.toString() != desired.toString()) {
+                manager.applicationLocales = desired
+            }
+        }
     }
 
     private fun unlockApp() {
@@ -221,9 +250,9 @@ class MainActivity : FragmentActivity() {
             },
         )
         val info = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("解锁嘟嘟通讯")
-            .setSubtitle("验证指纹或面容")
-            .setNegativeButtonText("使用 PIN")
+            .setTitle(AppStrings.translate("解锁嘟嘟通讯"))
+            .setSubtitle(AppStrings.translate("验证指纹或面容"))
+            .setNegativeButtonText(AppStrings.translate("使用 PIN"))
             .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK)
             .build()
         runCatching { prompt.authenticate(info) }

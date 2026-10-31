@@ -25,6 +25,7 @@ import com.dodocomm.app.ui.model.HistoryFilter
 import com.dodocomm.app.ui.model.PermissionState
 import com.dodocomm.app.ui.model.SnackbarEvent
 import com.dodocomm.app.ui.model.TestPushState
+import com.dodocomm.app.ui.i18n.AppStrings
 import com.dodocomm.app.ui.model.UpdateState
 import java.io.File
 import kotlinx.coroutines.CancellationException
@@ -134,7 +135,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     /** Manual checks bypass the interval/backoff schedule. */
     fun checkForUpdates(manual: Boolean = true) {
         val current = _updateState.value
-        if (current is UpdateState.Checking || current is UpdateState.Downloading) return
+        if (current is UpdateState.Checking) return
+        if (current is UpdateState.Downloading && updateDownloadJob?.isActive == true) return
         if (manual) {
             _updateState.value = UpdateState.Checking
             _updateDialogVisible.value = false
@@ -238,6 +240,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (cancel: CancellationException) {
                 UpdateDownloadNotifier.cancel(appContext)
+                if (_updateState.value is UpdateState.Downloading) {
+                    _updateState.value = UpdateState.Available(info)
+                }
+                updateDownloadJob = null
+                updateDownloadInBackground = false
                 throw cancel
             } catch (error: Throwable) {
                 UpdateDownloadNotifier.cancel(appContext)
@@ -461,7 +468,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun setRemoteTrustedNumber(number: String) {
-        updateSettings { it.copy(remoteTrustedNumber = number.trim()) }
+        // Normalize once so +86 / spaces / dashes still match the PDU sender.
+        updateSettings { it.copy(remoteTrustedNumber = number.filter(Char::isDigit)) }
     }
 
     fun regenerateRemoteSecret() {
@@ -526,11 +534,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun importBackupWithPassword(uri: Uri, password: String) {
+    fun inspectBackup(uri: Uri, onResult: (com.dodocomm.app.core.backup.BackupInfo?) -> Unit) {
+        viewModelScope.launch {
+            onResult(runCatching { container.backupManager.inspect(uri) }.getOrNull())
+        }
+    }
+
+    fun importBackupWithPassword(uri: Uri, password: String, merge: Boolean = false) {
         viewModelScope.launch {
             runCatching { container.backupManager.importWithPassword(uri, password) }
                 .onSuccess { restored ->
-                    container.settings.update { restored }
+                    container.settings.update { current ->
+                        if (merge) com.dodocomm.app.core.backup.SettingsBackupCodec.merge(restored, current) else restored
+                    }
                     container.serviceController.startIfEnabled()
                     postSnackbar("配置已恢复")
                 }
@@ -538,11 +554,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun importBackupWithDevice(uri: Uri) {
+    fun importBackupWithDevice(uri: Uri, merge: Boolean = false) {
         viewModelScope.launch {
             runCatching { container.backupManager.importWithDeviceKey(uri) }
                 .onSuccess { restored ->
-                    container.settings.update { restored }
+                    container.settings.update { current ->
+                        if (merge) com.dodocomm.app.core.backup.SettingsBackupCodec.merge(restored, current) else restored
+                    }
                     container.serviceController.startIfEnabled()
                     postSnackbar("已通过本机密钥恢复配置")
                 }
@@ -634,6 +652,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun setDynamicColor(enabled: Boolean) = updateSettings { it.copy(dynamicColor = enabled) }
 
     /** Toggles the persistent foreground service and keeps it in sync. */
+    fun resumePausedForwarding() {
+        if (!container.settings.current().isPaused()) return
+        container.serviceController.resumeNow()
+        postSnackbar("已恢复转发")
+    }
+
     fun setForegroundServiceEnabled(enabled: Boolean) {
         updateSettings { it.copy(foregroundServiceEnabled = enabled) }
         if (enabled) {
@@ -766,6 +790,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     // -- feedback -----------------------------------------------------------
 
     fun postSnackbar(message: String, isError: Boolean = false) {
-        _events.tryEmit(SnackbarEvent(message, isError))
+        _events.tryEmit(SnackbarEvent(AppStrings.translate(message), isError))
     }
 }

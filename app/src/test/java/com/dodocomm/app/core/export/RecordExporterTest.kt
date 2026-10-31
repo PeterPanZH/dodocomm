@@ -49,6 +49,23 @@ class RecordExporterTest {
     }
 
     @Test
+    fun `masked export hides sender in title and error`() {
+        val json = RecordExporter.toJson(
+            listOf(
+                record(sender = "13800138000").copy(
+                    title = "Pixel 9 · 13800138000",
+                    error = "发送方「13800138000」命中黑名单",
+                ),
+            ),
+            masked = true,
+        )
+        val obj = JSONObject(json).getJSONArray("records").getJSONObject(0)
+        assertFalse(obj.getString("title").contains("13800138000"))
+        assertFalse(obj.getString("error").contains("13800138000"))
+        assertTrue(obj.getString("title").contains("****"))
+    }
+
+    @Test
     fun `range filter excludes old records`() {
         val old = record(at = now - 40L * 86_400_000L)
         val fresh = record(at = now - 2L * 86_400_000L)

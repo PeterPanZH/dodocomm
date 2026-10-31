@@ -64,6 +64,7 @@ fun AutomationScreen(
     val context = LocalContext.current
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     var tokenVisible by rememberSaveable { mutableStateOf(false) }
+    var confirmRegenerate by rememberSaveable { mutableStateOf(false) }
     val clipboard = remember(context) { context.getSystemService(ClipboardManager::class.java) }
     val appWidgetManager = remember(context) { AppWidgetManager.getInstance(context) }
     val canPinWidget = remember(appWidgetManager) {
@@ -181,7 +182,7 @@ fun AutomationScreen(
                                 IconButton(onClick = ::copyToken) {
                                     Icon(Icons.Rounded.ContentCopy, contentDescription = "复制令牌")
                                 }
-                                IconButton(onClick = viewModel::regenerateAutomationToken) {
+                                IconButton(onClick = { confirmRegenerate = true }) {
                                     Icon(Icons.Rounded.Refresh, contentDescription = "更换令牌")
                                 }
                             }
@@ -268,6 +269,23 @@ fun AutomationScreen(
                 }
             }
         }
+    }
+
+    if (confirmRegenerate) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { confirmRegenerate = false },
+            title = { Text("更换自动化令牌？") },
+            text = { Text("旧令牌会立即失效，所有 Tasker / adb 配置都需要更新。") },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmRegenerate = false
+                    viewModel.regenerateAutomationToken()
+                }) { Text("更换") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmRegenerate = false }) { Text("取消") }
+            },
+        )
     }
 }
 

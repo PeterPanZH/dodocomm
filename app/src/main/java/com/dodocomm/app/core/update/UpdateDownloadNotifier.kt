@@ -23,7 +23,7 @@ object UpdateDownloadNotifier {
         if (!manager.areNotificationsEnabled()) return
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_dodoco)
-            .setContentTitle("正在下载 DodoComm v$versionName")
+            .setContentTitle(context.getString(R.string.update_downloading, versionName))
             .setContentText("$percent%")
             .setProgress(100, percent, false)
             .setOngoing(true)
@@ -45,10 +45,10 @@ object UpdateDownloadNotifier {
         val install = installIntent(context, apkPath)
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_dodoco)
-            .setContentTitle("DodoComm v$versionName 已下载")
-            .setContentText("点按安装更新")
+            .setContentTitle(context.getString(R.string.update_downloaded, versionName))
+            .setContentText(context.getString(R.string.update_tap_install))
             .setContentIntent(install)
-            .addAction(R.drawable.ic_stat_dodoco, "安装", install)
+            .addAction(R.drawable.ic_stat_dodoco, context.getString(R.string.update_install), install)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setCategory(NotificationCompat.CATEGORY_STATUS)
@@ -89,10 +89,10 @@ object UpdateDownloadNotifier {
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "应用更新下载",
+            context.getString(R.string.update_channel_name),
             NotificationManager.IMPORTANCE_LOW,
         ).apply {
-            description = "后台下载应用更新时显示进度"
+            description = context.getString(R.string.update_channel_desc)
             setShowBadge(false)
         }
         manager.createNotificationChannel(channel)

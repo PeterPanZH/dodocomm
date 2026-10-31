@@ -14,12 +14,13 @@ users at risk. Include the affected version, reproduction steps and impact.
 ## Security model
 
 - **No secrets in source**: the app has no API keys, tokens or server credentials.
-  The only persisted secrets are the user's own Bark server URL/Device Key in app
-  private SharedPreferences, which never leave the device except as requests to
-  the Bark server configured by the user.
-- **No analytics, ads or third-party telemetry**. The only optional outbound
-  request besides Bark is the update manifest check, which fetches
-  `latest.json` from GitHub Releases.
+  The user's push-channel credentials (Bark/ntfy/Telegram/Pushover/Email), remote
+  HMAC secret and automation token are stored in app-private SharedPreferences and
+  never leave the device except as requests to the endpoints configured by the user.
+  Local history bodies are encrypted with Android Keystore; see below.
+- **No analytics, ads or third-party telemetry**. Outbound requests are limited to
+  the user-configured push channels/SMTP server and the update manifest check
+  (`latest.json` from GitHub Releases).
 - **Signing material is never committed**: `keystore/`, `keystore.properties`,
   `local.properties`, build outputs and verification evidence are gitignored.
   GitHub Actions signs releases using encrypted repository secrets; the current
@@ -33,9 +34,11 @@ users at risk. Include the affected version, reproduction steps and impact.
   the SHA-256 and file size from `latest.json`, verify the APK signing certificate
   matches the running app, and then hand the APK to the system installer. There is
   no silent installation and no self-modifying code.
-- **SMS privacy**: the app only registers for new-SMS broadcasts. It does not
-  request access to existing SMS or contacts. Messages are stored locally (max
-  500 records) and sent only to the Bark endpoint entered by the user.
+- **SMS privacy**: the app only registers for new-SMS broadcasts; it does not
+  request access to existing SMS or contacts. Sender/body/title/result fields in
+  local history are AES-256-GCM encrypted with a Keystore key; retention is
+  configurable. Messages are sent only to the channels/SMTP endpoint entered by
+  the user.
 - **Least privilege**: permissions are limited to receiving SMS, notifications,
   the optional phone state (for dual-SIM labels) and installing an update after an
   explicit user action. No accessibility, overlay, audio or device-admin tricks.

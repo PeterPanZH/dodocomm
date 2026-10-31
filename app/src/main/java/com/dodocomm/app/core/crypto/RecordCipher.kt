@@ -40,6 +40,7 @@ class RecordCipher(context: Context) {
             PREFIX + Base64.encodeToString(iv, Base64.NO_WRAP) + ":" +
                 Base64.encodeToString(encrypted, Base64.NO_WRAP)
         }.onFailure {
+            RecordEncryptionStatus.mark(appContext, RecordEncryptionState.FAILED)
             Log.e(TAG, "加密本地记录失败: ${it.javaClass.simpleName}")
         }.getOrDefault(value)
     }

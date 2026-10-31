@@ -31,7 +31,11 @@ class AppContainer(context: Context) {
 
     val settings: SettingsRepository by lazy { SettingsRepository(appContext) }
     val history: HistoryRepository by lazy {
-        HistoryRepository(HistoryDao(HistoryDatabase(appContext)), appScope)
+        HistoryRepository(
+            dao = HistoryDao(HistoryDatabase(appContext)),
+            scope = appScope,
+            limitProvider = { settings.current().maxRecords },
+        )
     }
     val barkClient: BarkClient by lazy { BarkClient() }
     val pushDispatcher: PushDispatcher by lazy { PushDispatcher(barkClient) }

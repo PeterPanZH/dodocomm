@@ -39,6 +39,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
@@ -208,11 +209,12 @@ fun TemplateEditorScreen(
                 Spacer(Modifier.height(6.dp))
                 OutlinedTextField(
                     value = titleValue,
-                    onValueChange = { value ->
-                        titleValue = value
-                        viewModel.setTitleTemplate(value.text)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
+                    onValueChange = { value -> titleValue = value },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { focus ->
+                            if (!focus.isFocused) viewModel.setTitleTemplate(titleValue.text)
+                        },
                     textStyle = MaterialTheme.typography.bodyLarge,
                     placeholder = { Text("{device} · {sender}") },
                     supportingText = { Text("显示在通知的第一行") },
@@ -249,11 +251,12 @@ fun TemplateEditorScreen(
                 Spacer(Modifier.height(6.dp))
                 OutlinedTextField(
                     value = bodyValue,
-                    onValueChange = { value ->
-                        bodyValue = value
-                        viewModel.setBodyTemplate(value.text)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
+                    onValueChange = { value -> bodyValue = value },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { focus ->
+                            if (!focus.isFocused) viewModel.setBodyTemplate(bodyValue.text)
+                        },
                     textStyle = MaterialTheme.typography.bodyLarge,
                     placeholder = { Text("{body}\n\n{datetime} · {sim} · {number}") },
                     supportingText = { Text("{body} 是短信原文；不含 {body} 时原文仍会保留") },

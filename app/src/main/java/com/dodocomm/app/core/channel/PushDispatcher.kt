@@ -5,6 +5,8 @@ import com.dodocomm.app.core.routing.RoutingContext
 import com.dodocomm.app.core.routing.RoutingEngine
 import com.dodocomm.app.core.settings.AppSettings
 import com.dodocomm.app.core.settings.CopyMode
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import com.dodocomm.app.core.settings.PushLevel
 
 /** Sends one rendered SMS to every enabled, configured channel. */
@@ -67,8 +69,10 @@ class PushDispatcher(
                 ),
             )
         }
-        val results = channels.map { channel ->
-            sendTo(settings, channel, title, body)
+        val results = coroutineScope {
+            channels.map { channel ->
+                async { sendTo(settings, channel, title, body) }
+            }.map { it.await() }
         }
         return DispatchResult(results)
     }
@@ -79,7 +83,7 @@ private fun AppSettings.forBarkChannel(channel: PushChannel): AppSettings = copy
     deviceKey = channel.deviceKey,
     pushGroup = channel.pushGroup,
     pushSound = channel.pushSound,
-    pushLevel = PushLevel.fromName(channel.pushLevel),
+    pushLevel = PushLevel.fromStorage(channel.pushLevel),
     pushIcon = channel.pushIcon,
     pushUrl = channel.pushUrl,
     isArchive = channel.isArchive,

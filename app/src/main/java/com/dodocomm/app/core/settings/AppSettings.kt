@@ -12,6 +12,10 @@ enum class PushLevel(val apiValue: String, val label: String) {
 
     companion object {
         fun fromName(name: String?): PushLevel = entries.firstOrNull { it.name == name } ?: ACTIVE
+
+        /** Accepts both enum names (legacy) and Bark API values (current storage). */
+        fun fromStorage(value: String?): PushLevel =
+            entries.firstOrNull { it.name == value || it.apiValue == value } ?: ACTIVE
     }
 }
 
@@ -82,7 +86,7 @@ data class AppSettings(
     val appLockPinHash: String = "",
     /** 0 = lock immediately when leaving; otherwise minutes of grace. */
     val autoLockMinutes: Int = 1,
-    val biometricUnlock: Boolean = true,
+    val biometricUnlock: Boolean = false,
     val senderWhitelist: List<String> = emptyList(),
     val senderBlacklist: List<String> = emptyList(),
     val keywordBlacklist: List<String> = emptyList(),

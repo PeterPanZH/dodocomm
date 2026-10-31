@@ -70,7 +70,7 @@
         <TextView
             android:id="@+id/widget_open"
             android:layout_width="0dp"
-            android:layout_height="30dp"
+            android:layout_height="36dp"
             android:layout_weight="1"
             android:background="@drawable/widget_chip"
             android:gravity="center"
@@ -81,7 +81,7 @@
         <TextView
             android:id="@+id/widget_toggle"
             android:layout_width="0dp"
-            android:layout_height="30dp"
+            android:layout_height="36dp"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:background="@drawable/widget_chip"

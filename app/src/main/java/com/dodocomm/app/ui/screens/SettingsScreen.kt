@@ -101,6 +101,8 @@ import com.dodocomm.app.core.settings.AppLanguage
 import com.dodocomm.app.core.settings.AppSettings
 import com.dodocomm.app.core.settings.PushLevel
 import com.dodocomm.app.core.settings.ThemeMode
+import com.dodocomm.app.core.crypto.RecordEncryptionState
+import com.dodocomm.app.core.crypto.RecordEncryptionStatus
 import com.dodocomm.app.core.system.OemGuides
 import com.dodocomm.app.core.system.SystemNavigator
 import com.dodocomm.app.ui.AppViewModel
@@ -326,6 +328,7 @@ fun SettingsScreen(
 
     var showClearDialog by rememberSaveable { mutableStateOf(false) }
     var pinDialogMode by rememberSaveable { mutableStateOf<String?>(null) }
+    var showAppLockIntro by rememberSaveable { mutableStateOf(false) }
     var showExportDialog by rememberSaveable { mutableStateOf(false) }
     var exportFormatName by rememberSaveable { mutableStateOf(ExportFormat.CSV.name) }
     var exportRangeName by rememberSaveable { mutableStateOf(ExportRange.ALL.name) }
@@ -346,6 +349,10 @@ fun SettingsScreen(
     var showBackupImportDialog by rememberSaveable { mutableStateOf(false) }
     var pendingBackupPassword by rememberSaveable { mutableStateOf("") }
     var pendingImportUri by remember { mutableStateOf<Uri?>(null) }
+    var pendingBackupInfo by remember { mutableStateOf<com.dodocomm.app.core.backup.BackupInfo?>(null) }
+    var showBackupPreview by remember { mutableStateOf(false) }
+    var backupInspectFailed by remember { mutableStateOf(false) }
+    var pendingBackupMerge by remember { mutableStateOf(false) }
     val backupExportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/octet-stream"),
     ) { uri ->
@@ -356,7 +363,12 @@ fun SettingsScreen(
     ) { uri ->
         if (uri != null) {
             pendingImportUri = uri
-            showBackupImportDialog = true
+            backupInspectFailed = false
+            viewModel.inspectBackup(uri) { info ->
+                pendingBackupInfo = info
+                backupInspectFailed = info == null
+                showBackupPreview = info != null
+            }
         }
     }
     val deviceLabel = remember { OemGuides.detect().deviceLabel }
@@ -422,7 +434,7 @@ fun SettingsScreen(
                     settings = settings,
                     biometricAvailable = biometricAvailable,
                     onToggleAppLock = { enabled ->
-                        pinDialogMode = if (enabled) "setup" else "disable"
+                        if (enabled) showAppLockIntro = true else pinDialogMode = "disable"
                     },
                     onChangePin = { pinDialogMode = "change" },
                     onSetAutoLockMinutes = viewModel::setAutoLockMinutes,
@@ -442,6 +454,7 @@ fun SettingsScreen(
                     onToggleHideFromRecents = viewModel::setHideFromRecents,
                     onOpenGuide = onNavigateGuide,
                     onOpenBatterySettings = { SystemNavigator.requestIgnoreBatteryOptimizations(context) },
+                    onOpenDiagnostics = onNavigateDiagnostics,
                 )
                 Spacer(Modifier.height(10.dp))
             }
@@ -487,7 +500,6 @@ fun SettingsScreen(
                     recordCount = records.size,
                     autoUpdateCheck = settings.autoUpdateCheck,
                     updateState = updateState,
-                    onNavigateDiagnostics = onNavigateDiagnostics,
                     onOpenGuide = onNavigateGuide,
                     onClearHistory = { showClearDialog = true },
                     onCheckUpdates = {
@@ -536,6 +548,31 @@ fun SettingsScreen(
             onCancelDownload = viewModel::cancelUpdateDownload,
             onInstallReady = viewModel::installReadyUpdate,
             onDismiss = viewModel::dismissUpdateDialog,
+        )
+    }
+
+    if (showAppLockIntro) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showAppLockIntro = false },
+            title = { Text("开启应用锁") },
+            text = {
+                Column {
+                    Text("每次打开嘟嘟通讯都需要输入 6 位 PIN，防止别人查看短信记录和设置。")
+                    Spacer(Modifier.height(8.dp))
+                    Text("忘记 PIN 只能清除应用数据，转发记录也会一并删除。")
+                    Spacer(Modifier.height(8.dp))
+                    Text("设置完成后，可以在隐私设置里选择是否开启指纹/面容解锁。", style = MaterialTheme.typography.bodySmall)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showAppLockIntro = false
+                    pinDialogMode = "setup"
+                }) { Text("设置 PIN") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAppLockIntro = false }) { Text("取消") }
+            },
         )
     }
 
@@ -595,6 +632,64 @@ fun SettingsScreen(
         )
     }
 
+    if (showBackupPreview) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = {
+                showBackupPreview = false
+                pendingImportUri = null
+                pendingBackupInfo = null
+            },
+            title = { Text("确认导入配置备份") },
+            text = {
+                Column {
+                    Text("导入会替换当前的推送通道、路由规则、模板以及自动化/远程管理设置。")
+                    Spacer(Modifier.height(8.dp))
+                    pendingBackupInfo?.let { info ->
+                        val date = remember(info.createdAt) {
+                            java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
+                                .format(java.util.Date(info.createdAt))
+                        }
+                        Text("备份时间：$date")
+                        Text("包含本机快速恢复信息：${if (info.hasDeviceWrapper) "是" else "否"}")
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Text("应用锁、历史记录和当前加密密钥不会被覆盖。", style = MaterialTheme.typography.bodySmall)
+                }
+            },
+            confirmButton = {
+                Row {
+                    TextButton(onClick = {
+                        pendingBackupMerge = true
+                        showBackupPreview = false
+                        showBackupImportDialog = true
+                    }) { Text("合并导入") }
+                    TextButton(onClick = {
+                        pendingBackupMerge = false
+                        showBackupPreview = false
+                        showBackupImportDialog = true
+                    }) { Text("替换导入") }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showBackupPreview = false
+                    pendingImportUri = null
+                }) { Text("取消") }
+            },
+        )
+    }
+
+    if (backupInspectFailed) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { backupInspectFailed = false },
+            title = { Text("无法读取备份") },
+            text = { Text("文件可能不是 DodoComm 配置备份，或已经损坏。") },
+            confirmButton = {
+                TextButton(onClick = { backupInspectFailed = false }) { Text("知道了") }
+            },
+        )
+    }
+
     if (showBackupImportDialog) {
         BackupImportDialog(
             biometricAvailable = biometricAvailable,
@@ -603,21 +698,21 @@ fun SettingsScreen(
                 pendingImportUri = null
             },
             onPassword = { password ->
-                pendingImportUri?.let { viewModel.importBackupWithPassword(it, password) }
+                pendingImportUri?.let { viewModel.importBackupWithPassword(it, password, pendingBackupMerge) }
                 showBackupImportDialog = false
             },
             onBiometric = {
                 val uri = pendingImportUri ?: return@BackupImportDialog
                 val activity = context as? FragmentActivity
                 if (activity == null) {
-                    viewModel.importBackupWithDevice(uri)
+                    viewModel.importBackupWithDevice(uri, pendingBackupMerge)
                 } else {
                     val prompt = BiometricPrompt(
                         activity,
                         ContextCompat.getMainExecutor(activity),
                         object : BiometricPrompt.AuthenticationCallback() {
                             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                                viewModel.importBackupWithDevice(uri)
+                                viewModel.importBackupWithDevice(uri, pendingBackupMerge)
                             }
                         },
                     )
@@ -954,8 +1049,17 @@ private fun ReliabilityCard(
     onToggleHideFromRecents: (Boolean) -> Unit,
     onOpenGuide: () -> Unit,
     onOpenBatterySettings: () -> Unit,
+    onOpenDiagnostics: () -> Unit,
 ) {
     SectionCard {
+        SettingActionRow(
+            title = "运行诊断",
+            subtitle = "检查权限、后台、网络与推送通道",
+            value = "检查",
+            icon = Icons.Rounded.CheckCircle,
+            onClick = onOpenDiagnostics,
+        )
+        RowDivider()
         SettingSwitchRow(
             title = "常驻通知栏",
             checked = settings.foregroundServiceEnabled,
@@ -1303,7 +1407,15 @@ private fun PrivacyCard(
             }
         }
         RowDivider()
-        InfoNote("本地转发记录已加密保存，加密密钥只在这台手机上，不会随备份导出。")
+        val context = androidx.compose.ui.platform.LocalContext.current
+        val encryptionState = RecordEncryptionStatus.state(context)
+        InfoNote(
+            when (encryptionState) {
+                RecordEncryptionState.DONE -> "本地转发记录已加密保存，加密密钥只在这台手机上，不会随备份导出。"
+                RecordEncryptionState.FAILED -> "本地记录加密失败。请重新打开 App 或运行诊断；未加密的记录不会被当作已加密展示。"
+                RecordEncryptionState.PENDING -> "正在准备本地记录加密。打开记录页后会自动完成迁移。"
+            },
+        )
     }
 }
 
@@ -1582,7 +1694,6 @@ private fun AboutCard(
     recordCount: Int,
     autoUpdateCheck: Boolean,
     updateState: UpdateState,
-    onNavigateDiagnostics: () -> Unit,
     onOpenGuide: () -> Unit,
     onClearHistory: () -> Unit,
     onCheckUpdates: () -> Unit,
@@ -1632,13 +1743,6 @@ private fun AboutCard(
         )
         RowDivider()
         SettingActionRow(
-            title = "运行诊断",
-            subtitle = "检查权限、后台和推送通道",
-            icon = Icons.Rounded.CheckCircle,
-            onClick = onNavigateDiagnostics,
-        )
-        RowDivider()
-        SettingActionRow(
             title = "使用帮助",
             subtitle = "推送设置与后台说明",
             icon = Icons.AutoMirrored.Rounded.HelpOutline,
@@ -1658,7 +1762,7 @@ private fun AboutCard(
         )
         Spacer(Modifier.height(8.dp))
         InfoNote(
-            text = "短信只会发送到你配置的推送通道，不经过我们自己的服务器；本地只保留最近 500 条记录，随时可以清空。",
+            text = "短信只会发送到你配置的推送通道，不经过我们自己的服务器；本地只保留最近的转发记录，随时可以清空。",
         )
     }
 }

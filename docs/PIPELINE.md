@@ -1,6 +1,14 @@
 # DodoComm · 转发管线实现说明
 
-本文档记录 `bark/`、`forward/`、`sms/`、`service/`、`work/` 五个包的实现细节、契约与已知边界。
+本文档记录转发管线实现细节、契约与已知边界。1.8.0 起管线已从 Bark-only 扩展为多通道：
+
+- `core/channel/`：Bark/ntfy/Telegram/Pushover/Email 客户端与 `PushDispatcher`
+- `core/routing/`：按发送者、关键词、SIM、时间路由
+- `core/db/`：历史记录与 AES-256-GCM 字段加密
+- `core/remote/`：可选的签名短信远程指令
+- `bark/` 仍是 Bark HTTP 客户端
+
+历史测试数量与 `MAX_ATTEMPTS` 等常量说明已过时；以源码和 `app/src/test` 为准。
 架构总览见 [`ARCHITECTURE.md`](ARCHITECTURE.md)。
 
 ## 文件与职责

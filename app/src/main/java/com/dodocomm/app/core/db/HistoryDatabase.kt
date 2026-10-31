@@ -6,6 +6,8 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import com.dodocomm.app.core.crypto.RecordCipher
+import com.dodocomm.app.core.crypto.RecordEncryptionState
+import com.dodocomm.app.core.crypto.RecordEncryptionStatus
 
 /** Small, dependency-free SQLite store for the local forwarding history. */
 class HistoryDatabase(
@@ -17,6 +19,7 @@ class HistoryDatabase(
     null,
     DATABASE_VERSION,
 ) {
+    private val appContext = context.applicationContext
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(
             """
@@ -56,8 +59,17 @@ class HistoryDatabase(
 
     override fun onOpen(db: SQLiteDatabase) {
         super.onOpen(db)
+        if (RecordEncryptionStatus.state(appContext) == RecordEncryptionState.DONE) return
         runCatching { encryptLegacyRows(db) }
-            .onFailure { Log.w("DODOCOMM_CRYPTO", "本地记录加密迁移失败: ${it.javaClass.simpleName}") }
+            .onSuccess {
+                if (RecordEncryptionStatus.state(appContext) != RecordEncryptionState.FAILED) {
+                    RecordEncryptionStatus.mark(appContext, RecordEncryptionState.DONE)
+                }
+            }
+            .onFailure {
+                RecordEncryptionStatus.mark(appContext, RecordEncryptionState.FAILED)
+                Log.w("DODOCOMM_CRYPTO", "本地记录加密迁移失败: ${it.javaClass.simpleName}")
+            }
     }
 
     /** Idempotently encrypts rows written before local encryption existed. */

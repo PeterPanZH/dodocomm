@@ -210,5 +210,33 @@
  {
   "regex": "^(\\d+) 项通过 · (\\d+) 项提醒 · (\\d+) 项异常$",
   "format": "{0} passed · {1} warnings · {2} failed"
+ },
+ {
+  "regex": "^验证码 (.+)$",
+  "format": "Code {0}"
+ },
+ {
+  "regex": "^隐藏(.+)$",
+  "format": "Hide {0}"
+ },
+ {
+  "regex": "^显示(.+)$",
+  "format": "Show {0}"
+ },
+ {
+  "regex": "^发送者含 (.+)$",
+  "format": "Sender contains {0}"
+ },
+ {
+  "regex": "^内容含 (.+)$",
+  "format": "Body contains {0}"
+ },
+ {
+  "regex": "^所有短信$",
+  "format": "All SMS"
+ },
+ {
+  "regex": "^约 (.+) 后自动恢复$",
+  "format": "Resumes in {0}"
  }
 ]

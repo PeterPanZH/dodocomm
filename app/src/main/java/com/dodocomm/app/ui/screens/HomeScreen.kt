@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -35,6 +36,7 @@ import androidx.compose.material.icons.rounded.BatterySaver
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.Lock
@@ -54,7 +56,10 @@ import androidx.compose.material3.MaterialTheme
 import com.dodocomm.app.ui.components.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -182,8 +187,10 @@ fun HomeScreen(
         HomeHeroCard(
             configured = settings.hasAnyConfiguredChannel,
             forwardingEnabled = settings.forwardingEnabled,
+            pauseUntil = settings.pauseUntil,
             todaySent = stats.sent,
             onToggle = viewModel::setForwardingEnabled,
+            onResume = viewModel::resumePausedForwarding,
             onGuideClick = onNavigateGuide,
             onOpenSettings = onNavigateSettings,
         )
@@ -249,11 +256,22 @@ fun HomeScreen(
 private fun HomeHeroCard(
     configured: Boolean,
     forwardingEnabled: Boolean,
+    pauseUntil: Long,
     todaySent: Int,
     onToggle: (Boolean) -> Unit,
+    onResume: () -> Unit,
     onGuideClick: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
+    var remainingSeconds by remember { mutableIntStateOf(0) }
+    LaunchedEffect(pauseUntil) {
+        while (true) {
+            remainingSeconds = ((pauseUntil - System.currentTimeMillis()) / 1000L).toInt().coerceAtLeast(0)
+            if (remainingSeconds <= 0) break
+            kotlinx.coroutines.delay(1_000)
+        }
+    }
+    val paused = pauseUntil > System.currentTimeMillis()
     val gradient = LocalBrandGradient.current
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -310,7 +328,7 @@ private fun HomeHeroCard(
                     }
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
+                            .size(48.dp)
                             .clip(CircleShape)
                             .background(Color.White.copy(alpha = 0.16f))
                             .clickable(onClickLabel = "打开后台设置向导", onClick = onGuideClick),
@@ -328,7 +346,8 @@ private fun HomeHeroCard(
                 Spacer(Modifier.height(24.dp))
 
                 val title = when {
-                    !forwardingEnabled -> "已暂停"
+                    paused -> "临时暂停中"
+                    !forwardingEnabled -> "转发已关闭"
                     !configured -> "待配置"
                     else -> "正在转发"
                 }
@@ -349,6 +368,7 @@ private fun HomeHeroCard(
                         Spacer(Modifier.height(4.dp))
                         Text(
                             text = when {
+                                paused -> "约 ${formatPauseRemaining(remainingSeconds)} 后自动恢复"
                                 !configured -> "先配置推送通道，短信才能送达"
                                 !forwardingEnabled -> "点击开启转发，短信会自动推送"
                                 todaySent > 0 -> "今日已送达 $todaySent 条"
@@ -365,6 +385,31 @@ private fun HomeHeroCard(
                     )
                 }
 
+                if (paused) {
+                    Spacer(Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.20f))
+                            .clickable(onClickLabel = "恢复转发", onClick = onResume)
+                            .padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.PlayArrow,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = Color.White,
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = "恢复转发",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.White,
+                        )
+                    }
+                }
+
                 val hintText: String? = if (!configured) "去配置推送通道" else null
                 if (hintText != null) {
                     Spacer(Modifier.height(14.dp))
@@ -373,7 +418,8 @@ private fun HomeHeroCard(
                             .clip(CircleShape)
                             .background(Color.White.copy(alpha = 0.16f))
                             .clickable { onOpenSettings() }
-                            .padding(horizontal = 12.dp, vertical = 7.dp),
+                            .heightIn(min = 48.dp)
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
@@ -573,7 +619,7 @@ private fun buildSetupItems(settings: AppSettings, permissions: PermissionState)
     return listOf(
         SetupItem(
             id = SetupIds.SMS,
-            title = "短信读取权限",
+            title = "短信接收权限",
             subtitle = if (smsReady) "已授权，可以接收新短信" else "未授权，无法接收短信",
             done = smsReady,
             actionLabel = if (smsReady) "已授权" else "去授权",
@@ -659,6 +705,11 @@ private fun ServerPromptCard(onClick: () -> Unit) {
             }
         }
     }
+}
+
+private fun formatPauseRemaining(seconds: Int): String {
+    val safe = seconds.coerceAtLeast(1)
+    return "%d:%02d".format(safe / 60, safe % 60)
 }
 
 @Composable
@@ -835,12 +886,16 @@ private fun QuickActionCard(
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.SemiBold,
+                maxLines = 2,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
             )
             Spacer(Modifier.height(2.dp))
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
             )
         }
     }

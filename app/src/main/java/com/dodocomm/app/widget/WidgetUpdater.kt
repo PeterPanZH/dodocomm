@@ -8,10 +8,6 @@ import android.content.Intent
 import android.widget.RemoteViews
 import com.dodocomm.app.R
 import com.dodocomm.app.appContainer
-import com.dodocomm.app.core.db.HistoryDao
-import com.dodocomm.app.core.db.HistoryDatabase
-import com.dodocomm.app.core.model.TodayStats
-import com.dodocomm.app.core.util.TimeFormatter
 import com.dodocomm.app.ui.MainActivity
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -30,11 +26,7 @@ object WidgetUpdater {
     fun updateOne(context: Context, manager: AppWidgetManager, widgetId: Int) {
         val settings = context.appContainer.settings.current()
         val paused = settings.isPaused()
-        val stats = runCatching {
-            HistoryDatabase(context).use { database ->
-                HistoryDao(database).todayStats(TimeFormatter.startOfToday())
-            }
-        }.getOrDefault(TodayStats())
+        val stats = context.appContainer.history.stats.value
 
         val statusText = when {
             !settings.forwardingEnabled -> context.getString(R.string.widget_status_off)
@@ -90,7 +82,7 @@ object WidgetUpdater {
     }
 
     private fun togglePausePendingIntent(context: Context): PendingIntent {
-        val intent = Intent(context, DodoWidgetProvider::class.java).setAction(ACTION_TOGGLE_PAUSE)
+        val intent = Intent(context, WidgetActionReceiver::class.java).setAction(ACTION_TOGGLE_PAUSE)
         return PendingIntent.getBroadcast(
             context,
             1002,

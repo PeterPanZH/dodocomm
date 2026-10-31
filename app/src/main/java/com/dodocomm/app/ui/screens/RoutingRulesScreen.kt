@@ -51,6 +51,7 @@ import com.dodocomm.app.ui.components.SectionCard
 import com.dodocomm.app.ui.components.SettingSwitchRow
 import com.dodocomm.app.ui.components.SettingTextField
 import com.dodocomm.app.ui.components.Text
+import com.dodocomm.app.ui.i18n.AppStrings
 
 @Composable
 fun RoutingRulesScreen(viewModel: AppViewModel, onBack: () -> Unit) {
@@ -354,16 +355,16 @@ private fun RuleEditor(
 
 private fun ruleSummary(rule: RoutingRule, settings: AppSettings): String {
     val conditions = buildList {
-        if (rule.senderContains.isNotBlank()) add("发送者含 ${rule.senderContains}")
-        if (rule.keywordContains.isNotBlank()) add("内容含 ${rule.keywordContains}")
+        if (rule.senderContains.isNotBlank()) add(AppStrings.translate("发送者含 ${rule.senderContains}"))
+        if (rule.keywordContains.isNotBlank()) add(AppStrings.translate("内容含 ${rule.keywordContains}"))
         if (rule.simSlot > 0) add("SIM ${rule.simSlot}")
         if (rule.timeStartMinutes >= 0 && rule.timeEndMinutes >= 0) {
             add("${minutesToLabel(rule.timeStartMinutes)}–${minutesToLabel(rule.timeEndMinutes)}")
         }
-    }.ifEmpty { listOf("所有短信") }
+    }.ifEmpty { listOf(AppStrings.translate("所有短信")) }
     val targets = rule.targetChannelIds.mapNotNull { id ->
         settings.channels.firstOrNull { it.id == id }?.name
-    }.ifEmpty { listOf("默认目标") }
+    }.ifEmpty { listOf(AppStrings.translate("默认目标")) }
     return conditions.joinToString(" · ") + " → " + targets.joinToString(" / ")
 }
 

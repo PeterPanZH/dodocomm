@@ -44,6 +44,12 @@ object UpdateInstaller {
      * grant the "install unknown apps" permission.
      */
     fun install(context: Context, apkFile: File): Boolean {
+        // Single choke point: never hand an unverified/out-of-cache file to the
+        // system installer, including the notification-action path.
+        val updatesDir = File(context.cacheDir, "updates").canonicalFile
+        val target = runCatching { apkFile.canonicalFile }.getOrNull() ?: return false
+        if (!target.path.startsWith(updatesDir.path + File.separator)) return false
+        if (!verifyApkSignature(context, target)) return false
         if (!canInstall(context)) {
             openInstallPermissionSettings(context)
             return false
@@ -52,7 +58,7 @@ object UpdateInstaller {
         val uri = FileProvider.getUriForFile(
             context,
             "${context.packageName}.fileprovider",
-            apkFile,
+            target,
         )
         val intent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, "application/vnd.android.package-archive")

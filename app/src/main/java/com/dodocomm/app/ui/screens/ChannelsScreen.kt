@@ -55,6 +55,7 @@ import com.dodocomm.app.core.settings.CopyMode
 import com.dodocomm.app.core.settings.PushLevel
 import com.dodocomm.app.ui.AppViewModel
 import com.dodocomm.app.ui.components.CopyModeRow
+import com.dodocomm.app.ui.components.InfoNote
 import com.dodocomm.app.ui.components.InlineResult
 import com.dodocomm.app.ui.components.SecretField
 import com.dodocomm.app.ui.components.SectionCard
@@ -305,6 +306,12 @@ private fun ChannelEditContent(
             }
             item(key = "fields") {
                 SectionCard {
+                    val insecureUrl = channel.type in listOf(ChannelType.BARK, ChannelType.NTFY) &&
+                        channel.serverUrl.trim().startsWith("http://", ignoreCase = true)
+                    if (insecureUrl) {
+                        InfoNote("当前使用 HTTP：短信和访问令牌会以明文经过网络，仅建议在可信的局域网使用。")
+                        Spacer(Modifier.height(10.dp))
+                    }
                     when (channel.type) {
                         ChannelType.BARK -> BarkFields(channel, onChange)
                         ChannelType.NTFY -> NtfyFields(channel, onChange)
@@ -427,7 +434,7 @@ private fun BarkFields(channel: PushChannel, onChange: (PushChannel) -> Unit) {
 @Composable
 private fun BarkLevelPicker(channel: PushChannel, onChange: (PushChannel) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    val current = PushLevel.fromName(channel.pushLevel)
+    val current = PushLevel.fromStorage(channel.pushLevel)
     androidx.compose.foundation.layout.Box {
         SettingActionRow(
             title = "推送级别",
@@ -570,7 +577,7 @@ private fun EmailFields(channel: PushChannel, onChange: (PushChannel) -> Unit) {
 @Composable
 private fun EmailSecurityPicker(channel: PushChannel, onChange: (PushChannel) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    val options = listOf("STARTTLS", "SSL", "NONE")
+    val options = listOf("STARTTLS", "SSL")
     androidx.compose.foundation.layout.Box {
         SettingActionRow(
             title = "加密方式",
