@@ -110,8 +110,8 @@ fun AutomationScreen(
                     SectionHeader("桌面小组件")
                     SectionCard {
                         SettingActionRow(
-                            title = "添加 2×2 小组件",
-                            subtitle = "在主屏幕空白处长按 → 小组件 → 嘟嘟通讯，即可添加",
+                            title = "添加桌面小组件",
+                            subtitle = "长按桌面 → 小组件 → 嘟嘟通讯，可选 2×2 / 4×2 / 4×1 / 2×3",
                             icon = Icons.Rounded.AddToHomeScreen,
                             onClick = {
                                 if (canPinWidget) {
@@ -130,7 +130,7 @@ fun AutomationScreen(
                             },
                         )
                         RowDivider()
-                        InfoNote("小组件显示今日已送达数量和转发状态，可以直接暂停 30 分钟或打开 App。")
+                        InfoNote("小组件会按当前桌面尺寸自动切换布局，显示今日送达数和转发状态，可直接暂停 30 分钟或打开 App。")
                     }
                 }
             }

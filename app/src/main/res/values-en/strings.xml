@@ -20,4 +20,8 @@
     <string name="update_downloaded">DodoComm v%1$s downloaded</string>
     <string name="update_tap_install">Tap to install</string>
     <string name="update_install">Install</string>
+    <string name="widget_desc_compact">2×2 compact card</string>
+    <string name="widget_desc_wide">4×2 wide card</string>
+    <string name="widget_desc_bar">4×1 status bar</string>
+    <string name="widget_desc_tall">2×3 tall card</string>
 </resources>

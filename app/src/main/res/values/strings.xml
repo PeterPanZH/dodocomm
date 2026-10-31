@@ -20,4 +20,8 @@
     <string name="update_downloaded">DodoComm v%1$s 已下载</string>
     <string name="update_tap_install">点按安装更新</string>
     <string name="update_install">安装</string>
+    <string name="widget_desc_compact">2×2 紧凑卡片</string>
+    <string name="widget_desc_wide">4×2 横向卡片</string>
+    <string name="widget_desc_bar">4×1 状态条</string>
+    <string name="widget_desc_tall">2×3 纵向卡片</string>
 </resources>

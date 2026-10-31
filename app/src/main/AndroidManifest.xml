@@ -83,6 +83,39 @@
         </receiver>
 
         <receiver
+            android:name=".widget.DodoWideWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/dodo_widget_info_wide" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.DodoBarWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/dodo_widget_info_bar" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.DodoTallWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/dodo_widget_info_tall" />
+        </receiver>
+
+        <receiver
             android:name=".widget.WidgetActionReceiver"
             android:exported="false" />
 

@@ -912,5 +912,8 @@
  "SMTP 账号或授权码未填写": "SMTP account or authorization code is not filled in",
  "发件邮箱格式不正确": "The format of the sending email is incorrect",
  "收件人邮箱格式不正确": "The recipient email format is incorrect",
- "没有收件人": "no recipient"
+ "没有收件人": "no recipient",
+ "添加桌面小组件": "Add home-screen widget",
+ "长按桌面 → 小组件 → 嘟嘟通讯，可选 2×2 / 4×2 / 4×1 / 2×3": "Long-press the home screen → Widgets → DodoComm. Choose 2×2 / 4×2 / 4×1 / 2×3.",
+ "小组件会按当前桌面尺寸自动切换布局，显示今日送达数和转发状态，可直接暂停 30 分钟或打开 App。": "The widget switches layout to fit the desktop size, shows today’s delivered count and forwarding status, and can pause for 30 minutes or open the app."
 }

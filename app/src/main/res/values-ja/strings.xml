@@ -20,4 +20,8 @@
     <string name="update_downloaded">DodoComm v%1$s をダウンロードしました</string>
     <string name="update_tap_install">タップしてインストール</string>
     <string name="update_install">インストール</string>
+    <string name="widget_desc_compact">2×2 コンパクトカード</string>
+    <string name="widget_desc_wide">4×2 横長カード</string>
+    <string name="widget_desc_bar">4×1 ステータスバー</string>
+    <string name="widget_desc_tall">2×3 縦長カード</string>
 </resources>
