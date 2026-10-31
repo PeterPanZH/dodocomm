@@ -2,6 +2,7 @@
 
 package com.dodocomm.app.ui.screens
 
+import com.dodocomm.app.ui.i18n.AppStrings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -155,7 +156,7 @@ fun AppLockPinScreen(
                     IconButton(onClick = onDismiss) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                            contentDescription = "取消",
+                            contentDescription = AppStrings.translate("取消"),
                             tint = Color.White,
                         )
                     }

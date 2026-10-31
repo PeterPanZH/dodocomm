@@ -2,6 +2,7 @@
 
 package com.dodocomm.app.ui.screens
 
+import com.dodocomm.app.ui.i18n.AppStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -97,7 +98,7 @@ fun ChannelsScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = AppStrings.translate("返回"))
             }
             Spacer(Modifier.width(4.dp))
             Column(Modifier.weight(1f)) {
@@ -267,7 +268,7 @@ private fun ChannelEditContent(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = AppStrings.translate("返回"))
             }
             Spacer(Modifier.width(4.dp))
             Column(Modifier.weight(1f)) {

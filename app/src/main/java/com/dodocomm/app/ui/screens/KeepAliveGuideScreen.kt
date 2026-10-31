@@ -2,6 +2,7 @@
 
 package com.dodocomm.app.ui.screens
 
+import com.dodocomm.app.ui.i18n.AppStrings
 import android.Manifest
 import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -139,7 +140,7 @@ fun KeepAliveGuideScreen(
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "返回",
+                    contentDescription = AppStrings.translate("返回"),
                     tint = MaterialTheme.colorScheme.onSurface,
                 )
             }

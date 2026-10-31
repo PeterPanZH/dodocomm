@@ -1,5 +1,6 @@
 package com.dodocomm.app.ui.components
 
+import com.dodocomm.app.ui.i18n.AppStrings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -58,7 +59,7 @@ fun PinKeypad(
                                 if (key == "⌫") {
                                     Icon(
                                         imageVector = Icons.Rounded.Backspace,
-                                        contentDescription = "删除",
+                                        contentDescription = AppStrings.translate("删除"),
                                         tint = contentColor,
                                         modifier = Modifier.size(24.dp),
                                     )

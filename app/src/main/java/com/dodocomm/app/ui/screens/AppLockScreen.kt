@@ -1,5 +1,6 @@
 package com.dodocomm.app.ui.screens
 
+import com.dodocomm.app.ui.i18n.AppStrings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -186,7 +187,7 @@ fun AppLockScreen(
                 IconButton(onClick = onBiometric) {
                     Icon(
                         imageVector = Icons.Rounded.Fingerprint,
-                        contentDescription = "指纹或面容解锁",
+                        contentDescription = AppStrings.translate("指纹或面容解锁"),
                         tint = androidx.compose.ui.graphics.Color.White,
                         modifier = Modifier.size(34.dp),
                     )

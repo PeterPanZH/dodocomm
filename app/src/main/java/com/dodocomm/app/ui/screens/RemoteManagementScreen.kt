@@ -2,6 +2,7 @@
 
 package com.dodocomm.app.ui.screens
 
+import com.dodocomm.app.ui.i18n.AppStrings
 import android.content.ClipData
 import android.content.ClipboardManager
 import androidx.compose.foundation.layout.Arrangement
@@ -84,7 +85,7 @@ fun RemoteManagementScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = AppStrings.translate("返回"))
             }
             Spacer(Modifier.width(4.dp))
             Column(Modifier.weight(1f)) {
@@ -152,10 +153,10 @@ fun RemoteManagementScreen(
                                     Text(if (secretVisible) "隐藏" else "显示")
                                 }
                                 IconButton(onClick = { copy(settings.remoteSecret, "远程管理密钥") }) {
-                                    Icon(Icons.Rounded.ContentCopy, contentDescription = "复制密钥")
+                                    Icon(Icons.Rounded.ContentCopy, contentDescription = AppStrings.translate("复制密钥"))
                                 }
                                 IconButton(onClick = { confirmRegenerate = true }) {
-                                    Icon(Icons.Rounded.Refresh, contentDescription = "更换密钥")
+                                    Icon(Icons.Rounded.Refresh, contentDescription = AppStrings.translate("更换密钥"))
                                 }
                             }
                             RowDivider()

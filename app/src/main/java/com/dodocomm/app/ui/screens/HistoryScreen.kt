@@ -2,6 +2,7 @@
 
 package com.dodocomm.app.ui.screens
 
+import com.dodocomm.app.ui.i18n.AppStrings
 import android.content.ClipData
 import android.content.ClipboardManager
 import com.dodocomm.app.R
@@ -176,7 +177,7 @@ fun HistoryScreen(viewModel: AppViewModel) {
             IconButton(onClick = { searchOpen = !searchOpen }) {
                 Icon(
                     imageVector = Icons.Rounded.Search,
-                    contentDescription = "搜索记录",
+                    contentDescription = AppStrings.translate("搜索记录"),
                     tint = if (searchOpen) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -184,7 +185,7 @@ fun HistoryScreen(viewModel: AppViewModel) {
                 IconButton(onClick = { menuExpanded = true }) {
                     Icon(
                         imageVector = Icons.Rounded.MoreVert,
-                        contentDescription = "更多操作",
+                        contentDescription = AppStrings.translate("更多操作"),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
@@ -224,7 +225,7 @@ fun HistoryScreen(viewModel: AppViewModel) {
                 trailingIcon = {
                     if (query.isNotEmpty()) {
                         IconButton(onClick = { query = "" }) {
-                            Icon(Icons.Rounded.Delete, contentDescription = "清空搜索")
+                            Icon(Icons.Rounded.Delete, contentDescription = AppStrings.translate("清空搜索"))
                         }
                     }
                 },
@@ -271,7 +272,7 @@ fun HistoryScreen(viewModel: AppViewModel) {
             ) {
                 Icon(
                     imageVector = Icons.Rounded.FilterAlt,
-                    contentDescription = "筛选",
+                    contentDescription = AppStrings.translate("筛选"),
                     tint = if (filtersActive) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurfaceVariant,
                 )

@@ -2,6 +2,7 @@
 
 package com.dodocomm.app.ui.components
 
+import com.dodocomm.app.ui.i18n.AppStrings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -336,7 +337,7 @@ fun FilterListEditor(
                             Spacer(Modifier.width(4.dp))
                             Icon(
                                 imageVector = Icons.Rounded.Close,
-                                contentDescription = "移除 $token",
+                                contentDescription = AppStrings.translate("移除 $token"),
                                 modifier = Modifier.size(13.dp),
                             )
                         }

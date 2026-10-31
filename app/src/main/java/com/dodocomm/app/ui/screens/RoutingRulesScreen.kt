@@ -81,7 +81,7 @@ fun RoutingRulesScreen(viewModel: AppViewModel, onBack: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = AppStrings.translate("返回"))
             }
             Spacer(Modifier.width(4.dp))
             Column(Modifier.weight(1f)) {
@@ -204,7 +204,7 @@ private fun RuleEditor(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = AppStrings.translate("返回"))
             }
             Spacer(Modifier.width(4.dp))
             Text(rule.name, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))

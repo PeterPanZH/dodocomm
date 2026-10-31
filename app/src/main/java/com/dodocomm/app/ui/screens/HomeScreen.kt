@@ -2,6 +2,7 @@
 
 package com.dodocomm.app.ui.screens
 
+import com.dodocomm.app.ui.i18n.AppStrings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -336,7 +337,7 @@ private fun HomeHeroCard(
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Bolt,
-                            contentDescription = "后台设置向导",
+                            contentDescription = AppStrings.translate("后台设置向导"),
                             modifier = Modifier.size(20.dp),
                             tint = Color.White,
                         )

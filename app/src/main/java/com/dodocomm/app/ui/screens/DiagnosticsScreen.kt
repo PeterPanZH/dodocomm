@@ -2,6 +2,7 @@
 
 package com.dodocomm.app.ui.screens
 
+import com.dodocomm.app.ui.i18n.AppStrings
 import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -165,7 +166,7 @@ fun DiagnosticsScreen(
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "返回",
+                    contentDescription = AppStrings.translate("返回"),
                 )
             }
             Spacer(Modifier.width(4.dp))

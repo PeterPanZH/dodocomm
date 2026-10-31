@@ -2,6 +2,7 @@
 
 package com.dodocomm.app.ui.screens
 
+import com.dodocomm.app.ui.i18n.AppStrings
 import android.content.ClipData
 import android.content.ClipboardManager
 import androidx.compose.foundation.layout.Arrangement
@@ -66,7 +67,7 @@ fun CrashLogsScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = AppStrings.translate("返回"))
             }
             Spacer(Modifier.width(4.dp))
             Column(Modifier.weight(1f)) {
@@ -79,7 +80,7 @@ fun CrashLogsScreen(
             }
             if (entries.isNotEmpty()) {
                 IconButton(onClick = ::copyAll) {
-                    Icon(Icons.Rounded.ContentCopy, contentDescription = "复制全部")
+                    Icon(Icons.Rounded.ContentCopy, contentDescription = AppStrings.translate("复制全部"))
                 }
                 TextButton(onClick = { showClear = true }) {
                     Icon(Icons.Rounded.Delete, contentDescription = null, modifier = Modifier.size(16.dp))

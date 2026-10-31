@@ -2,6 +2,7 @@
 
 package com.dodocomm.app.ui.screens
 
+import com.dodocomm.app.ui.i18n.AppStrings
 import android.appwidget.AppWidgetManager
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -84,7 +85,7 @@ fun AutomationScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = AppStrings.translate("返回"))
             }
             Spacer(Modifier.width(4.dp))
             Column(Modifier.weight(1f)) {
@@ -180,10 +181,10 @@ fun AutomationScreen(
                                     Text(if (tokenVisible) "隐藏" else "显示")
                                 }
                                 IconButton(onClick = ::copyToken) {
-                                    Icon(Icons.Rounded.ContentCopy, contentDescription = "复制令牌")
+                                    Icon(Icons.Rounded.ContentCopy, contentDescription = AppStrings.translate("复制令牌"))
                                 }
                                 IconButton(onClick = { confirmRegenerate = true }) {
-                                    Icon(Icons.Rounded.Refresh, contentDescription = "更换令牌")
+                                    Icon(Icons.Rounded.Refresh, contentDescription = AppStrings.translate("更换令牌"))
                                 }
                             }
                             RowDivider()
