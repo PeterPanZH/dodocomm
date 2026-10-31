@@ -14,6 +14,7 @@
     <string name="notify_action_pause_30">30分停止</string>
     <string name="notify_action_resume">再開</string>
     <string name="notify_action_test">テスト</string>
+    <string name="notify_action_stop">停止</string>
     <string name="notify_paused_until">一時停止中 · 約 %1$d 分後に再開</string>
     <string name="notify_boot_recovery_title">ドドコはオフラインです</string>
     <string name="notify_boot_recovery_text">タップしてアプリを開き、ドドコを起こしてください。SMS 受信自体は影響を受けません。</string>

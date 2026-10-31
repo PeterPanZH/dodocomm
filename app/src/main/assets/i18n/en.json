@@ -437,5 +437,10 @@
  "无法打开备份文件": "Cannot open the backup file.",
  "无法读取备份文件": "Cannot read the backup file.",
  "无法打开导出文件": "Cannot open the export file.",
- "更新会保留本地设置与转发记录；安装包校验 SHA-256 与签名后才交给系统安装器。": "Updates keep local settings and history; the APK is verified (SHA-256 and signature) before the system installer opens."
+ "更新会保留本地设置与转发记录；安装包校验 SHA-256 与签名后才交给系统安装器。": "Updates keep local settings and history; the APK is verified (SHA-256 and signature) before the system installer opens.",
+ "标题示例：Pixel 9 · 95588；可插入变量": "Example: Pixel 9 · 95588. Tap tokens to insert variables.",
+ "消息体模板": "Body template",
+ "{body} 是短信原文；不含 {body} 时原文仍会保留，来源信息附在下方": "{body} is the original SMS. If omitted, the original is still kept and source info is appended below.",
+ "已开启转发，新短信会自动推送到 iPhone": "Forwarding is on. New messages will be pushed to your iPhone.",
+ "今日已送达": "Delivered today"
 }

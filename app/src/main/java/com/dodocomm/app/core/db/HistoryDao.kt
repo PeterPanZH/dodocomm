@@ -24,6 +24,7 @@ class HistoryDao(private val database: HistoryDatabase) {
             put("attempts", record.attempts)
             put("error", record.error)
             put("title", record.title)
+            put("bark_body", record.barkBody)
             put("bark_response", record.barkResponse)
             put("dedupe_key", dedupeKey)
         }
@@ -166,6 +167,7 @@ class HistoryDao(private val database: HistoryDatabase) {
         attempts = getInt(getColumnIndexOrThrow("attempts")),
         error = getString(getColumnIndexOrThrow("error")),
         title = getString(getColumnIndexOrThrow("title")),
+        barkBody = getString(getColumnIndexOrThrow("bark_body")),
         barkResponse = getString(getColumnIndexOrThrow("bark_response")),
     )
 
@@ -175,7 +177,7 @@ class HistoryDao(private val database: HistoryDatabase) {
 
         private val COLUMNS = arrayOf(
             "id", "sender", "body", "received_at", "created_at", "sim_label",
-            "subscription_id", "status", "attempts", "error", "title", "bark_response",
+            "subscription_id", "status", "attempts", "error", "title", "bark_body", "bark_response",
         )
     }
 }

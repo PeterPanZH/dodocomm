@@ -26,6 +26,7 @@ class HistoryDatabase(context: Context) : SQLiteOpenHelper(
                 attempts INTEGER NOT NULL DEFAULT 0,
                 error TEXT,
                 title TEXT,
+                bark_body TEXT,
                 bark_response TEXT,
                 dedupe_key TEXT NOT NULL UNIQUE
             )
@@ -37,9 +38,10 @@ class HistoryDatabase(context: Context) : SQLiteOpenHelper(
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // History is a convenience cache; rebuilding is acceptable across schema bumps.
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_RECORDS")
-        onCreate(db)
+        if (oldVersion < 2) {
+            // Preserve existing history when adding the rendered Bark body column.
+            db.execSQL("ALTER TABLE $TABLE_RECORDS ADD COLUMN bark_body TEXT")
+        }
     }
 
     override fun onDowngrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -48,7 +50,7 @@ class HistoryDatabase(context: Context) : SQLiteOpenHelper(
 
     companion object {
         const val DATABASE_NAME = "sms2bark.db"
-        const val DATABASE_VERSION = 1
+        const val DATABASE_VERSION = 2
         const val TABLE_RECORDS = "records"
     }
 }

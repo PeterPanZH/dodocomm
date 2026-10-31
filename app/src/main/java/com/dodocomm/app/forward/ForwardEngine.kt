@@ -63,6 +63,7 @@ class ForwardEngine(
         }
 
         val title = TitleTemplate.render(settings.titleTemplate, payload)
+        val barkBody = TitleTemplate.renderBody(settings.bodyTemplate, payload)
         val baseRecord = ForwardRecord(
             sender = payload.sender.trim(),
             body = payload.body,
@@ -74,6 +75,7 @@ class ForwardEngine(
             attempts = 0,
             error = if (decision.forward) null else decision.reason,
             title = title,
+            barkBody = barkBody,
         )
         val dedupeKey = Hashing.sha256("${payload.sender}|${payload.smsTimestamp}|${payload.body}")
         val id = container.history.insert(baseRecord, dedupeKey)
@@ -206,7 +208,8 @@ class ForwardEngine(
         try {
             val title = record.title?.takeIf { it.isNotBlank() }
                 ?: TitleTemplate.render(settings.titleTemplate, record.toPayload())
-            val result = container.barkClient.send(settings, title, record.body)
+            val body = record.barkBody?.takeIf { it.isNotBlank() } ?: record.body
+            val result = container.barkClient.send(settings, title, body)
             val attempts = record.attempts + 1
             if (result.success) {
                 container.history.updateResult(

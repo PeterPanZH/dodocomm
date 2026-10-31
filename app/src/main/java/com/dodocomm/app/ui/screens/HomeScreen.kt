@@ -123,7 +123,6 @@ fun HomeScreen(
     val stats by viewModel.stats.collectAsStateWithLifecycle()
     val records by viewModel.records.collectAsStateWithLifecycle()
     val permissions by viewModel.permissions.collectAsStateWithLifecycle()
-    val serviceRunning by viewModel.serviceRunning.collectAsStateWithLifecycle()
     val testPushState by viewModel.testPushState.collectAsStateWithLifecycle()
     val dark = LocalIsDarkTheme.current
 
@@ -140,14 +139,6 @@ fun HomeScreen(
 
     fun launchPermissions() {
         permissionLauncher.launch(corePermissions)
-    }
-
-    val onStartService: () -> Unit = {
-        val running = viewModel.ensureServiceRunning()
-        viewModel.postSnackbar(
-            message = if (running) "转发服务已启动" else "服务未能启动，请检查通知权限",
-            isError = !running,
-        )
     }
 
     fun handleSetupAction(item: SetupItem) {
@@ -187,13 +178,10 @@ fun HomeScreen(
         HomeHeroCard(
             configured = settings.isConfigured,
             forwardingEnabled = settings.forwardingEnabled,
-            foregroundServiceEnabled = settings.foregroundServiceEnabled,
-            serviceRunning = serviceRunning,
             todaySent = stats.sent,
             onToggle = viewModel::setForwardingEnabled,
             onGuideClick = onNavigateGuide,
             onOpenSettings = onNavigateSettings,
-            onStartService = onStartService,
         )
 
         Spacer(Modifier.height(16.dp))
@@ -256,13 +244,10 @@ fun HomeScreen(
 private fun HomeHeroCard(
     configured: Boolean,
     forwardingEnabled: Boolean,
-    foregroundServiceEnabled: Boolean,
-    serviceRunning: Boolean,
     todaySent: Int,
     onToggle: (Boolean) -> Unit,
     onGuideClick: () -> Unit,
     onOpenSettings: () -> Unit,
-    onStartService: () -> Unit,
 ) {
     val gradient = LocalBrandGradient.current
     Card(
@@ -340,7 +325,6 @@ private fun HomeHeroCard(
                 val title = when {
                     !forwardingEnabled -> "已暂停"
                     !configured -> "待配置"
-                    !serviceRunning && foregroundServiceEnabled -> "服务未运行"
                     else -> "正在转发"
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -362,9 +346,8 @@ private fun HomeHeroCard(
                             text = when {
                                 !configured -> "先配置 Bark 服务器，短信才能送达 iPhone"
                                 !forwardingEnabled -> "点击开启转发，短信会自动推送"
-                                serviceRunning -> "服务运行中 · 今日已送达 $todaySent 条"
-                                foregroundServiceEnabled -> "已开启转发，但常驻服务没有运行"
-                                else -> "仅通过短信广播接收，不显示常驻通知"
+                                todaySent > 0 -> "今日已送达 $todaySent 条"
+                                else -> "已开启转发，新短信会自动推送到 iPhone"
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.White.copy(alpha = 0.82f),
@@ -377,30 +360,19 @@ private fun HomeHeroCard(
                     )
                 }
 
-                val hintText: String? = when {
-                    !configured -> "去配置 Bark 服务器"
-                    forwardingEnabled && !serviceRunning && foregroundServiceEnabled -> "服务未运行 · 点此启动"
-                    forwardingEnabled && !serviceRunning -> "常驻服务已关闭 · 去设置开启"
-                    else -> null
-                }
+                val hintText: String? = if (!configured) "去配置 Bark 服务器" else null
                 if (hintText != null) {
                     Spacer(Modifier.height(14.dp))
                     Row(
                         modifier = Modifier
                             .clip(CircleShape)
                             .background(Color.White.copy(alpha = 0.16f))
-                            .clickable {
-                                if (!configured || !foregroundServiceEnabled) {
-                                    onOpenSettings()
-                                } else {
-                                    onStartService()
-                                }
-                            }
+                            .clickable { onOpenSettings() }
                             .padding(horizontal = 12.dp, vertical = 7.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            imageVector = if (!configured) Icons.Rounded.Dns else Icons.Rounded.Bolt,
+                            imageVector = Icons.Rounded.Dns,
                             contentDescription = null,
                             modifier = Modifier.size(14.dp),
                             tint = Color.White,

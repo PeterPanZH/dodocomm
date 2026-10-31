@@ -20,6 +20,7 @@ object SettingsBackupCodec {
         put("serverUrl", settings.serverUrl)
         put("deviceKey", settings.deviceKey)
         put("titleTemplate", settings.titleTemplate)
+        put("bodyTemplate", settings.bodyTemplate)
         put("pushGroup", settings.pushGroup)
         put("pushSound", settings.pushSound)
         put("pushLevel", settings.pushLevel.name)
@@ -51,6 +52,7 @@ object SettingsBackupCodec {
             serverUrl = json.optString("serverUrl", base.serverUrl),
             deviceKey = json.optString("deviceKey", base.deviceKey),
             titleTemplate = json.optString("titleTemplate", base.titleTemplate),
+            bodyTemplate = json.optString("bodyTemplate", base.bodyTemplate),
             pushGroup = json.optString("pushGroup", base.pushGroup),
             pushSound = json.optString("pushSound", base.pushSound),
             pushLevel = PushLevel.fromName(json.optString("pushLevel", base.pushLevel.name)),

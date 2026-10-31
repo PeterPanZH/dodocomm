@@ -55,6 +55,8 @@ data class ForwardRecord(
     val attempts: Int = 0,
     val error: String? = null,
     val title: String? = null,
+    /** Rendered Bark body, stored so retries keep the template metadata. */
+    val barkBody: String? = null,
     val barkResponse: String? = null,
 )
 

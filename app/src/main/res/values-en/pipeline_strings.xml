@@ -14,6 +14,7 @@
     <string name="notify_action_pause_30">Pause 30m</string>
     <string name="notify_action_resume">Resume</string>
     <string name="notify_action_test">Test</string>
+    <string name="notify_action_stop">Stop</string>
     <string name="notify_paused_until">Temporarily paused · resumes in about %1$d min</string>
     <string name="notify_boot_recovery_title">Dodoco is offline</string>
     <string name="notify_boot_recovery_text">Tap to open the app and wake Dodoco. SMS receiving itself is unaffected.</string>

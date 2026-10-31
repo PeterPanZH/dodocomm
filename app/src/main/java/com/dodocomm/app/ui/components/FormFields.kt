@@ -157,7 +157,10 @@ fun SecretField(
     )
 }
 
-private val TemplateTokens = listOf("{sender}", "{sim}", "{time}", "{device}", "{number}")
+private val TitleTokens = listOf(
+    "{device}", "{sender}", "{sim}", "{number}", "{time}", "{date}", "{datetime}",
+)
+private val BodyTokens = listOf("{body}") + TitleTokens
 
 /**
  * Title-template editor: a single-line field plus chips that insert the
@@ -169,6 +172,12 @@ fun TemplateField(
     onCommit: (String) -> Unit,
     modifier: Modifier = Modifier,
     label: String = "标题模板",
+    placeholder: String = "{device} · {sender}",
+    supportingText: String = "点击下方标签插入变量",
+    tokens: List<String> = TitleTokens,
+    singleLine: Boolean = true,
+    minLines: Int = 1,
+    maxLines: Int = if (singleLine) 1 else 6,
 ) {
     var field by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(value))
@@ -208,17 +217,21 @@ fun TemplateField(
                     }
                 },
             label = { Text(label) },
-            placeholder = { Text("来自 {sender}") },
-            singleLine = true,
+            placeholder = { Text(placeholder) },
+            singleLine = singleLine,
+            minLines = minLines,
+            maxLines = maxLines,
             shape = FieldShape,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardOptions = KeyboardOptions(
+                imeAction = if (singleLine) ImeAction.Done else ImeAction.Default,
+            ),
             keyboardActions = KeyboardActions(
                 onDone = {
                     commit()
                     focusManager.clearFocus()
                 },
             ),
-            supportingText = { Text("点击下方标签插入变量") },
+            supportingText = { Text(supportingText) },
             colors = fieldColors(),
         )
         Spacer(Modifier.height(8.dp))
@@ -226,7 +239,7 @@ fun TemplateField(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            TemplateTokens.forEach { token ->
+            tokens.forEach { token ->
                 TokenChip(text = token, onClick = { insert(token) })
             }
         }

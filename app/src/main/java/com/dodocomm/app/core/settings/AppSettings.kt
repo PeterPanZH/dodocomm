@@ -52,7 +52,9 @@ data class AppSettings(
     val forwardingEnabled: Boolean = true,
     val serverUrl: String = "https://api.day.app",
     val deviceKey: String = "",
-    val titleTemplate: String = "来自 {sender}",
+    val titleTemplate: String = DEFAULT_TITLE_TEMPLATE,
+    /** Bark notification body template; `{body}` is the original SMS text. */
+    val bodyTemplate: String = DEFAULT_BODY_TEMPLATE,
     val pushGroup: String = "短信",
     val pushSound: String = "",
     val pushLevel: PushLevel = PushLevel.ACTIVE,
@@ -115,5 +117,12 @@ data class AppSettings(
     fun pushEndpoint(): String {
         val base = normalizedServerBase()
         return if (base.isEmpty()) "" else "$base/push"
+    }
+
+    companion object {
+        /** Old default kept for one-time migration to [DEFAULT_TITLE_TEMPLATE]. */
+        const val LEGACY_TITLE_TEMPLATE = "来自 {sender}"
+        const val DEFAULT_TITLE_TEMPLATE = "{device} · {sender}"
+        const val DEFAULT_BODY_TEMPLATE = "{body}\n\n{datetime} · {sim} · {number}"
     }
 }

@@ -552,6 +552,20 @@ private fun PushStyleCard(settings: AppSettings, viewModel: AppViewModel) {
         TemplateField(
             value = settings.titleTemplate,
             onCommit = viewModel::setTitleTemplate,
+            placeholder = "{device} · {sender}",
+            supportingText = "标题示例：Pixel 9 · 95588；可插入变量",
+        )
+        Spacer(Modifier.height(16.dp))
+        TemplateField(
+            value = settings.bodyTemplate,
+            onCommit = viewModel::setBodyTemplate,
+            label = "消息体模板",
+            placeholder = "{body}\n\n{datetime} · {sim} · {number}",
+            supportingText = "{body} 是短信原文；不含 {body} 时原文仍会保留，来源信息附在下方",
+            tokens = listOf("{body}", "{datetime}", "{date}", "{time}", "{device}", "{sim}", "{sender}", "{number}"),
+            singleLine = false,
+            minLines = 3,
+            maxLines = 6,
         )
         Spacer(Modifier.height(16.dp))
         SettingTextField(

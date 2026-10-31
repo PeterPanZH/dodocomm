@@ -39,13 +39,19 @@ class SettingsRepository(context: Context) {
         settings
     }
 
+    private fun migrateTitleTemplate(raw: String): String =
+        if (raw == AppSettings.LEGACY_TITLE_TEMPLATE) AppSettings.DEFAULT_TITLE_TEMPLATE else raw
+
     private fun readAll(): AppSettings {
         val defaults = AppSettings()
         return AppSettings(
             forwardingEnabled = prefs.getBoolean(KEY_FORWARDING_ENABLED, defaults.forwardingEnabled),
             serverUrl = prefs.getString(KEY_SERVER_URL, defaults.serverUrl).orEmpty(),
             deviceKey = prefs.getString(KEY_DEVICE_KEY, defaults.deviceKey).orEmpty(),
-            titleTemplate = prefs.getString(KEY_TITLE_TEMPLATE, defaults.titleTemplate).orEmpty(),
+            titleTemplate = migrateTitleTemplate(
+                prefs.getString(KEY_TITLE_TEMPLATE, defaults.titleTemplate).orEmpty(),
+            ),
+            bodyTemplate = prefs.getString(KEY_BODY_TEMPLATE, defaults.bodyTemplate).orEmpty(),
             pushGroup = prefs.getString(KEY_PUSH_GROUP, defaults.pushGroup).orEmpty(),
             pushSound = prefs.getString(KEY_PUSH_SOUND, defaults.pushSound).orEmpty(),
             pushLevel = PushLevel.fromName(prefs.getString(KEY_PUSH_LEVEL, defaults.pushLevel.name)),
@@ -87,6 +93,7 @@ class SettingsRepository(context: Context) {
             .putString(KEY_SERVER_URL, settings.serverUrl)
             .putString(KEY_DEVICE_KEY, settings.deviceKey)
             .putString(KEY_TITLE_TEMPLATE, settings.titleTemplate)
+            .putString(KEY_BODY_TEMPLATE, settings.bodyTemplate)
             .putString(KEY_PUSH_GROUP, settings.pushGroup)
             .putString(KEY_PUSH_SOUND, settings.pushSound)
             .putString(KEY_PUSH_LEVEL, settings.pushLevel.name)
@@ -125,6 +132,7 @@ class SettingsRepository(context: Context) {
         private const val KEY_SERVER_URL = "server_url"
         private const val KEY_DEVICE_KEY = "device_key"
         private const val KEY_TITLE_TEMPLATE = "title_template"
+        private const val KEY_BODY_TEMPLATE = "body_template"
         private const val KEY_PUSH_GROUP = "push_group"
         private const val KEY_PUSH_SOUND = "push_sound"
         private const val KEY_PUSH_LEVEL = "push_level"

@@ -33,8 +33,7 @@ object NotificationHelper {
 
     private const val TAG = "SMS2BARK"
     private const val REQUEST_CODE_OPEN = 100
-    private const val REQUEST_CODE_PAUSE = 101
-    private const val REQUEST_CODE_TEST = 102
+    private const val REQUEST_CODE_STOP = 101
     private const val REQUEST_CODE_PAUSE_30 = 104
     private const val REQUEST_CODE_RESUME = 105
     private const val REQUEST_CODE_BOOT_RECOVERY = 103
@@ -110,7 +109,7 @@ object NotificationHelper {
                 } else {
                     addAction(R.drawable.ic_stat_notify, context.getString(R.string.notify_action_pause_30), pause30Intent(context))
                 }
-                addAction(R.drawable.ic_stat_notify, context.getString(R.string.notify_action_test), testPushIntent(context))
+                addAction(R.drawable.ic_stat_notify, context.getString(R.string.notify_action_stop), stopIntent(context))
             }
             .setOngoing(true)
             .setOnlyAlertOnce(true)
@@ -208,17 +207,14 @@ object NotificationHelper {
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
 
-    private fun pauseIntent(context: Context): PendingIntent =
-        serviceAction(context, ForwardService.ACTION_STOP, REQUEST_CODE_PAUSE)
+    private fun stopIntent(context: Context): PendingIntent =
+        serviceAction(context, ForwardService.ACTION_STOP, REQUEST_CODE_STOP)
 
     private fun pause30Intent(context: Context): PendingIntent =
         serviceAction(context, ForwardService.ACTION_PAUSE_30, REQUEST_CODE_PAUSE_30)
 
     private fun resumeIntent(context: Context): PendingIntent =
         serviceAction(context, ForwardService.ACTION_RESUME, REQUEST_CODE_RESUME)
-
-    private fun testPushIntent(context: Context): PendingIntent =
-        serviceAction(context, ForwardService.ACTION_TEST_PUSH, REQUEST_CODE_TEST)
 
     private fun serviceAction(context: Context, action: String, requestCode: Int): PendingIntent =
         PendingIntent.getService(

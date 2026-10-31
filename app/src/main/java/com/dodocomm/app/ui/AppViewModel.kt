@@ -272,6 +272,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setTitleTemplate(value: String) = updateSettings { it.copy(titleTemplate = value) }
 
+    fun setBodyTemplate(value: String) = updateSettings { it.copy(bodyTemplate = value) }
+
     fun setPushGroup(value: String) = updateSettings { it.copy(pushGroup = value.trim()) }
 
     fun setPushSound(value: String) = updateSettings { it.copy(pushSound = value.trim()) }
