@@ -62,6 +62,7 @@ fun RemoteManagementScreen(
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     var secretVisible by rememberSaveable { mutableStateOf(false) }
     var generatedCommand by rememberSaveable { mutableStateOf("") }
+    var pauseMinutes by rememberSaveable { mutableStateOf("30") }
     var confirmRegenerate by rememberSaveable { mutableStateOf(false) }
     val clipboard = remember(context) { context.getSystemService(ClipboardManager::class.java) }
 
@@ -70,11 +71,15 @@ fun RemoteManagementScreen(
         viewModel.postSnackbar("已复制")
     }
 
-    fun generateSample() {
+    fun generateCommand(action: RemoteAction, minutes: Int = 0) {
         val nonce = System.currentTimeMillis() / 1000
-        val command = RemoteCommand(RemoteAction.STATUS, 0, nonce, "")
+        val command = RemoteCommand(action, minutes, nonce, "")
         val signature = RemoteCommandParser.sign(settings.remoteSecret, command)
-        generatedCommand = "#DODO STATUS $nonce $signature"
+        generatedCommand = when (action) {
+            RemoteAction.STATUS -> "#DODO STATUS $nonce $signature"
+            RemoteAction.RESUME -> "#DODO RESUME $nonce $signature"
+            RemoteAction.PAUSE -> "#DODO PAUSE $minutes $nonce $signature"
+        }
     }
 
     Column(Modifier.fillMaxSize()) {
@@ -183,11 +188,17 @@ fun RemoteManagementScreen(
                             Spacer(Modifier.height(8.dp))
                             InfoNote("nonce 是当前 Unix 秒级时间戳，必须在 5 分钟内发送；hmac 是 HMAC-SHA256(\"ACTION|minutes|nonce\") 的小写十六进制。")
                             Spacer(Modifier.height(8.dp))
-                            Button(
-                                onClick = ::generateSample,
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Text("生成一条示例 STATUS 指令")
+                            SettingTextField(
+                                value = pauseMinutes,
+                                onCommit = { pauseMinutes = it.filter(Char::isDigit).take(4).ifBlank { "30" } },
+                                label = "暂停分钟数（用于 PAUSE）",
+                                placeholder = "30",
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                TextButton(onClick = { generateCommand(RemoteAction.STATUS) }) { Text("STATUS") }
+                                TextButton(onClick = { generateCommand(RemoteAction.PAUSE, pauseMinutes.toIntOrNull()?.coerceIn(1, 1440) ?: 30) }) { Text("PAUSE") }
+                                TextButton(onClick = { generateCommand(RemoteAction.RESUME) }) { Text("RESUME") }
                             }
                             if (generatedCommand.isNotBlank()) {
                                 Spacer(Modifier.height(8.dp))

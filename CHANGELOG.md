@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.11.3] - 2026-10-31
+
+### 收尾
+- 移除 debug 构建中的可导出 `DebugReceiver`，release/debug 都不再暴露配置/历史读写入口。
+- 远程管理页支持直接生成 STATUS / PAUSE / RESUME 的签名短信，无需外部 HMAC 工具。
+- 修正英日词典中 Dudu/Dudu Communication 等机器翻译，统一为 DodoComm/ドドコ；补齐 SMTP 错误文案。
+- 新增翻译字典 parity 测试（同一组 key、无空值、pattern 占位符可解析）。
+- 新增强制关闭的 Debug 入口清理与文档同步；共 95 个单测。
+
 ## [1.11.2] - 2026-10-31
 
 ### 体验

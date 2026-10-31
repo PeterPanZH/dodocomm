@@ -184,15 +184,9 @@ $GRADLE :app:testDebugUnitTest
 - 模拟器：`sms2bark_api36`（pixel_7, 1080x2400）；网络需 `adb shell svc wifi disable` 后走 slirp 才能访问宿主 `10.0.2.2:8787`（见 `scripts/prepare_emulator.sh`）。
 - Mock Bark：`scripts/mock_bark_server.py`，日志写到本地 `verify/bark_requests.log`。
 
-## 调试协议（仅 debug 构建，verifier 实现于 app/src/debug）
+## 调试协议
 
-| action | extras | 行为 |
-| --- | --- | --- |
-| `com.dodocomm.app.debug.SET_CONFIG` | `server`, `key` | 写入 Bark 地址/Device Key |
-| `com.dodocomm.app.debug.TEST_PUSH` | – | 触发一次测试推送 |
-| `com.dodocomm.app.debug.SEED_DEMO` | – | 插入约 12 条多状态/多日期示例记录 |
-| `com.dodocomm.app.debug.DUMP_HISTORY` | – | logcat 输出历史 JSON（TAG `SMS2BARK_DEBUG`） |
-| `com.dodocomm.app.debug.CLEAR_DATA` | – | 清空历史与配置 |
+调试用的 `DebugReceiver` 已移除：release 和 debug 构建都不再暴露可导出的配置/历史读取入口。需要 E2E 测试时使用 adb 输入、Mock Bark 和正常 UI 流程。
 
 ## 性能与可维护性约定
 
