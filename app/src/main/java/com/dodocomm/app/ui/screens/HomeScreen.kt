@@ -37,6 +37,7 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.MarkChatUnread
 import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.rounded.Sms
@@ -84,7 +85,6 @@ import com.dodocomm.app.ui.components.RecordCard
 import com.dodocomm.app.ui.components.RowDivider
 import com.dodocomm.app.ui.components.ScreenTitle
 import com.dodocomm.app.ui.components.SectionCard
-import com.dodocomm.app.ui.components.SenderAvatar
 import com.dodocomm.app.ui.components.StatPill
 import com.dodocomm.app.ui.components.greeting
 import com.dodocomm.app.ui.components.todayLabel
@@ -662,7 +662,11 @@ private fun ServerPromptCard(onClick: () -> Unit) {
 private fun WaitingCard() {
     SectionCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            SenderAvatar(sender = "新", size = 44.dp)
+            IconBubble(
+                icon = Icons.Rounded.MarkChatUnread,
+                size = 44,
+                iconSize = 22,
+            )
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(
