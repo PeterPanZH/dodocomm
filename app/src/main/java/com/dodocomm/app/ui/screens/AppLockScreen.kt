@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Backspace
@@ -33,7 +35,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,6 +51,7 @@ import com.dodocomm.app.R
 import com.dodocomm.app.core.security.AppLock
 import com.dodocomm.app.ui.theme.BrandGradientDark
 import com.dodocomm.app.ui.theme.BrandGradientLight
+import com.dodocomm.app.ui.theme.LocalIsDarkTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -127,20 +129,23 @@ fun AppLockScreen(
         if (pin.length == AppLock.PIN_LENGTH) submit(pin)
     }
 
+    val dark = LocalIsDarkTheme.current
+    val gradient = if (dark) BrandGradientDark else BrandGradientLight
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 Brush.linearGradient(
-                    listOf(BrandGradientLight[0], BrandGradientLight[1], BrandGradientLight[2]),
+                    listOf(gradient[0], gradient[1], gradient[2]),
                 ),
             ),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 30.dp)
-                .padding(top = 90.dp, bottom = 36.dp),
+                .padding(top = 56.dp, bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Surface(
@@ -176,7 +181,7 @@ fun AppLockScreen(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),
             )
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(24.dp))
             PinKeypad(
                 enabled = remaining == 0 && !verifying,
                 onDigit = ::tapDigit,

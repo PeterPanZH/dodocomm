@@ -5,6 +5,8 @@ package com.dodocomm.app.ui.screens
 import com.dodocomm.app.ui.i18n.AppStrings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,7 +44,9 @@ import com.dodocomm.app.core.security.AppLock
 import com.dodocomm.app.ui.components.PinDots
 import com.dodocomm.app.ui.components.PinKeypad
 import com.dodocomm.app.ui.components.Text
+import com.dodocomm.app.ui.theme.BrandGradientDark
 import com.dodocomm.app.ui.theme.BrandGradientLight
+import com.dodocomm.app.ui.theme.LocalIsDarkTheme
 
 private enum class PinStep { CURRENT, NEW, CONFIRM }
 
@@ -141,7 +145,11 @@ fun AppLockPinScreen(
                 .fillMaxSize()
                 .background(
                     Brush.linearGradient(
-                        listOf(BrandGradientLight[0], BrandGradientLight[1], BrandGradientLight[2]),
+                        if (LocalIsDarkTheme.current) {
+                            listOf(BrandGradientDark[0], BrandGradientDark[1], BrandGradientDark[2])
+                        } else {
+                            listOf(BrandGradientLight[0], BrandGradientLight[1], BrandGradientLight[2])
+                        },
                     ),
                 ),
         ) {
@@ -205,7 +213,7 @@ fun AppLockPinScreen(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.height(24.dp))
                 PinKeypad(
                     enabled = true,
                     onDigit = ::tapDigit,

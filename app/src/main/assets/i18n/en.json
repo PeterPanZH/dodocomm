@@ -899,5 +899,6 @@
  "示例内容": "Sample content",
  "示例发送者": "Example sender",
  "输入示例号码和内容，实时查看命中的第一条规则与最终目标。": "Enter a sample number and content to see the first rule hit and the final target in real time.",
- "验证码|动态码": "Verification code|Dynamic code"
+ "验证码|动态码": "Verification code|Dynamic code",
+ "同时启用指纹/面容解锁": "Also enable fingerprint/face unlock"
 }

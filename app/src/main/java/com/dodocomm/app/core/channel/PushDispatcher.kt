@@ -16,13 +16,14 @@ class PushDispatcher(
     private val telegramClient: TelegramClient = TelegramClient(),
     private val pushoverClient: PushoverClient = PushoverClient(),
     private val emailClient: EmailClient = EmailClient(),
+    private val senderOverride: (suspend (PushChannel, String, String) -> ChannelSendResult)? = null,
 ) {
     suspend fun sendTo(
         settings: AppSettings,
         channel: PushChannel,
         title: String,
         body: String,
-    ): ChannelSendResult = when (channel.type) {
+    ): ChannelSendResult = senderOverride?.invoke(channel, title, body) ?: when (channel.type) {
         ChannelType.BARK -> {
             if (!channel.isConfigured()) {
                 ChannelSendResult(channel.id, channel.name, channel.type, false, "Bark 服务器或 Device Key 未配置")

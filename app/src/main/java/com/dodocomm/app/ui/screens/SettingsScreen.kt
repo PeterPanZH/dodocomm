@@ -330,6 +330,7 @@ fun SettingsScreen(
     var showClearDialog by rememberSaveable { mutableStateOf(false) }
     var pinDialogMode by rememberSaveable { mutableStateOf<String?>(null) }
     var showAppLockIntro by rememberSaveable { mutableStateOf(false) }
+    var setupBiometric by rememberSaveable { mutableStateOf(false) }
     var showExportDialog by rememberSaveable { mutableStateOf(false) }
     var exportFormatName by rememberSaveable { mutableStateOf(ExportFormat.CSV.name) }
     var exportRangeName by rememberSaveable { mutableStateOf(ExportRange.ALL.name) }
@@ -563,11 +564,22 @@ fun SettingsScreen(
                     Text("忘记 PIN 只能清除应用数据，转发记录也会一并删除。")
                     Spacer(Modifier.height(8.dp))
                     Text("设置完成后，可以在隐私设置里选择是否开启指纹/面容解锁。", style = MaterialTheme.typography.bodySmall)
+                    if (biometricAvailable) {
+                        Spacer(Modifier.height(10.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("同时启用指纹/面容解锁", modifier = Modifier.weight(1f))
+                            androidx.compose.material3.Switch(
+                                checked = setupBiometric,
+                                onCheckedChange = { setupBiometric = it },
+                            )
+                        }
+                    }
                 }
             },
             confirmButton = {
                 TextButton(onClick = {
                     showAppLockIntro = false
+                    if (setupBiometric) viewModel.setBiometricUnlock(true)
                     pinDialogMode = "setup"
                 }) { Text("设置 PIN") }
             },

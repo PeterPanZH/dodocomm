@@ -13,6 +13,7 @@ import com.dodocomm.app.core.model.SmsPayload
 import com.dodocomm.app.core.settings.AppSettings
 import com.dodocomm.app.core.system.DeviceName
 import com.dodocomm.app.core.crypto.HmacDedupe
+import com.dodocomm.app.core.forward.DeliveryPolicy
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -272,17 +273,13 @@ class ForwardEngine(
             val targetNames = dispatch.results.joinToString("、") { it.channelName }
             if (record.id > 0) container.history.updateTargetChannels(record.id, targetNames)
             val attempts = record.attempts + 1
-            // At-least-one semantics: if any channel accepted the message, do
-            // not replay every channel on retry (that would duplicate pushes on
-            // the channels that already succeeded). Partial failures are kept in
-            // the error text for visibility.
-            val anySuccess = dispatch.results.any { it.success }
-            if (anySuccess) {
+            val outcome = DeliveryPolicy.evaluate(dispatch.results)
+            if (outcome.sent) {
                 container.history.updateResult(
                     id = record.id,
                     status = ForwardStatus.SENT,
                     attempts = attempts,
-                    error = result.message.takeIf { dispatch.results.any { item -> !item.success } },
+                    error = outcome.error,
                     response = result.rawBody,
                 )
             } else {
@@ -290,7 +287,7 @@ class ForwardEngine(
                     id = record.id,
                     status = ForwardStatus.FAILED,
                     attempts = attempts,
-                    error = result.message,
+                    error = outcome.error ?: result.message,
                     response = result.rawBody,
                 )
                 if (scheduleRetryOnFailure) enqueueRetry(settings)
