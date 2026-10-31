@@ -63,6 +63,8 @@ data class AppSettings(
     /** Enabled push destinations. Bark credentials remain in serverUrl/deviceKey. */
     val channels: List<PushChannel> = listOf(PushChannel.bark()),
     val routingRules: List<RoutingRule> = emptyList(),
+    /** Empty means all active channels when no rule matches. */
+    val defaultChannelIds: List<String> = emptyList(),
     /** Optional custom name used by the {device} template token. */
     val deviceName: String = "",
     val titleTemplate: String = DEFAULT_TITLE_TEMPLATE,

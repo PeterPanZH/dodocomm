@@ -269,6 +269,8 @@ class ForwardEngine(
                 message = dispatch.message,
                 rawBody = dispatch.rawBody,
             )
+            val targetNames = dispatch.results.joinToString("、") { it.channelName }
+            if (record.id > 0) container.history.updateTargetChannels(record.id, targetNames)
             val attempts = record.attempts + 1
             // At-least-one semantics: if any channel accepted the message, do
             // not replay every channel on retry (that would duplicate pushes on

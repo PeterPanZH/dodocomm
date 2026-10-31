@@ -23,6 +23,7 @@ object SettingsBackupCodec {
         put("deviceKey", settings.deviceKey)
         put("channels", JSONArray().also { array -> settings.channels.forEach { array.put(it.toJson()) } })
         put("routingRules", JSONArray().also { array -> settings.routingRules.forEach { array.put(it.toJson()) } })
+        put("defaultChannelIds", JSONArray(settings.defaultChannelIds))
         put("deviceName", settings.deviceName)
         put("titleTemplate", settings.titleTemplate)
         put("bodyTemplate", settings.bodyTemplate)
@@ -100,6 +101,7 @@ object SettingsBackupCodec {
                     for (index in 0 until array.length()) add(RoutingRule.fromJson(array.getJSONObject(index)))
                 }
             } ?: base.routingRules,
+            defaultChannelIds = json.optJSONArray("defaultChannelIds").toStringList(),
             deviceName = json.optString("deviceName", base.deviceName),
             titleTemplate = json.optString("titleTemplate", base.titleTemplate),
             bodyTemplate = json.optString("bodyTemplate", base.bodyTemplate),
@@ -142,6 +144,7 @@ object SettingsBackupCodec {
             .distinctBy { "${'$'}{it.type}:${'$'}{it.id}" },
         routingRules = (current.routingRules + restored.routingRules)
             .distinctBy { it.id },
+        defaultChannelIds = (current.defaultChannelIds + restored.defaultChannelIds).distinct(),
         senderWhitelist = (current.senderWhitelist + restored.senderWhitelist).distinct(),
         senderBlacklist = (current.senderBlacklist + restored.senderBlacklist).distinct(),
         keywordBlacklist = (current.keywordBlacklist + restored.keywordBlacklist).distinct(),

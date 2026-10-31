@@ -421,6 +421,29 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun setDefaultChannel(channelId: String, selected: Boolean) {
+        updateSettings { current ->
+            val next = if (selected) {
+                (current.defaultChannelIds + channelId).distinct()
+            } else {
+                current.defaultChannelIds - channelId
+            }
+            current.copy(defaultChannelIds = next)
+        }
+    }
+
+    fun moveRoutingRule(id: String, direction: Int) {
+        updateSettings { current ->
+            val list = current.routingRules.toMutableList()
+            val index = list.indexOfFirst { it.id == id }
+            val target = index + direction
+            if (index < 0 || target !in list.indices) return@updateSettings current
+            val item = list.removeAt(index)
+            list.add(target, item)
+            current.copy(routingRules = list)
+        }
+    }
+
     fun addRoutingRule(): RoutingRule {
         val rule = RoutingRule.create()
         updateSettings { it.copy(routingRules = it.routingRules + rule) }
@@ -569,7 +592,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /** Exports records to a user-picked SAF [uri]. */
-    fun exportRecords(uri: Uri, format: ExportFormat, range: ExportRange, masked: Boolean) {
+    fun exportRecords(
+        uri: Uri,
+        format: ExportFormat,
+        range: ExportRange,
+        masked: Boolean,
+        override: List<com.dodocomm.app.core.model.ForwardRecord>? = null,
+    ) {
         viewModelScope.launch {
             runCatching {
                 container.recordExporter.export(
@@ -577,7 +606,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     format = format,
                     range = range,
                     masked = masked,
-                    records = records.value,
+                    records = override ?: records.value,
                 )
             }.onSuccess { count ->
                 postSnackbar("已导出 $count 条记录")
@@ -753,6 +782,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             isError = !result.success,
         )
         return result
+    }
+
+    fun deleteRecords(recordIds: Set<Long>) {
+        if (recordIds.isEmpty()) return
+        viewModelScope.launch {
+            recordIds.forEach { container.history.delete(it) }
+            postSnackbar("已删除 ${recordIds.size} 条记录")
+        }
     }
 
     fun deleteRecord(recordId: Long) {

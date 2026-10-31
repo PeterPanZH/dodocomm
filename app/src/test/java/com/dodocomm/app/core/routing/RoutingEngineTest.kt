@@ -32,6 +32,17 @@ class RoutingEngineTest {
     }
 
     @Test
+    fun `default channel ids override the all-channel fallback`() {
+        val targets = RoutingEngine.targets(
+            context = ctx(),
+            rules = emptyList(),
+            activeChannels = listOf(bark, ntfy),
+            defaultChannelIds = listOf("ntfy-1"),
+        )
+        assertEquals(listOf(ntfy), targets)
+    }
+
+    @Test
     fun `invalid regex never crashes or matches`() {
         val rule = RoutingRule(id = "bad", name = "bad", senderRegex = "[", targetChannelIds = listOf("ntfy-1"))
         assertEquals(listOf(bark, ntfy), RoutingEngine.targets(ctx(), listOf(rule), listOf(bark, ntfy)))

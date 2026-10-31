@@ -238,5 +238,9 @@
  {
   "regex": "^约 (.+) 后自动恢复$",
   "format": "Resumes in {0}"
+ },
+ {
+  "regex": "^已选 (\\d+) 条$",
+  "format": "{0} selected"
  }
 ]

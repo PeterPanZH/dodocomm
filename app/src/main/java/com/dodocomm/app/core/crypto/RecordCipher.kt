@@ -32,17 +32,28 @@ class RecordCipher(context: Context) {
     fun encrypt(value: String?): String? {
         if (value.isNullOrEmpty()) return value
         if (isEncrypted(value)) return value
-        return runCatching {
+        return runCatching { encryptOrThrow(value) }.onFailure {
+            RecordEncryptionStatus.mark(appContext, RecordEncryptionState.FAILED)
+            Log.e(TAG, "加密本地记录失败: ${it.javaClass.simpleName}")
+        }.getOrDefault(value)
+    }
+
+    /** Strict variant used for database rows: never writes plaintext on failure. */
+    fun encryptOrThrow(value: String?): String? {
+        if (value.isNullOrEmpty()) return value
+        if (isEncrypted(value)) return value
+        return try {
             val cipher = Cipher.getInstance(TRANSFORMATION)
             cipher.init(Cipher.ENCRYPT_MODE, secretKey())
             val iv = cipher.iv
             val encrypted = cipher.doFinal(value.toByteArray(Charsets.UTF_8))
             PREFIX + Base64.encodeToString(iv, Base64.NO_WRAP) + ":" +
                 Base64.encodeToString(encrypted, Base64.NO_WRAP)
-        }.onFailure {
+        } catch (t: Throwable) {
             RecordEncryptionStatus.mark(appContext, RecordEncryptionState.FAILED)
-            Log.e(TAG, "加密本地记录失败: ${it.javaClass.simpleName}")
-        }.getOrDefault(value)
+            Log.e(TAG, "严格加密失败: ${t.javaClass.simpleName}")
+            throw t
+        }
     }
 
     fun decrypt(value: String?): String? {

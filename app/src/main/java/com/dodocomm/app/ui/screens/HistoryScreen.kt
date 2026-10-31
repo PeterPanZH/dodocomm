@@ -5,6 +5,9 @@ package com.dodocomm.app.ui.screens
 import com.dodocomm.app.ui.i18n.AppStrings
 import android.content.ClipData
 import android.content.ClipboardManager
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import com.dodocomm.app.R
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -75,6 +78,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dodocomm.app.core.export.ExportFormat
+import com.dodocomm.app.core.export.ExportRange
 import com.dodocomm.app.core.model.BarkResult
 import com.dodocomm.app.core.model.ForwardRecord
 import com.dodocomm.app.core.util.OtpExtractor
@@ -102,6 +107,39 @@ fun HistoryScreen(viewModel: AppViewModel) {
     var selectedId by rememberSaveable { mutableStateOf(-1L) }
     var showClearDialog by rememberSaveable { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
+    var selectionMode by rememberSaveable { mutableStateOf(false) }
+    var selectedIds by rememberSaveable { mutableStateOf(emptyList<Long>()) }
+    var pendingBatchExport by remember { mutableStateOf<List<ForwardRecord>>(emptyList()) }
+    var showBatchDelete by rememberSaveable { mutableStateOf(false) }
+    var pendingSingleExport by remember { mutableStateOf<ForwardRecord?>(null) }
+    val singleExportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json"),
+    ) { uri ->
+        if (uri != null) {
+            pendingSingleExport?.let { record ->
+                viewModel.exportRecords(
+                    uri = uri,
+                    format = ExportFormat.JSON,
+                    range = ExportRange.ALL,
+                    masked = false,
+                    override = listOf(record),
+                )
+            }
+        }
+    }
+    val batchExportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json"),
+    ) { uri ->
+        if (uri != null) {
+            viewModel.exportRecords(
+                uri = uri,
+                format = ExportFormat.JSON,
+                range = ExportRange.ALL,
+                masked = true,
+                override = pendingBatchExport,
+            )
+        }
+    }
 
     LaunchedEffect(openRequest) {
         if (openRequest != -1L) {
@@ -149,8 +187,46 @@ fun HistoryScreen(viewModel: AppViewModel) {
         }
     }
     val groups = remember(visibleRecords) { buildGroups(visibleRecords) }
+    BackHandler(enabled = selectionMode) {
+        selectionMode = false
+        selectedIds = emptyList()
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
+        if (selectionMode) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, end = 8.dp, top = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "已选 ${selectedIds.size} 条",
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.weight(1f),
+                )
+                TextButton(onClick = {
+                    selectedIds = if (selectedIds.size == visibleRecords.size) emptyList()
+                    else visibleRecords.map { it.id }
+                }) { Text(if (selectedIds.size == visibleRecords.size) "取消全选" else "全选") }
+                TextButton(
+                    onClick = {
+                        pendingBatchExport = visibleRecords.filter { it.id in selectedIds }
+                        if (pendingBatchExport.isNotEmpty()) {
+                            batchExportLauncher.launch("dodocomm-records-selected.json")
+                        }
+                    },
+                    enabled = selectedIds.isNotEmpty(),
+                ) { Text("导出") }
+                TextButton(
+                    onClick = { showBatchDelete = true },
+                    enabled = selectedIds.isNotEmpty(),
+                ) { Text("删除") }
+                TextButton(onClick = { selectionMode = false; selectedIds = emptyList() }) {
+                    Text("完成")
+                }
+            }
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -338,13 +414,44 @@ fun HistoryScreen(viewModel: AppViewModel) {
                             RecordCard(
                                 record = record,
                                 timeLabel = TimeFormatter.formatClock(record.receivedAt),
-                                onClick = { selectedId = record.id },
+                                selected = record.id in selectedIds,
+                                onClick = {
+                                    if (selectionMode) {
+                                        selectedIds = if (record.id in selectedIds) {
+                                            selectedIds - record.id
+                                        } else {
+                                            selectedIds + record.id
+                                        }
+                                    } else {
+                                        selectedId = record.id
+                                    }
+                                },
+                                onLongClick = {
+                                    selectionMode = true
+                                    if (record.id !in selectedIds) selectedIds = selectedIds + record.id
+                                },
                             )
                         }
                     }
                 }
             }
         }
+    }
+
+    if (showBatchDelete) {
+        ConfirmDialog(
+            title = "删除所选记录？",
+            message = "将删除 ${selectedIds.size} 条本地记录，无法恢复。",
+            confirmLabel = "删除",
+            destructive = true,
+            onConfirm = {
+                viewModel.deleteRecords(selectedIds.toSet())
+                selectedIds = emptyList()
+                selectionMode = false
+                showBatchDelete = false
+            },
+            onDismiss = { showBatchDelete = false },
+        )
     }
 
     if (showClearDialog) {
@@ -387,6 +494,10 @@ fun HistoryScreen(viewModel: AppViewModel) {
             onCopy = { text ->
                 clipboard?.setPrimaryClip(ClipData.newPlainText("短信内容", text))
                 viewModel.postSnackbar("已复制短信内容")
+            },
+            onExport = {
+                pendingSingleExport = record
+                singleExportLauncher.launch("dodocomm-record-${record.id}.json")
             },
             onDelete = {
                 viewModel.deleteRecord(record.id)
@@ -543,6 +654,7 @@ private fun RecordDetailSheet(
     viewModel: AppViewModel,
     onDismiss: () -> Unit,
     onCopy: (String) -> Unit,
+    onExport: () -> Unit,
     onDelete: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -644,6 +756,9 @@ private fun RecordDetailSheet(
             Spacer(Modifier.height(14.dp))
             if (!record.title.isNullOrBlank()) {
                 LabeledRow(label = "推送标题", value = record.title)
+            }
+            if (!record.targetChannels.isNullOrBlank()) {
+                LabeledRow(label = "推送通道", value = record.targetChannels)
             }
             LabeledRow(label = "收到时间", value = TimeFormatter.formatFull(record.receivedAt))
             if (record.attempts > 0) {
@@ -751,6 +866,20 @@ private fun RecordDetailSheet(
                         Text("重新发送")
                     }
                 }
+            }
+            Spacer(Modifier.height(6.dp))
+            OutlinedButton(
+                onClick = onExport,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.ContentCopy,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                )
+                Spacer(Modifier.width(6.dp))
+                Text("导出这条记录")
             }
             Spacer(Modifier.height(6.dp))
             TextButton(

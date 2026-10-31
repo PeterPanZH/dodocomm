@@ -58,6 +58,8 @@ data class ForwardRecord(
     /** Rendered Bark body, stored so retries keep the template metadata. */
     val barkBody: String? = null,
     val barkResponse: String? = null,
+    /** Display names of channels that received this message. */
+    val targetChannels: String? = null,
 )
 
 /** Aggregated counters for the dashboard. */

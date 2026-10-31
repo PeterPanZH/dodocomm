@@ -18,18 +18,19 @@ class HistoryDao(
     /** @return the new row id, or -1 when the message was already recorded. */
     fun insert(record: ForwardRecord, dedupeKey: String): Long {
         val values = ContentValues().apply {
-            put("sender", cipher.encrypt(record.sender))
-            put("body", cipher.encrypt(record.body))
+            put("sender", cipher.encryptOrThrow(record.sender))
+            put("body", cipher.encryptOrThrow(record.body))
             put("received_at", record.receivedAt)
             put("created_at", record.createdAt)
             put("sim_label", record.simLabel)
             put("subscription_id", record.subscriptionId)
             put("status", record.status.name)
             put("attempts", record.attempts)
-            put("error", cipher.encrypt(record.error))
-            put("title", cipher.encrypt(record.title))
-            put("bark_body", cipher.encrypt(record.barkBody))
-            put("bark_response", cipher.encrypt(record.barkResponse))
+            put("error", cipher.encryptOrThrow(record.error))
+            put("title", cipher.encryptOrThrow(record.title))
+            put("bark_body", cipher.encryptOrThrow(record.barkBody))
+            put("bark_response", cipher.encryptOrThrow(record.barkResponse))
+            put("target_channels", record.targetChannels)
             put("dedupe_key", dedupeKey)
         }
         return database.writableDatabase.insertWithOnConflict(
@@ -50,9 +51,19 @@ class HistoryDao(
         val values = ContentValues().apply {
             put("status", status.name)
             put("attempts", attempts)
-            put("error", cipher.encrypt(error))
-            put("bark_response", cipher.encrypt(response))
+            put("error", cipher.encryptOrThrow(error))
+            put("bark_response", cipher.encryptOrThrow(response))
         }
+        database.writableDatabase.update(
+            HistoryDatabase.TABLE_RECORDS,
+            values,
+            "id = ?",
+            arrayOf(id.toString()),
+        )
+    }
+
+    fun updateTargetChannels(id: Long, channels: String?) {
+        val values = ContentValues().apply { put("target_channels", channels) }
         database.writableDatabase.update(
             HistoryDatabase.TABLE_RECORDS,
             values,
@@ -173,6 +184,7 @@ class HistoryDao(
         title = cipher.decrypt(getString(getColumnIndexOrThrow("title"))),
         barkBody = cipher.decrypt(getString(getColumnIndexOrThrow("bark_body"))),
         barkResponse = cipher.decrypt(getString(getColumnIndexOrThrow("bark_response"))),
+        targetChannels = getString(getColumnIndexOrThrow("target_channels")),
     )
 
     companion object {
@@ -182,6 +194,7 @@ class HistoryDao(
         private val COLUMNS = arrayOf(
             "id", "sender", "body", "received_at", "created_at", "sim_label",
             "subscription_id", "status", "attempts", "error", "title", "bark_body", "bark_response",
+            "target_channels",
         )
     }
 }

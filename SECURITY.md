@@ -15,9 +15,10 @@ users at risk. Include the affected version, reproduction steps and impact.
 
 - **No secrets in source**: the app has no API keys, tokens or server credentials.
   The user's push-channel credentials (Bark/ntfy/Telegram/Pushover/Email), remote
-  HMAC secret and automation token are stored in app-private SharedPreferences and
-  never leave the device except as requests to the endpoints configured by the user.
-  Local history bodies are encrypted with Android Keystore; see below.
+  HMAC secret, automation token and app-lock PIN material are encrypted with an
+  Android Keystore AES-GCM key inside app-private SharedPreferences, and never
+  leave the device except as requests to the endpoints configured by the user.
+  Local history fields are encrypted with the same Keystore-backed approach.
 - **No analytics, ads or third-party telemetry**. Outbound requests are limited to
   the user-configured push channels/SMTP server and the update manifest check
   (`latest.json` from GitHub Releases).

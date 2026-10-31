@@ -88,8 +88,14 @@ object RoutingEngine {
         context: RoutingContext,
         rules: List<RoutingRule>,
         activeChannels: List<com.dodocomm.app.core.channel.PushChannel>,
+        defaultChannelIds: List<String> = emptyList(),
     ): List<com.dodocomm.app.core.channel.PushChannel> {
         if (activeChannels.isEmpty()) return emptyList()
+        val defaults = if (defaultChannelIds.isEmpty()) {
+            activeChannels
+        } else {
+            activeChannels.filter { it.id in defaultChannelIds }
+        }
         val matchedTargets = LinkedHashSet<String>()
         var matched = false
         for (rule in rules) {
@@ -98,10 +104,10 @@ object RoutingEngine {
             matchedTargets += rule.targetChannelIds
             if (!rule.continueMatching) break
         }
-        if (!matched) return activeChannels
+        if (!matched) return defaults
         val selected = activeChannels.filter { it.id in matchedTargets }
         return if (selected.isEmpty()) {
-            if (rules.any { it.matches(context) && it.fallbackToDefault }) activeChannels else emptyList()
+            if (rules.any { it.matches(context) && it.fallbackToDefault }) defaults else emptyList()
         } else {
             selected
         }

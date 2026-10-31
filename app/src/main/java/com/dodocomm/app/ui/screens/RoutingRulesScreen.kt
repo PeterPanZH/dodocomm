@@ -22,6 +22,8 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.FilterAlt
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -43,6 +45,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dodocomm.app.core.routing.RoutingContext
+import com.dodocomm.app.core.routing.RoutingEngine
 import com.dodocomm.app.core.routing.RoutingRule
 import com.dodocomm.app.core.settings.AppSettings
 import com.dodocomm.app.ui.AppViewModel
@@ -57,6 +61,8 @@ import com.dodocomm.app.ui.i18n.AppStrings
 fun RoutingRulesScreen(viewModel: AppViewModel, onBack: () -> Unit) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
+    var testSender by rememberSaveable { mutableStateOf("") }
+    var testBody by rememberSaveable { mutableStateOf("") }
     val editing = editingId?.let { id -> settings.routingRules.firstOrNull { it.id == id } }
 
     if (editing != null) {
@@ -107,11 +113,78 @@ fun RoutingRulesScreen(viewModel: AppViewModel, onBack: () -> Unit) {
                         fontWeight = FontWeight.SemiBold,
                     )
                     Text(
-                        text = "没有规则命中时，发送到所有已启用且配置完整的通道。",
+                        text = if (settings.defaultChannelIds.isEmpty()) {
+                            "没有规则命中时，发送到所有已启用且配置完整的通道。"
+                        } else {
+                            "没有规则命中时，发送到下面选中的通道。"
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        settings.channels.forEach { channel ->
+                            FilterChip(
+                                selected = channel.id in settings.defaultChannelIds,
+                                onClick = { viewModel.setDefaultChannel(channel.id, channel.id !in settings.defaultChannelIds) },
+                                label = { Text(channel.name) },
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+            item(key = "rule_test") {
+                SectionCard {
+                    Text("测试规则", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "输入示例号码和内容，实时查看命中的第一条规则与最终目标。",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    SettingTextField(
+                        value = testSender,
+                        onCommit = { testSender = it },
+                        label = "示例发送者",
+                        placeholder = "95588",
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    SettingTextField(
+                        value = testBody,
+                        onCommit = { testBody = it },
+                        label = "示例内容",
+                        placeholder = "您的验证码是 123456",
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    val active = settings.activePushChannels()
+                    val testContext = RoutingContext(
+                        sender = testSender,
+                        body = testBody,
+                        simLabel = null,
+                        nowMinutes = java.time.LocalTime.now().let { it.hour * 60 + it.minute },
+                    )
+                    val matchedRule = with(RoutingEngine) { settings.routingRules.firstOrNull { it.enabled && it.matches(testContext) } }
+                    val targets = RoutingEngine.targets(
+                        context = testContext,
+                        rules = settings.routingRules,
+                        activeChannels = active,
+                        defaultChannelIds = settings.defaultChannelIds,
+                    )
+                    Text(
+                        text = "命中：" + (matchedRule?.name ?: "默认目标"),
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = "最终目标：" + (targets.joinToString("、") { it.name }.ifBlank { "无可用通道" }),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                Spacer(Modifier.height(16.dp))
+            }
+            item(key = "rules_header") {
                 Spacer(Modifier.height(16.dp))
             }
             item(key = "rules") {
@@ -132,6 +205,8 @@ fun RoutingRulesScreen(viewModel: AppViewModel, onBack: () -> Unit) {
                                 settings = settings,
                                 onOpen = { editingId = rule.id },
                                 onToggle = { enabled -> viewModel.updateRoutingRule(rule.copy(enabled = enabled)) },
+                                onMoveUp = { viewModel.moveRoutingRule(rule.id, -1) },
+                                onMoveDown = { viewModel.moveRoutingRule(rule.id, 1) },
                             )
                         }
                     }
@@ -162,6 +237,8 @@ private fun RuleRow(
     settings: AppSettings,
     onOpen: () -> Unit,
     onToggle: (Boolean) -> Unit,
+    onMoveUp: () -> Unit,
+    onMoveDown: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
@@ -182,7 +259,15 @@ private fun RuleRow(
                 )
             }
         }
-        Spacer(Modifier.width(10.dp))
+        Column {
+            IconButton(onClick = onMoveUp, modifier = Modifier.size(28.dp)) {
+                Icon(Icons.Rounded.KeyboardArrowUp, contentDescription = "上移规则", modifier = Modifier.size(18.dp))
+            }
+            IconButton(onClick = onMoveDown, modifier = Modifier.size(28.dp)) {
+                Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = "下移规则", modifier = Modifier.size(18.dp))
+            }
+        }
+        Spacer(Modifier.width(4.dp))
         Switch(checked = rule.enabled, onCheckedChange = onToggle)
     }
 }
@@ -251,6 +336,20 @@ private fun RuleEditor(
                         onCommit = { onChange(rule.copy(keywordContains = it.trim())) },
                         label = "内容关键词包含（可选）",
                         placeholder = "验证码",
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    SettingTextField(
+                        value = rule.senderRegex,
+                        onCommit = { onChange(rule.copy(senderRegex = it.trim())) },
+                        label = "发送者正则（可选）",
+                        placeholder = "^95588$",
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    SettingTextField(
+                        value = rule.keywordRegex,
+                        onCommit = { onChange(rule.copy(keywordRegex = it.trim())) },
+                        label = "内容正则（可选）",
+                        placeholder = "验证码|动态码",
                     )
                     Spacer(Modifier.height(10.dp))
                     Text("SIM 槽位", style = MaterialTheme.typography.labelMedium)

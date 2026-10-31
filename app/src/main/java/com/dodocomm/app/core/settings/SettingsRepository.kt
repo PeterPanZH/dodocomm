@@ -6,6 +6,7 @@ import com.dodocomm.app.core.routing.RoutingRule
 import org.json.JSONArray
 import org.json.JSONObject
 import android.content.SharedPreferences
+import com.dodocomm.app.core.crypto.RecordCipher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,8 +19,10 @@ import kotlinx.coroutines.flow.asStateFlow
  * so a process that is killed right after a toggle keeps its configuration.
  */
 class SettingsRepository(context: Context) {
+    private val appContext = context.applicationContext
+    private val cipher = RecordCipher(appContext)
     private val prefs: SharedPreferences =
-        context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     private val lock = Any()
     private val _settings = MutableStateFlow(readAll())
     val settings: StateFlow<AppSettings> = _settings.asStateFlow()
@@ -41,6 +44,24 @@ class SettingsRepository(context: Context) {
         _settings.value = settings
         settings
     }
+
+    private fun encryptChannel(channel: PushChannel): PushChannel = channel.copy(
+        deviceKey = cipher.encrypt(channel.deviceKey).orEmpty(),
+        token = cipher.encrypt(channel.token).orEmpty(),
+        botToken = cipher.encrypt(channel.botToken).orEmpty(),
+        userKey = cipher.encrypt(channel.userKey).orEmpty(),
+        appToken = cipher.encrypt(channel.appToken).orEmpty(),
+        smtpPassword = cipher.encrypt(channel.smtpPassword).orEmpty(),
+    )
+
+    private fun decryptChannel(channel: PushChannel): PushChannel = channel.copy(
+        deviceKey = cipher.decrypt(channel.deviceKey).orEmpty(),
+        token = cipher.decrypt(channel.token).orEmpty(),
+        botToken = cipher.decrypt(channel.botToken).orEmpty(),
+        userKey = cipher.decrypt(channel.userKey).orEmpty(),
+        appToken = cipher.decrypt(channel.appToken).orEmpty(),
+        smtpPassword = cipher.decrypt(channel.smtpPassword).orEmpty(),
+    )
 
     private fun encodeChannels(channels: List<PushChannel>): String {
         val array = JSONArray()
@@ -120,7 +141,9 @@ class SettingsRepository(context: Context) {
     private fun readAll(): AppSettings {
         val defaults = AppSettings()
         val legacyServerUrl = prefs.getString(KEY_SERVER_URL, defaults.serverUrl).orEmpty()
-        val legacyDeviceKey = prefs.getString(KEY_DEVICE_KEY, defaults.deviceKey).orEmpty()
+        val legacyDeviceKey = cipher.decrypt(
+            prefs.getString(KEY_DEVICE_KEY, defaults.deviceKey).orEmpty(),
+        ).orEmpty()
         val legacyGroup = prefs.getString(KEY_PUSH_GROUP, defaults.pushGroup).orEmpty()
         val legacySound = prefs.getString(KEY_PUSH_SOUND, defaults.pushSound).orEmpty()
         val legacyLevel = PushLevel.fromName(
@@ -148,13 +171,14 @@ class SettingsRepository(context: Context) {
             legacyArchive = legacyArchive,
             legacyBadge = legacyBadge,
             legacyCopyMode = legacyCopyMode,
-        )
+        ).map(::decryptChannel)
         return AppSettings(
             forwardingEnabled = prefs.getBoolean(KEY_FORWARDING_ENABLED, defaults.forwardingEnabled),
             serverUrl = legacyServerUrl,
             deviceKey = legacyDeviceKey,
             channels = channels,
             routingRules = decodeRules(prefs.getString(KEY_ROUTING_RULES, null)),
+            defaultChannelIds = decodeList(prefs.getString(KEY_DEFAULT_CHANNELS, null)),
             deviceName = prefs.getString(KEY_DEVICE_NAME, defaults.deviceName).orEmpty(),
             titleTemplate = migrateTitleTemplate(
                 prefs.getString(KEY_TITLE_TEMPLATE, defaults.titleTemplate).orEmpty(),
@@ -172,8 +196,12 @@ class SettingsRepository(context: Context) {
             autoStartOnBoot = prefs.getBoolean(KEY_AUTO_START_ON_BOOT, defaults.autoStartOnBoot),
             hideFromRecents = prefs.getBoolean(KEY_HIDE_FROM_RECENTS, defaults.hideFromRecents),
             appLockEnabled = prefs.getBoolean(KEY_APP_LOCK_ENABLED, defaults.appLockEnabled),
-            appLockPinSalt = prefs.getString(KEY_APP_LOCK_SALT, defaults.appLockPinSalt).orEmpty(),
-            appLockPinHash = prefs.getString(KEY_APP_LOCK_HASH, defaults.appLockPinHash).orEmpty(),
+            appLockPinSalt = cipher.decrypt(
+                prefs.getString(KEY_APP_LOCK_SALT, defaults.appLockPinSalt).orEmpty(),
+            ).orEmpty(),
+            appLockPinHash = cipher.decrypt(
+                prefs.getString(KEY_APP_LOCK_HASH, defaults.appLockPinHash).orEmpty(),
+            ).orEmpty(),
             autoLockMinutes = prefs.getInt(KEY_AUTO_LOCK_MINUTES, defaults.autoLockMinutes),
             biometricUnlock = prefs.getBoolean(KEY_BIOMETRIC_UNLOCK, defaults.biometricUnlock),
             senderWhitelist = decodeList(prefs.getString(KEY_SENDER_WHITELIST, null)),
@@ -192,9 +220,13 @@ class SettingsRepository(context: Context) {
             retryOnlyWifi = prefs.getBoolean(KEY_RETRY_ONLY_WIFI, defaults.retryOnlyWifi),
             retryMaxHours = prefs.getInt(KEY_RETRY_MAX_HOURS, defaults.retryMaxHours),
             automationEnabled = prefs.getBoolean(KEY_AUTOMATION_ENABLED, defaults.automationEnabled),
-            automationToken = prefs.getString(KEY_AUTOMATION_TOKEN, defaults.automationToken).orEmpty(),
+            automationToken = cipher.decrypt(
+                prefs.getString(KEY_AUTOMATION_TOKEN, defaults.automationToken).orEmpty(),
+            ).orEmpty(),
             remoteEnabled = prefs.getBoolean(KEY_REMOTE_ENABLED, defaults.remoteEnabled),
-            remoteSecret = prefs.getString(KEY_REMOTE_SECRET, defaults.remoteSecret).orEmpty(),
+            remoteSecret = cipher.decrypt(
+                prefs.getString(KEY_REMOTE_SECRET, defaults.remoteSecret).orEmpty(),
+            ).orEmpty(),
             remoteTrustedNumber = prefs.getString(KEY_REMOTE_TRUSTED_NUMBER, defaults.remoteTrustedNumber).orEmpty(),
             remoteLastNonce = prefs.getLong(KEY_REMOTE_LAST_NONCE, defaults.remoteLastNonce),
         )
@@ -204,9 +236,10 @@ class SettingsRepository(context: Context) {
         prefs.edit()
             .putBoolean(KEY_FORWARDING_ENABLED, settings.forwardingEnabled)
             .putString(KEY_SERVER_URL, settings.serverUrl)
-            .putString(KEY_DEVICE_KEY, settings.deviceKey)
-            .putString(KEY_CHANNELS, encodeChannels(settings.channels))
+            .putString(KEY_DEVICE_KEY, cipher.encrypt(settings.deviceKey))
+            .putString(KEY_CHANNELS, encodeChannels(settings.channels.map(::encryptChannel)))
             .putString(KEY_ROUTING_RULES, encodeRules(settings.routingRules))
+            .putString(KEY_DEFAULT_CHANNELS, encodeList(settings.defaultChannelIds))
             .putString(KEY_DEVICE_NAME, settings.deviceName)
             .putString(KEY_TITLE_TEMPLATE, settings.titleTemplate)
             .putString(KEY_BODY_TEMPLATE, settings.bodyTemplate)
@@ -223,8 +256,8 @@ class SettingsRepository(context: Context) {
             .putBoolean(KEY_AUTO_START_ON_BOOT, settings.autoStartOnBoot)
             .putBoolean(KEY_HIDE_FROM_RECENTS, settings.hideFromRecents)
             .putBoolean(KEY_APP_LOCK_ENABLED, settings.appLockEnabled)
-            .putString(KEY_APP_LOCK_SALT, settings.appLockPinSalt)
-            .putString(KEY_APP_LOCK_HASH, settings.appLockPinHash)
+            .putString(KEY_APP_LOCK_SALT, cipher.encrypt(settings.appLockPinSalt))
+            .putString(KEY_APP_LOCK_HASH, cipher.encrypt(settings.appLockPinHash))
             .putInt(KEY_AUTO_LOCK_MINUTES, settings.autoLockMinutes)
             .putBoolean(KEY_BIOMETRIC_UNLOCK, settings.biometricUnlock)
             .putString(KEY_SENDER_WHITELIST, encodeList(settings.senderWhitelist))
@@ -243,9 +276,9 @@ class SettingsRepository(context: Context) {
             .putBoolean(KEY_RETRY_ONLY_WIFI, settings.retryOnlyWifi)
             .putInt(KEY_RETRY_MAX_HOURS, settings.retryMaxHours)
             .putBoolean(KEY_AUTOMATION_ENABLED, settings.automationEnabled)
-            .putString(KEY_AUTOMATION_TOKEN, settings.automationToken)
+            .putString(KEY_AUTOMATION_TOKEN, cipher.encrypt(settings.automationToken))
             .putBoolean(KEY_REMOTE_ENABLED, settings.remoteEnabled)
-            .putString(KEY_REMOTE_SECRET, settings.remoteSecret)
+            .putString(KEY_REMOTE_SECRET, cipher.encrypt(settings.remoteSecret))
             .putString(KEY_REMOTE_TRUSTED_NUMBER, settings.remoteTrustedNumber)
             .putLong(KEY_REMOTE_LAST_NONCE, settings.remoteLastNonce)
             .commit()
@@ -259,6 +292,7 @@ class SettingsRepository(context: Context) {
         private const val KEY_DEVICE_KEY = "device_key"
         private const val KEY_CHANNELS = "push_channels"
         private const val KEY_ROUTING_RULES = "routing_rules"
+        private const val KEY_DEFAULT_CHANNELS = "default_channels"
         private const val KEY_DEVICE_NAME = "device_name"
         private const val KEY_TITLE_TEMPLATE = "title_template"
         private const val KEY_BODY_TEMPLATE = "body_template"

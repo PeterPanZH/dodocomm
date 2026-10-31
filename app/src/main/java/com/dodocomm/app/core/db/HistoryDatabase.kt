@@ -37,6 +37,7 @@ class HistoryDatabase(
                 title TEXT,
                 bark_body TEXT,
                 bark_response TEXT,
+                target_channels TEXT,
                 dedupe_key TEXT NOT NULL UNIQUE
             )
             """.trimIndent(),
@@ -50,6 +51,9 @@ class HistoryDatabase(
         if (oldVersion < 2) {
             // Preserve existing history when adding the rendered Bark body column.
             db.execSQL("ALTER TABLE $TABLE_RECORDS ADD COLUMN bark_body TEXT")
+        }
+        if (oldVersion < 3) {
+            db.execSQL("ALTER TABLE $TABLE_RECORDS ADD COLUMN target_channels TEXT")
         }
     }
 
@@ -94,7 +98,7 @@ class HistoryDatabase(
                     fields.forEachIndexed { index, field ->
                         val value = cursor.getString(index + 1)
                         if (!value.isNullOrEmpty() && !cipher.isEncrypted(value)) {
-                            values.put(field, cipher.encrypt(value))
+                            values.put(field, cipher.encryptOrThrow(value))
                             changed = true
                         }
                     }
@@ -113,7 +117,7 @@ class HistoryDatabase(
 
     companion object {
         const val DATABASE_NAME = "sms2bark.db"
-        const val DATABASE_VERSION = 2
+        const val DATABASE_VERSION = 3
         const val TABLE_RECORDS = "records"
     }
 }

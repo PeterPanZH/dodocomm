@@ -74,6 +74,10 @@ class HistoryRepository(
         refresh()
     }
 
+    suspend fun updateTargetChannels(id: Long, channels: String?) {
+        withContext(Dispatchers.IO) { dao.updateTargetChannels(id, channels) }
+    }
+
     suspend fun get(id: Long): ForwardRecord? = withContext(Dispatchers.IO) { dao.get(id) }
 
     suspend fun listForRetry(limit: Int = 10, maxAttempts: Int = 5): List<ForwardRecord> =

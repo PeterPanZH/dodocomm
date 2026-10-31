@@ -54,7 +54,7 @@ class PushDispatcher(
         val channels = if (routing == null) {
             active
         } else {
-            RoutingEngine.targets(routing, settings.routingRules, active)
+            RoutingEngine.targets(routing, settings.routingRules, active, settings.defaultChannelIds)
         }
         if (channels.isEmpty()) {
             return DispatchResult(
