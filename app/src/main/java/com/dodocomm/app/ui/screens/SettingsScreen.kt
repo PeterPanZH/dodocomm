@@ -67,6 +67,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Text as MaterialText
 import com.dodocomm.app.ui.components.Text
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -1563,13 +1564,24 @@ private fun AppearanceCard(settings: AppSettings, viewModel: AppViewModel) {
             SettingActionRow(
                 title = "语言",
                 subtitle = "界面文字语言（应用内）",
-                value = settings.appLanguage.label,
+                value = if (settings.appLanguage == AppLanguage.SYSTEM) {
+                    com.dodocomm.app.ui.i18n.AppStrings.translate(settings.appLanguage.label)
+                } else {
+                    settings.appLanguage.label
+                },
+                translateValue = settings.appLanguage == AppLanguage.SYSTEM,
                 onClick = { languageExpanded = true },
             )
             DropdownMenu(expanded = languageExpanded, onDismissRequest = { languageExpanded = false }) {
                 AppLanguage.entries.forEach { language ->
                     DropdownMenuItem(
-                        text = { Text(language.label) },
+                        text = {
+                            if (language == AppLanguage.SYSTEM) {
+                                Text(language.label)
+                            } else {
+                                MaterialText(language.label)
+                            }
+                        },
                         onClick = {
                             viewModel.setAppLanguage(language)
                             languageExpanded = false

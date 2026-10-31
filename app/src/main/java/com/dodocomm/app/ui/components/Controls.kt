@@ -68,6 +68,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text as MaterialText
+import androidx.compose.material3.Text as MaterialText
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -398,6 +399,7 @@ fun SettingActionRow(
     icon: ImageVector? = null,
     showChevron: Boolean = true,
     destructive: Boolean = false,
+    translateValue: Boolean = true,
 ) {
     val titleColor = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
     Row(
@@ -437,11 +439,20 @@ fun SettingActionRow(
         }
         if (value != null) {
             Spacer(Modifier.width(10.dp))
-            Text(
-                text = value,
-                style = MaterialTheme.typography.labelMedium,
-                color = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-            )
+            val valueColor = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+            if (translateValue) {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = valueColor,
+                )
+            } else {
+                MaterialText(
+                    text = value,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = valueColor,
+                )
+            }
         }
         if (showChevron) {
             Spacer(Modifier.width(4.dp))
