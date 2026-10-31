@@ -522,5 +522,11 @@
  "应用锁、自动锁定与生物识别": "App lock, auto-lock and biometrics",
  "常驻通知、开机恢复、电池优化与保活向导": "Ongoing notification, boot restore, battery optimization and keep-alive guide",
  "记录保留、导出与加密备份": "Retention, export and encrypted backups",
- "主题、语言与动态取色": "Theme, language and dynamic color"
+ "主题、语言与动态取色": "Theme, language and dynamic color",
+ "插入标题变量": "Insert title variables",
+ "插入正文变量": "Insert body variables",
+ "变量含义与示例": "Variable meanings and examples",
+ "标题和消息体会一起恢复为推荐模板。": "Both title and body will be reset to the recommended templates.",
+ "显示在 iPhone 通知的第一行": "Shown as the first line of the iPhone notification",
+ "{body} 是短信原文；不含 {body} 时原文仍会保留": "{body} is the original SMS. If omitted, the original is still kept."
 }

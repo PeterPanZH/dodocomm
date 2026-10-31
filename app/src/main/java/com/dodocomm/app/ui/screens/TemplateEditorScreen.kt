@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 
 package com.dodocomm.app.ui.screens
 
@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
@@ -27,9 +29,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -55,6 +54,7 @@ import com.dodocomm.app.forward.TitleTemplate
 import com.dodocomm.app.ui.AppViewModel
 import com.dodocomm.app.ui.components.SectionCard
 import com.dodocomm.app.ui.components.SettingTextField
+import com.dodocomm.app.ui.components.TokenChip
 import com.dodocomm.app.ui.components.Text
 import com.dodocomm.app.ui.model.TestPushState
 import com.dodocomm.app.ui.theme.FieldShape
@@ -86,7 +86,6 @@ fun TemplateEditorScreen(
     val testState by viewModel.templateTestState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val systemDeviceName = rememberSaveable { DeviceName.resolve(context) }
-    var tab by rememberSaveable { mutableStateOf(0) }
     var showHelp by rememberSaveable { mutableStateOf(false) }
     var showResetDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -118,31 +117,31 @@ fun TemplateEditorScreen(
         }
     }
 
-    val activeValue = if (tab == 0) titleValue else bodyValue
-    val activeTokens = templateVariables.filter { tab != 0 || !it.bodyOnly }
+    val titleTokens = templateVariables.filter { !it.bodyOnly }
+    val bodyTokens = templateVariables
 
-    fun insert(token: String) {
-        val current = if (tab == 0) titleValue else bodyValue
+    fun insertInto(
+        current: TextFieldValue,
+        token: String,
+        onNewValue: (TextFieldValue, String) -> Unit,
+    ) {
         val start = current.selection.min.coerceIn(0, current.text.length)
         val end = current.selection.max.coerceIn(start, current.text.length)
         val newText = current.text.replaceRange(start, end, token)
-        val newValue = TextFieldValue(newText, selection = TextRange(start + token.length))
-        if (tab == 0) {
-            titleValue = newValue
-            viewModel.setTitleTemplate(newText)
-        } else {
-            bodyValue = newValue
-            viewModel.setBodyTemplate(newText)
+        onNewValue(TextFieldValue(newText, selection = TextRange(start + token.length)), newText)
+    }
+
+    fun insertTitleToken(token: String) {
+        insertInto(titleValue, token) { value, text ->
+            titleValue = value
+            viewModel.setTitleTemplate(text)
         }
     }
 
-    fun onActiveValueChange(value: TextFieldValue) {
-        if (tab == 0) {
-            titleValue = value
-            viewModel.setTitleTemplate(value.text)
-        } else {
+    fun insertBodyToken(token: String) {
+        insertInto(bodyValue, token) { value, text ->
             bodyValue = value
-            viewModel.setBodyTemplate(value.text)
+            viewModel.setBodyTemplate(text)
         }
     }
 
@@ -199,80 +198,93 @@ fun TemplateEditorScreen(
             }
 
             Spacer(Modifier.height(18.dp))
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                listOf("标题模板", "消息体模板").forEachIndexed { index, label ->
-                    SegmentedButton(
-                        selected = tab == index,
-                        onClick = { tab = index },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = 2),
-                    ) {
-                        Text(label)
+            SectionCard {
+                Text(
+                    text = "标题模板",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Spacer(Modifier.height(6.dp))
+                OutlinedTextField(
+                    value = titleValue,
+                    onValueChange = { value ->
+                        titleValue = value
+                        viewModel.setTitleTemplate(value.text)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = MaterialTheme.typography.bodyLarge,
+                    placeholder = { Text("{device} · {sender}") },
+                    supportingText = { Text("显示在 iPhone 通知的第一行") },
+                    singleLine = true,
+                    shape = FieldShape,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "插入标题变量",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(6.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    titleTokens.forEach { variable ->
+                        TokenChip(
+                            text = variable.token,
+                            onClick = { insertTitleToken(variable.token) },
+                        )
                     }
                 }
             }
-            Spacer(Modifier.height(10.dp))
-            OutlinedTextField(
-                value = activeValue,
-                onValueChange = ::onActiveValueChange,
-                modifier = Modifier.fillMaxWidth(),
-                textStyle = MaterialTheme.typography.bodyLarge,
-                label = { Text(if (tab == 0) "标题模板" else "消息体模板") },
-                placeholder = {
-                    Text(
-                        if (tab == 0) {
-                            "{device} · {sender}"
-                        } else {
-                            "{body}\n\n{datetime} · {sim} · {number}"
-                        },
-                    )
-                },
-                supportingText = {
-                    Text(
-                        if (tab == 0) {
-                            "标题显示在 iPhone 通知的第一行"
-                        } else {
-                            "{body} 是短信原文；不含 {body} 时原文仍会保留"
-                        },
-                    )
-                },
-                singleLine = tab == 0,
-                minLines = if (tab == 0) 1 else 5,
-                maxLines = if (tab == 0) 1 else 10,
-                shape = FieldShape,
-            )
 
             Spacer(Modifier.height(16.dp))
             SectionCard {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "插入变量",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f),
-                    )
-                    TextButton(onClick = { showHelp = true }) {
-                        Text("含义与示例")
-                    }
-                }
-                Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "点击变量，插入到当前模板的光标位置。",
-                    style = MaterialTheme.typography.bodySmall,
+                    text = "消息体模板",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Spacer(Modifier.height(6.dp))
+                OutlinedTextField(
+                    value = bodyValue,
+                    onValueChange = { value ->
+                        bodyValue = value
+                        viewModel.setBodyTemplate(value.text)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = MaterialTheme.typography.bodyLarge,
+                    placeholder = { Text("{body}\n\n{datetime} · {sim} · {number}") },
+                    supportingText = { Text("{body} 是短信原文；不含 {body} 时原文仍会保留") },
+                    singleLine = false,
+                    minLines = 5,
+                    maxLines = 10,
+                    shape = FieldShape,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "插入正文变量",
+                    style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Spacer(Modifier.height(10.dp))
-                activeTokens.chunked(2).forEachIndexed { rowIndex, row ->
-                    if (rowIndex > 0) Spacer(Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        row.forEach { variable ->
-                            TemplateVariableCard(
-                                variable = variable,
-                                modifier = Modifier.weight(1f),
-                                onClick = { insert(variable.token) },
-                            )
-                        }
-                        if (row.size == 1) Spacer(Modifier.weight(1f))
+                Spacer(Modifier.height(6.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    bodyTokens.forEach { variable ->
+                        TokenChip(
+                            text = variable.token,
+                            onClick = { insertBodyToken(variable.token) },
+                        )
                     }
+                }
+            }
+
+            Spacer(Modifier.height(6.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                TextButton(onClick = { showHelp = true }) {
+                    Text("变量含义与示例")
                 }
             }
 
@@ -334,61 +346,21 @@ fun TemplateEditorScreen(
         TemplateVariableHelpSheet(onDismiss = { showHelp = false })
     }
     if (showResetDialog) {
-        val isTitle = tab == 0
         AlertDialog(
             onDismissRequest = { showResetDialog = false },
             title = { Text("恢复默认模板？") },
-            text = { Text(if (isTitle) "标题会恢复为推荐模板。" else "消息体会恢复为推荐模板。") },
+            text = { Text("标题和消息体会一起恢复为推荐模板。") },
             confirmButton = {
                 TextButton(onClick = {
-                    if (isTitle) {
-                        viewModel.setTitleTemplate(AppSettings.DEFAULT_TITLE_TEMPLATE)
-                        titleValue = TextFieldValue(AppSettings.DEFAULT_TITLE_TEMPLATE)
-                    } else {
-                        viewModel.setBodyTemplate(AppSettings.DEFAULT_BODY_TEMPLATE)
-                        bodyValue = TextFieldValue(AppSettings.DEFAULT_BODY_TEMPLATE)
-                    }
+                    viewModel.setTitleTemplate(AppSettings.DEFAULT_TITLE_TEMPLATE)
+                    viewModel.setBodyTemplate(AppSettings.DEFAULT_BODY_TEMPLATE)
+                    titleValue = TextFieldValue(AppSettings.DEFAULT_TITLE_TEMPLATE)
+                    bodyValue = TextFieldValue(AppSettings.DEFAULT_BODY_TEMPLATE)
                     showResetDialog = false
                 }) { Text("恢复") }
             },
             dismissButton = { TextButton(onClick = { showResetDialog = false }) { Text("取消") } },
         )
-    }
-}
-
-@Composable
-private fun TemplateVariableCard(
-    variable: TemplateVariable,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
-    Surface(
-        onClick = onClick,
-        modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
-    ) {
-        Column(Modifier.padding(10.dp)) {
-            Text(
-                text = variable.token,
-                style = MaterialTheme.typography.labelMedium,
-                fontFamily = FontFamily.Monospace,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(Modifier.height(3.dp))
-            Text(
-                text = variable.name,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = variable.example,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
     }
 }
 
