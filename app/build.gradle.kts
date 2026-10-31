@@ -49,6 +49,8 @@ android {
 
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        resources.excludes += "META-INF/LICENSE.md"
+        resources.excludes += "META-INF/NOTICE.md"
     }
 
     lint {
@@ -82,6 +84,8 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
 
     implementation(libs.okhttp)
+    implementation("com.sun.mail:android-mail:1.6.7")
+    implementation("com.sun.mail:android-activation:1.6.7")
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

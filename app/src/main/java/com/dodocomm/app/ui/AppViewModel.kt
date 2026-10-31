@@ -8,6 +8,8 @@ import android.net.Uri
 import com.dodocomm.app.BuildConfig
 import com.dodocomm.app.appContainer
 import com.dodocomm.app.core.model.BarkResult
+import com.dodocomm.app.core.channel.ChannelType
+import com.dodocomm.app.core.channel.PushChannel
 import com.dodocomm.app.core.export.ExportFormat
 import com.dodocomm.app.core.export.ExportRange
 import com.dodocomm.app.core.security.AppLock
@@ -358,6 +360,58 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun setPushUrl(value: String) = updateSettings { it.copy(pushUrl = value.trim()) }
 
     fun setPushLevel(level: PushLevel) = updateSettings { it.copy(pushLevel = level) }
+
+    // -- push channels ------------------------------------------------------
+
+    fun addChannel(type: ChannelType): PushChannel {
+        val existing = container.settings.current().channels.firstOrNull { it.type == type && type == ChannelType.BARK }
+        if (existing != null) return existing
+        val channel = PushChannel.create(type)
+        updateSettings { it.copy(channels = it.channels + channel) }
+        return channel
+    }
+
+    fun updateChannel(channel: PushChannel) {
+        updateSettings { current ->
+            current.copy(channels = current.channels.map { if (it.id == channel.id) channel else it })
+        }
+    }
+
+    fun setChannelEnabled(id: String, enabled: Boolean) {
+        updateSettings { current ->
+            current.copy(
+                channels = current.channels.map {
+                    if (it.id == id) it.copy(enabled = enabled) else it
+                },
+            )
+        }
+    }
+
+    fun removeChannel(id: String) {
+        val channel = container.settings.current().channels.firstOrNull { it.id == id } ?: return
+        if (channel.type == ChannelType.BARK) return
+        updateSettings { current ->
+            current.copy(channels = current.channels.filterNot { it.id == id })
+        }
+    }
+
+    suspend fun testChannel(id: String): com.dodocomm.app.core.channel.ChannelSendResult {
+        val current = container.settings.current()
+        val channel = current.channels.firstOrNull { it.id == id }
+            ?: return com.dodocomm.app.core.channel.ChannelSendResult(
+                channelId = id,
+                channelName = "通道",
+                type = ChannelType.BARK,
+                success = false,
+                message = "通道不存在",
+            )
+        return container.pushDispatcher.sendTo(
+            settings = current,
+            channel = channel,
+            title = "DodoComm 通道测试",
+            body = "这是一条测试推送：${channel.name}",
+        )
+    }
 
     fun setSenderWhitelist(values: List<String>) =
         updateSettings { it.copy(senderWhitelist = values.distinct()) }

@@ -1,11 +1,13 @@
 package com.dodocomm.app.core.settings
 
 import android.content.Context
+import com.dodocomm.app.core.channel.PushChannel
+import org.json.JSONArray
+import org.json.JSONObject
 import android.content.SharedPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import org.json.JSONArray
 
 /**
  * Single source of truth for [AppSettings].
@@ -39,6 +41,24 @@ class SettingsRepository(context: Context) {
         settings
     }
 
+    private fun encodeChannels(channels: List<PushChannel>): String {
+        val array = JSONArray()
+        channels.forEach { array.put(it.toJson()) }
+        return array.toString()
+    }
+
+    private fun decodeChannels(raw: String?): List<PushChannel> {
+        if (raw.isNullOrBlank()) return listOf(PushChannel.bark())
+        return runCatching {
+            val array = JSONArray(raw)
+            buildList {
+                for (index in 0 until array.length()) {
+                    add(PushChannel.fromJson(array.getJSONObject(index)))
+                }
+            }.ifEmpty { listOf(PushChannel.bark()) }
+        }.getOrDefault(listOf(PushChannel.bark()))
+    }
+
     private fun migrateTitleTemplate(raw: String): String =
         if (raw == AppSettings.LEGACY_TITLE_TEMPLATE) AppSettings.DEFAULT_TITLE_TEMPLATE else raw
 
@@ -48,6 +68,7 @@ class SettingsRepository(context: Context) {
             forwardingEnabled = prefs.getBoolean(KEY_FORWARDING_ENABLED, defaults.forwardingEnabled),
             serverUrl = prefs.getString(KEY_SERVER_URL, defaults.serverUrl).orEmpty(),
             deviceKey = prefs.getString(KEY_DEVICE_KEY, defaults.deviceKey).orEmpty(),
+            channels = decodeChannels(prefs.getString(KEY_CHANNELS, null)),
             deviceName = prefs.getString(KEY_DEVICE_NAME, defaults.deviceName).orEmpty(),
             titleTemplate = migrateTitleTemplate(
                 prefs.getString(KEY_TITLE_TEMPLATE, defaults.titleTemplate).orEmpty(),
@@ -93,6 +114,7 @@ class SettingsRepository(context: Context) {
             .putBoolean(KEY_FORWARDING_ENABLED, settings.forwardingEnabled)
             .putString(KEY_SERVER_URL, settings.serverUrl)
             .putString(KEY_DEVICE_KEY, settings.deviceKey)
+            .putString(KEY_CHANNELS, encodeChannels(settings.channels))
             .putString(KEY_DEVICE_NAME, settings.deviceName)
             .putString(KEY_TITLE_TEMPLATE, settings.titleTemplate)
             .putString(KEY_BODY_TEMPLATE, settings.bodyTemplate)
@@ -133,6 +155,7 @@ class SettingsRepository(context: Context) {
         private const val KEY_FORWARDING_ENABLED = "forwarding_enabled"
         private const val KEY_SERVER_URL = "server_url"
         private const val KEY_DEVICE_KEY = "device_key"
+        private const val KEY_CHANNELS = "push_channels"
         private const val KEY_DEVICE_NAME = "device_name"
         private const val KEY_TITLE_TEMPLATE = "title_template"
         private const val KEY_BODY_TEMPLATE = "body_template"

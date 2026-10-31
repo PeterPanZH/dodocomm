@@ -96,18 +96,21 @@ class ForwardEngine(
             return record
         }
 
-        if (!settings.isConfigured) {
-            Log.w(TAG, "已收到短信但未配置 Bark 服务器 id=$id")
+        if (!settings.hasAnyConfiguredChannel) {
+            Log.w(TAG, "已收到短信但没有可用推送通道 id=$id")
             container.history.updateResult(
                 id = id,
                 status = ForwardStatus.FAILED,
                 attempts = 0,
-                error = BarkClient.ERROR_NOT_CONFIGURED,
+                error = "没有可用的推送通道，请先配置至少一个通道",
             )
             // No retry enqueue: the periodic maintenance pass will pick this row
-            // up once the user has configured a server.
+            // up once the user has configured a channel.
             container.serviceController.refreshNotification()
-            return record.copy(status = ForwardStatus.FAILED, error = BarkClient.ERROR_NOT_CONFIGURED)
+            return record.copy(
+                status = ForwardStatus.FAILED,
+                error = "没有可用的推送通道，请先配置至少一个通道",
+            )
         }
 
         val result = try {
@@ -150,7 +153,9 @@ class ForwardEngine(
     /** Sends a sample SMS rendered with the user's title/body templates. */
     suspend fun sendTemplateTestPush(): BarkResult {
         val settings = container.settings.current()
-        if (!settings.isConfigured) return BarkResult.failure(BarkClient.ERROR_NOT_CONFIGURED)
+        if (!settings.hasAnyConfiguredChannel) {
+            return BarkResult.failure("没有可用的推送通道，请先配置至少一个通道")
+        }
         val now = System.currentTimeMillis()
         val payload = SmsPayload(
             sender = "95588",
@@ -161,17 +166,25 @@ class ForwardEngine(
             deviceName = settings.deviceName.trim().ifBlank { DeviceName.resolve(appContext) },
             receiverNumber = "13800138000",
         )
-        return container.barkClient.send(
+        val dispatch = container.pushDispatcher.dispatch(
             settings = settings,
             title = TitleTemplate.render(settings.titleTemplate, payload),
             body = TitleTemplate.renderBody(settings.bodyTemplate, payload),
+        )
+        return BarkResult(
+            success = dispatch.success,
+            code = null,
+            message = dispatch.message,
+            rawBody = dispatch.rawBody,
         )
     }
 
     /** Re-sends an existing history record (user action on the detail sheet). */
     suspend fun resend(recordId: Long): BarkResult {
         val settings = container.settings.current()
-        if (!settings.isConfigured) return BarkResult.failure(BarkClient.ERROR_NOT_CONFIGURED)
+        if (!settings.hasAnyConfiguredChannel) {
+            return BarkResult.failure("没有可用的推送通道，请先配置至少一个通道")
+        }
         val record = container.history.get(recordId)
             ?: return BarkResult.failure("记录不存在或已被删除")
         return deliver(record, settings, scheduleRetryOnFailure = true)
@@ -189,7 +202,7 @@ class ForwardEngine(
         if (!retryMutex.tryLock()) return false // another retry pass is already running
         try {
             val settings = container.settings.current()
-            if (!settings.forwardingEnabled || !settings.isConfigured || settings.isPaused()) return false
+            if (!settings.forwardingEnabled || !settings.hasAnyConfiguredChannel || settings.isPaused()) return false
 
             val candidates = container.history.listForRetry(
                 limit = RETRY_BATCH_SIZE,
@@ -234,7 +247,13 @@ class ForwardEngine(
             val title = record.title?.takeIf { it.isNotBlank() }
                 ?: TitleTemplate.render(settings.titleTemplate, record.toPayload())
             val body = record.barkBody?.takeIf { it.isNotBlank() } ?: record.body
-            val result = container.barkClient.send(settings, title, body)
+            val dispatch = container.pushDispatcher.dispatch(settings, title, body)
+            val result = BarkResult(
+                success = dispatch.success,
+                code = null,
+                message = dispatch.message,
+                rawBody = dispatch.rawBody,
+            )
             val attempts = record.attempts + 1
             if (result.success) {
                 container.history.updateResult(

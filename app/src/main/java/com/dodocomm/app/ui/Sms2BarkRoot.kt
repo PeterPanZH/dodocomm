@@ -51,6 +51,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.dodocomm.app.ui.screens.ChannelsScreen
 import com.dodocomm.app.ui.screens.HistoryScreen
 import com.dodocomm.app.ui.screens.HomeScreen
 import com.dodocomm.app.ui.screens.KeepAliveGuideScreen
@@ -66,6 +67,7 @@ object Routes {
     const val GUIDE = "guide"
     const val TEMPLATE = "template"
     const val SETTINGS_SECTION_PREFIX = "settings_"
+    const val CHANNELS = "channels"
 
     val tabRoutes: Set<String> = setOf(HOME, HISTORY, SETTINGS)
 }
@@ -193,6 +195,7 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                     viewModel = viewModel,
                     onNavigateGuide = { navController.navigate(Routes.GUIDE) },
                     onNavigateTemplate = { navController.navigate(Routes.TEMPLATE) },
+                    onNavigateChannels = { navController.navigate(Routes.CHANNELS) },
                     onNavigateSection = { section ->
                         navController.navigate(Routes.SETTINGS_SECTION_PREFIX + section.route)
                     },
@@ -214,6 +217,7 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                         viewModel = viewModel,
                         onNavigateGuide = { navController.navigate(Routes.GUIDE) },
                         onNavigateTemplate = { navController.navigate(Routes.TEMPLATE) },
+                        onNavigateChannels = { navController.navigate(Routes.CHANNELS) },
                         section = section,
                         onBack = { navController.popBackStack() },
                     )
@@ -233,6 +237,25 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                 KeepAliveGuideScreen(
                     viewModel = viewModel,
                     onBack = { navController.popBackStack() },
+                )
+            }
+            composable(
+                route = Routes.CHANNELS,
+                enterTransition = {
+                    slideInHorizontally(tween(240)) { width -> width / 4 } + fadeIn(tween(200))
+                },
+                exitTransition = { fadeOut(tween(140)) },
+                popEnterTransition = { fadeIn(tween(180)) },
+                popExitTransition = {
+                    slideOutHorizontally(tween(220)) { width -> width / 4 } + fadeOut(tween(140))
+                },
+            ) {
+                ChannelsScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() },
+                    onEditBark = {
+                        navController.navigate(Routes.SETTINGS_SECTION_PREFIX + SettingsSection.BARK.route)
+                    },
                 )
             }
             composable(

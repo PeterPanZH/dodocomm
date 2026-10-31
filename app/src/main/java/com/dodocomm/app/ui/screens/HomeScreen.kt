@@ -178,7 +178,7 @@ fun HomeScreen(
         Spacer(Modifier.height(18.dp))
 
         HomeHeroCard(
-            configured = settings.isConfigured,
+            configured = settings.hasAnyConfiguredChannel,
             forwardingEnabled = settings.forwardingEnabled,
             todaySent = stats.sent,
             onToggle = viewModel::setForwardingEnabled,

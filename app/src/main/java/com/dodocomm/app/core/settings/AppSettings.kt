@@ -1,5 +1,8 @@
 package com.dodocomm.app.core.settings
 
+import com.dodocomm.app.core.channel.ChannelType
+import com.dodocomm.app.core.channel.PushChannel
+
 enum class PushLevel(val apiValue: String, val label: String) {
     ACTIVE("active", "即时"),
     TIME_SENSITIVE("timeSensitive", "时效性"),
@@ -52,6 +55,8 @@ data class AppSettings(
     val forwardingEnabled: Boolean = true,
     val serverUrl: String = "https://api.day.app",
     val deviceKey: String = "",
+    /** Enabled push destinations. Bark credentials remain in serverUrl/deviceKey. */
+    val channels: List<PushChannel> = listOf(PushChannel.bark()),
     /** Optional custom name used by the {device} template token. */
     val deviceName: String = "",
     val titleTemplate: String = DEFAULT_TITLE_TEMPLATE,
@@ -94,8 +99,18 @@ data class AppSettings(
 ) {
     fun isPaused(now: Long = System.currentTimeMillis()): Boolean = pauseUntil > now
 
-    /** True once the user has configured a server and a device key. */
+    /** True once the user has configured a Bark server and a device key. */
     val isConfigured: Boolean get() = serverUrl.isNotBlank() && deviceKey.isNotBlank()
+
+    /** Channels that are enabled and have enough credentials to send. */
+    fun activePushChannels(): List<PushChannel> = channels.filter { channel ->
+        channel.enabled && when (channel.type) {
+            ChannelType.BARK -> isConfigured
+            else -> channel.isConfigured()
+        }
+    }
+
+    val hasAnyConfiguredChannel: Boolean get() = activePushChannels().isNotEmpty()
 
     val hasFilters: Boolean
         get() = senderWhitelist.isNotEmpty() || senderBlacklist.isNotEmpty() || keywordBlacklist.isNotEmpty()

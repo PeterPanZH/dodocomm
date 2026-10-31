@@ -2,6 +2,7 @@ package com.dodocomm.app
 
 import android.content.Context
 import com.dodocomm.app.bark.BarkClient
+import com.dodocomm.app.core.channel.PushDispatcher
 import com.dodocomm.app.core.db.HistoryDao
 import com.dodocomm.app.core.db.HistoryDatabase
 import com.dodocomm.app.core.db.HistoryRepository
@@ -30,6 +31,7 @@ class AppContainer(context: Context) {
         HistoryRepository(HistoryDao(HistoryDatabase(appContext)), appScope)
     }
     val barkClient: BarkClient by lazy { BarkClient() }
+    val pushDispatcher: PushDispatcher by lazy { PushDispatcher(barkClient) }
     val serviceController: ServiceController by lazy { ServiceController(appContext, this) }
     val forwardEngine: ForwardEngine by lazy { ForwardEngine(appContext, this) }
     val workScheduler: WorkScheduler by lazy { WorkScheduler(appContext) }

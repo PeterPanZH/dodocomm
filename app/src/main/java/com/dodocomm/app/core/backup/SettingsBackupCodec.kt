@@ -1,5 +1,6 @@
 package com.dodocomm.app.core.backup
 
+import com.dodocomm.app.core.channel.PushChannel
 import com.dodocomm.app.core.settings.AppSettings
 import com.dodocomm.app.core.settings.CopyMode
 import com.dodocomm.app.core.settings.PushLevel
@@ -19,6 +20,7 @@ object SettingsBackupCodec {
         put("forwardingEnabled", settings.forwardingEnabled)
         put("serverUrl", settings.serverUrl)
         put("deviceKey", settings.deviceKey)
+        put("channels", JSONArray().also { array -> settings.channels.forEach { array.put(it.toJson()) } })
         put("deviceName", settings.deviceName)
         put("titleTemplate", settings.titleTemplate)
         put("bodyTemplate", settings.bodyTemplate)
@@ -52,6 +54,13 @@ object SettingsBackupCodec {
             forwardingEnabled = json.optBoolean("forwardingEnabled", base.forwardingEnabled),
             serverUrl = json.optString("serverUrl", base.serverUrl),
             deviceKey = json.optString("deviceKey", base.deviceKey),
+            channels = json.optJSONArray("channels")?.let { array ->
+                buildList {
+                    for (index in 0 until array.length()) {
+                        add(PushChannel.fromJson(array.getJSONObject(index)))
+                    }
+                }
+            } ?: base.channels,
             deviceName = json.optString("deviceName", base.deviceName),
             titleTemplate = json.optString("titleTemplate", base.titleTemplate),
             bodyTemplate = json.optString("bodyTemplate", base.bodyTemplate),

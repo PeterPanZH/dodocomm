@@ -308,6 +308,7 @@ fun SettingsScreen(
     viewModel: AppViewModel,
     onNavigateGuide: () -> Unit,
     onNavigateTemplate: () -> Unit,
+    onNavigateChannels: () -> Unit = {},
     section: SettingsSection = SettingsSection.OVERVIEW,
     onNavigateSection: (SettingsSection) -> Unit = {},
     onBack: () -> Unit = {},
@@ -405,6 +406,7 @@ fun SettingsScreen(
                     settings = settings,
                     viewModel = viewModel,
                     onEditTemplate = onNavigateTemplate,
+                    onNavigateChannels = onNavigateChannels,
                 )
             }
         }
@@ -759,8 +761,17 @@ private fun PushStyleCard(
     settings: AppSettings,
     viewModel: AppViewModel,
     onEditTemplate: () -> Unit,
+    onNavigateChannels: () -> Unit,
 ) {
     SectionCard {
+        SettingActionRow(
+            title = "推送通道",
+            subtitle = "Bark、ntfy、Telegram、Pushover、Email",
+            value = "${settings.channels.count { it.enabled }} 个启用",
+            icon = Icons.Rounded.NotificationsActive,
+            onClick = onNavigateChannels,
+        )
+        RowDivider()
         SettingActionRow(
             title = "标题与消息体模板",
             subtitle = "编辑标题、正文、来源变量，并实时预览",
