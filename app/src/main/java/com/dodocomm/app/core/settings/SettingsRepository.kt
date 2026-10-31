@@ -76,35 +76,94 @@ class SettingsRepository(context: Context) {
         }.getOrDefault(emptyList())
     }
 
+    private fun migrateBarkChannel(
+        channels: List<PushChannel>,
+        legacyServerUrl: String,
+        legacyDeviceKey: String,
+        legacyGroup: String,
+        legacySound: String,
+        legacyLevel: String,
+        legacyIcon: String,
+        legacyUrl: String,
+        legacyArchive: Boolean,
+        legacyBadge: Boolean,
+    ): List<PushChannel> {
+        val base = if (channels.any { it.type == com.dodocomm.app.core.channel.ChannelType.BARK }) {
+            channels
+        } else {
+            listOf(PushChannel.bark()) + channels
+        }
+        return base.map { channel ->
+            if (channel.type != com.dodocomm.app.core.channel.ChannelType.BARK || channel.serverUrl.isNotBlank()) {
+                channel
+            } else {
+                channel.copy(
+                    serverUrl = legacyServerUrl,
+                    deviceKey = legacyDeviceKey,
+                    pushGroup = legacyGroup,
+                    pushSound = legacySound,
+                    pushLevel = legacyLevel,
+                    pushIcon = legacyIcon,
+                    pushUrl = legacyUrl,
+                    isArchive = legacyArchive,
+                    badgeEnabled = legacyBadge,
+                )
+            }
+        }
+    }
+
     private fun migrateTitleTemplate(raw: String): String =
         if (raw == AppSettings.LEGACY_TITLE_TEMPLATE) AppSettings.DEFAULT_TITLE_TEMPLATE else raw
 
     private fun readAll(): AppSettings {
         val defaults = AppSettings()
+        val legacyServerUrl = prefs.getString(KEY_SERVER_URL, defaults.serverUrl).orEmpty()
+        val legacyDeviceKey = prefs.getString(KEY_DEVICE_KEY, defaults.deviceKey).orEmpty()
+        val legacyGroup = prefs.getString(KEY_PUSH_GROUP, defaults.pushGroup).orEmpty()
+        val legacySound = prefs.getString(KEY_PUSH_SOUND, defaults.pushSound).orEmpty()
+        val legacyLevel = PushLevel.fromName(
+            prefs.getString(KEY_PUSH_LEVEL, defaults.pushLevel.name),
+        ).apiValue
+        val legacyIcon = prefs.getString(KEY_PUSH_ICON, defaults.pushIcon).orEmpty()
+        val legacyUrl = prefs.getString(KEY_PUSH_URL, defaults.pushUrl).orEmpty()
+        val legacyArchive = prefs.getBoolean(KEY_IS_ARCHIVE, defaults.isArchive)
+        val legacyBadge = prefs.getBoolean(KEY_BADGE_ENABLED, defaults.badgeEnabled)
+        val channels = migrateBarkChannel(
+            channels = decodeChannels(prefs.getString(KEY_CHANNELS, null)),
+            legacyServerUrl = legacyServerUrl,
+            legacyDeviceKey = legacyDeviceKey,
+            legacyGroup = legacyGroup,
+            legacySound = legacySound,
+            legacyLevel = legacyLevel,
+            legacyIcon = legacyIcon,
+            legacyUrl = legacyUrl,
+            legacyArchive = legacyArchive,
+            legacyBadge = legacyBadge,
+        )
         return AppSettings(
             forwardingEnabled = prefs.getBoolean(KEY_FORWARDING_ENABLED, defaults.forwardingEnabled),
-            serverUrl = prefs.getString(KEY_SERVER_URL, defaults.serverUrl).orEmpty(),
-            deviceKey = prefs.getString(KEY_DEVICE_KEY, defaults.deviceKey).orEmpty(),
-            channels = decodeChannels(prefs.getString(KEY_CHANNELS, null)),
+            serverUrl = legacyServerUrl,
+            deviceKey = legacyDeviceKey,
+            channels = channels,
             routingRules = decodeRules(prefs.getString(KEY_ROUTING_RULES, null)),
             deviceName = prefs.getString(KEY_DEVICE_NAME, defaults.deviceName).orEmpty(),
             titleTemplate = migrateTitleTemplate(
                 prefs.getString(KEY_TITLE_TEMPLATE, defaults.titleTemplate).orEmpty(),
             ),
             bodyTemplate = prefs.getString(KEY_BODY_TEMPLATE, defaults.bodyTemplate).orEmpty(),
-            pushGroup = prefs.getString(KEY_PUSH_GROUP, defaults.pushGroup).orEmpty(),
-            pushSound = prefs.getString(KEY_PUSH_SOUND, defaults.pushSound).orEmpty(),
-            pushLevel = PushLevel.fromName(prefs.getString(KEY_PUSH_LEVEL, defaults.pushLevel.name)),
-            pushIcon = prefs.getString(KEY_PUSH_ICON, defaults.pushIcon).orEmpty(),
-            pushUrl = prefs.getString(KEY_PUSH_URL, defaults.pushUrl).orEmpty(),
-            isArchive = prefs.getBoolean(KEY_IS_ARCHIVE, defaults.isArchive),
+            pushGroup = legacyGroup,
+            pushSound = legacySound,
+            pushLevel = PushLevel.fromName(legacyLevel),
+            pushIcon = legacyIcon,
+            pushUrl = legacyUrl,
+            isArchive = legacyArchive,
             copyMode = CopyMode.fromName(
                 prefs.getString(
                     KEY_COPY_MODE,
                     if (prefs.getBoolean(KEY_AUTO_COPY, false)) CopyMode.FULL.name else defaults.copyMode.name,
                 ),
             ),
-            badgeEnabled = prefs.getBoolean(KEY_BADGE_ENABLED, defaults.badgeEnabled),
+            badgeEnabled = legacyBadge,
             foregroundServiceEnabled = prefs.getBoolean(KEY_FOREGROUND_SERVICE_ENABLED, defaults.foregroundServiceEnabled),
             autoStartOnBoot = prefs.getBoolean(KEY_AUTO_START_ON_BOOT, defaults.autoStartOnBoot),
             hideFromRecents = prefs.getBoolean(KEY_HIDE_FROM_RECENTS, defaults.hideFromRecents),

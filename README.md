@@ -3,7 +3,7 @@
 > 可莉的嘟嘟可帮你传信：把安卓手机收到的短信，实时转发到 Bark / ntfy / Telegram / Pushover / Email 等推送通道，接收端即刻收到通知。
 
 面向 Android 8+，对 **ColorOS / LineageOS** 等定制系统提供保活向导。
-纯原生 Kotlin + Jetpack Compose，无广告、无统计、无后台上传，只把你配置的短信发送到你自己填写的 Bark 服务器。
+纯原生 Kotlin + Jetpack Compose，无广告、无统计、无后台上传，只把你配置的短信发送到你自己填写的推送服务或 SMTP 服务器。
 
 <p align="center"><b>安装包</b>：<a href="https://github.com/PeterPanZH/dodocomm/releases/latest">GitHub Releases</a> · <b>使用说明</b>：<code>docs/使用说明.md</code></p>
 
@@ -15,7 +15,7 @@
 
 ## 功能
 
-- **实时转发**：收到短信后立即 POST 到 Bark 服务器，验证码、银行通知、快递信息一条不漏。
+- **实时转发**：收到短信后立即发送到你配置的推送通道，验证码、银行通知、快递信息一条不漏。
 - **长短信 / 双卡**：自动拼接多段长短信；可选显示「SIM 2 · 中国移动」之类的卡槽标签。
 - **失败自动重试**：断网、服务器临时不可用时进入 WorkManager 重试队列（指数退避，最多 5 次）。
 - **本地记录**：最近 500 条转发记录，含成功/失败/已过滤状态、失败原因，可一键重发、复制、删除。
@@ -41,7 +41,7 @@
 ## 快速开始
 
 1. 从 [GitHub Releases](https://github.com/PeterPanZH/dodocomm/releases/latest) 下载最新 `DodoComm-<版本>.apk` 并安装（需允许「安装未知来源应用」）。
-2. 打开 App，在「设置 → Bark 服务器」填入：
+2. 打开 App，在「设置 → 推送 → 推送通道 → Bark」填入：
    - **服务器地址**：官方 `https://api.day.app`，或你的自建地址（如 `http://10.0.0.8:8080`，局域网 http 也可以）；
    - **Device Key**：Bark App 首页复制到的设备 Key。
 3. 点「测试连接」，接收端应立刻收到一条测试推送。
@@ -72,7 +72,7 @@ App 内置「保活向导」会按当前系统类型给出对应步骤，并可�
 ## 数据与隐私
 
 - 只申请 `RECEIVE_SMS`（必需）、通知、前台服务、开机广播、网络；`READ_PHONE_STATE` 为**可选**，仅用于显示双卡标签。
-- 短信内容只发送到**你自己填写的** Bark 服务器；应用不含任何第三方统计/广告 SDK。
+- 短信内容只发送到**你自己填写的**推送服务或 SMTP 服务器；应用不含任何第三方统计/广告 SDK。
 - 本地历史保存在 App 私有 SQLite 数据库中，最多 500 条，可在设置页一键清空。
 - 不申请 `READ_SMS`，不读取历史短信，不读取联系人。
 

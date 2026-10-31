@@ -130,8 +130,7 @@ enum class SettingsSection(
     val route: String,
 ) {
     OVERVIEW("设置", "按类别管理所有设置", "overview"),
-    BARK("Bark 服务", "服务器地址、Device Key 与连接测试", "bark"),
-    PUSH("推送样式", "通知模板、声音、级别与复制行为", "push"),
+    PUSH("推送", "共用样式、推送通道与路由规则", "push"),
     RULES("转发规则", "白名单、黑名单与关键词过滤", "rules"),
     PRIVACY("隐私与安全", "应用锁与本地数据保护", "privacy"),
     RELIABILITY("后台与可靠性", "常驻通知、开机恢复与电池优化", "reliability"),
@@ -192,17 +191,9 @@ private fun SettingsOverviewScreen(
         item(key = "overview_connection") {
             SectionCard {
                 OverviewRow(
-                    title = "Bark 服务",
-                    subtitle = if (settings.isConfigured) settings.normalizedServerBase() else "填写服务器地址与 Device Key",
-                    value = if (settings.isConfigured) "已配置" else "未配置",
-                    icon = Icons.Rounded.Cloud,
-                    onClick = { onNavigateSection(SettingsSection.BARK) },
-                )
-                RowDivider()
-                OverviewRow(
-                    title = "推送样式",
-                    subtitle = "标题/消息体模板、通知声音、级别与复制模式",
-                    value = settings.copyMode.label,
+                    title = "推送",
+                    subtitle = "共用模板、推送通道与路由规则",
+                    value = "${settings.channels.count { it.enabled }} 个通道",
                     icon = Icons.Rounded.NotificationsActive,
                     onClick = { onNavigateSection(SettingsSection.PUSH) },
                 )
@@ -315,7 +306,6 @@ fun SettingsScreen(
     onBack: () -> Unit = {},
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
-    val testPushState by viewModel.testPushState.collectAsStateWithLifecycle()
     val permissions by viewModel.permissions.collectAsStateWithLifecycle()
     val records by viewModel.records.collectAsStateWithLifecycle()
     val updateState by viewModel.updateState.collectAsStateWithLifecycle()
@@ -387,18 +377,6 @@ fun SettingsScreen(
                 onBack = onBack,
             )
             Spacer(Modifier.height(18.dp))
-        }
-
-        if (section == SettingsSection.BARK) {
-            item(key = "bark_card", contentType = "card") {
-                BarkServerCard(
-                    settings = settings,
-                    testPushState = testPushState,
-                    onServerUrlCommit = viewModel::setServerUrl,
-                    onDeviceKeyCommit = viewModel::setDeviceKey,
-                    onTest = viewModel::sendTestPush,
-                )
-            }
         }
 
         if (section == SettingsSection.PUSH) {
@@ -867,61 +845,14 @@ private fun PushStyleCard(
         )
         RowDivider()
         SettingActionRow(
-            title = "标题与消息体模板",
-            subtitle = "编辑标题、正文、来源变量，并实时预览",
-            value = "编辑",
+            title = "共用推送样式",
+            subtitle = "标题、消息体、设备名称与复制模式",
+            value = settings.copyMode.label,
             icon = Icons.Rounded.Edit,
             onClick = onEditTemplate,
         )
         RowDivider()
-        SettingTextField(
-            value = settings.pushGroup,
-            onCommit = viewModel::setPushGroup,
-            label = "通知分组",
-            placeholder = "短信",
-            supportingText = "相同分组的推送会在通知中心折叠",
-        )
-        Spacer(Modifier.height(14.dp))
-        SettingTextField(
-            value = settings.pushSound,
-            onCommit = viewModel::setPushSound,
-            label = "通知声音",
-            placeholder = "默认",
-            supportingText = "Bark 声音名，如 minuet、alarm；留空使用默认",
-        )
-        Spacer(Modifier.height(14.dp))
-        PushLevelRow(selected = settings.pushLevel, onSelect = viewModel::setPushLevel)
-        Spacer(Modifier.height(14.dp))
-        SettingTextField(
-            value = settings.pushIcon,
-            onCommit = viewModel::setPushIcon,
-            label = "图标 URL",
-            placeholder = "https://…/icon.png",
-        )
-        Spacer(Modifier.height(14.dp))
-        SettingTextField(
-            value = settings.pushUrl,
-            onCommit = viewModel::setPushUrl,
-            label = "点击跳转 URL",
-            placeholder = "https://…（可选）",
-        )
-        Spacer(Modifier.height(6.dp))
-        RowDivider()
-        SettingSwitchRow(
-            title = "归档推送",
-            checked = settings.isArchive,
-            onCheckedChange = viewModel::setArchive,
-            subtitle = "在 Bark 历史中保留这条推送",
-        )
-        RowDivider()
         CopyModeRow(selected = settings.copyMode, onSelect = viewModel::setCopyMode)
-        RowDivider()
-        SettingSwitchRow(
-            title = "显示角标",
-            checked = settings.badgeEnabled,
-            onCheckedChange = viewModel::setBadge,
-            subtitle = "Bark App 图标显示未读数",
-        )
     }
 }
 

@@ -4,6 +4,7 @@ import com.dodocomm.app.bark.BarkClient
 import com.dodocomm.app.core.routing.RoutingContext
 import com.dodocomm.app.core.routing.RoutingEngine
 import com.dodocomm.app.core.settings.AppSettings
+import com.dodocomm.app.core.settings.PushLevel
 
 /** Sends one rendered SMS to every enabled, configured channel. */
 class PushDispatcher(
@@ -20,10 +21,10 @@ class PushDispatcher(
         body: String,
     ): ChannelSendResult = when (channel.type) {
         ChannelType.BARK -> {
-            if (!settings.isConfigured) {
+            if (!channel.isConfigured()) {
                 ChannelSendResult(channel.id, channel.name, channel.type, false, "Bark 服务器或 Device Key 未配置")
             } else {
-                val result = barkClient.send(settings, title, body)
+                val result = barkClient.send(settings.forBarkChannel(channel), title, body)
                 ChannelSendResult(
                     channelId = channel.id,
                     channelName = channel.name,
@@ -71,3 +72,15 @@ class PushDispatcher(
         return DispatchResult(results)
     }
 }
+
+private fun AppSettings.forBarkChannel(channel: PushChannel): AppSettings = copy(
+    serverUrl = channel.serverUrl,
+    deviceKey = channel.deviceKey,
+    pushGroup = channel.pushGroup,
+    pushSound = channel.pushSound,
+    pushLevel = PushLevel.fromName(channel.pushLevel),
+    pushIcon = channel.pushIcon,
+    pushUrl = channel.pushUrl,
+    isArchive = channel.isArchive,
+    badgeEnabled = channel.badgeEnabled,
+)

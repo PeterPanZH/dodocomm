@@ -29,6 +29,7 @@ class PushChannelTest {
         assertFalse(PushChannel.create(ChannelType.TELEGRAM).isConfigured())
         assertFalse(PushChannel.create(ChannelType.PUSHOVER).isConfigured())
         assertFalse(PushChannel.create(ChannelType.EMAIL).isConfigured())
-        assertTrue(PushChannel.bark().isConfigured())
+        assertFalse(PushChannel.bark().isConfigured())
+        assertTrue(PushChannel.bark(serverUrl = "https://api.day.app", deviceKey = "key").isConfigured())
     }
 }

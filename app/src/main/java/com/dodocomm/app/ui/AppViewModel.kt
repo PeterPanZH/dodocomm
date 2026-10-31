@@ -323,7 +323,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         val previous = container.settings.current()
         val updated = container.settings.update(transform)
         val serviceRelevant = updated.forwardingEnabled != previous.forwardingEnabled ||
-            updated.isConfigured != previous.isConfigured ||
+            updated.hasAnyConfiguredChannel != previous.hasAnyConfiguredChannel ||
             updated.foregroundServiceEnabled != previous.foregroundServiceEnabled
         if (serviceRelevant) {
             ensureServiceRunning()
@@ -592,9 +592,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun sendTemplateTestPush() {
         if (_templateTestState.value is TestPushState.Loading) return
         val current = container.settings.current()
-        if (!current.isConfigured) {
-            _templateTestState.value = TestPushState.Failure("请先填写服务器地址和 Device Key")
-            postSnackbar("请先配置 Bark 服务器", isError = true)
+        if (!current.hasAnyConfiguredChannel) {
+            _templateTestState.value = TestPushState.Failure("请先配置至少一个推送通道")
+            postSnackbar("请先配置推送通道", isError = true)
             return
         }
         _templateTestState.value = TestPushState.Loading
@@ -616,26 +616,43 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun sendTestPush() {
         if (_testPushState.value is TestPushState.Loading) return
         val current = container.settings.current()
-        if (!current.isConfigured) {
-            _testPushState.value = TestPushState.Failure("请先填写服务器地址和 Device Key")
-            postSnackbar("请先配置 Bark 服务器", isError = true)
+        if (!current.hasAnyConfiguredChannel) {
+            _testPushState.value = TestPushState.Failure("请先配置至少一个推送通道")
+            postSnackbar("请先配置推送通道", isError = true)
             return
         }
         _testPushState.value = TestPushState.Loading
         viewModelScope.launch {
-            val result = runCatching { container.forwardEngine.sendTestPush() }
-                .getOrElse { error -> BarkResult.failure(error.message ?: "测试推送失败") }
-            _testPushState.value = if (result.success) {
-                TestPushState.Success(result.message.ifBlank { "推送成功" })
-            } else {
-                TestPushState.Failure(result.message.ifBlank { "推送失败" })
+            val dispatch = runCatching {
+                container.pushDispatcher.dispatch(
+                    settings = current,
+                    title = "DodoComm 测试推送",
+                    body = "嘟嘟可报到！测试推送成功 ✅ 时间 ${java.time.LocalTime.now()}",
+                )
+            }.getOrElse { error ->
+                com.dodocomm.app.core.channel.DispatchResult(
+                    listOf(
+                        com.dodocomm.app.core.channel.ChannelSendResult(
+                            channelId = "error",
+                            channelName = "推送通道",
+                            type = com.dodocomm.app.core.channel.ChannelType.BARK,
+                            success = false,
+                            message = error.message ?: "测试推送失败",
+                        ),
+                    ),
+                )
             }
-            if (result.success) {
+            _testPushState.value = if (dispatch.success) {
+                TestPushState.Success(dispatch.message)
+            } else {
+                TestPushState.Failure(dispatch.message.ifBlank { "推送失败" })
+            }
+            if (dispatch.success) {
                 ensureServiceRunning()
             }
             postSnackbar(
-                if (result.success) "嘟嘟可已把测试推送发出 ✅" else "嘟嘟可送信失败：${result.message.ifBlank { "未知原因" }}",
-                isError = !result.success,
+                if (dispatch.success) "嘟嘟可已把测试推送发出 ✅" else "嘟嘟可送信失败：${dispatch.message.ifBlank { "未知原因" }}",
+                isError = !dispatch.success,
             )
             container.history.refresh()
         }

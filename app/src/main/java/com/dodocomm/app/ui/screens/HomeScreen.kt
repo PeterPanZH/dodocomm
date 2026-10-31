@@ -195,7 +195,7 @@ fun HomeScreen(
             onFilteredClick = { onNavigateHistory(HistoryFilter.FILTERED) },
         )
 
-        if (!settings.isConfigured) {
+        if (!settings.hasAnyConfiguredChannel) {
             Spacer(Modifier.height(18.dp))
             ServerPromptCard(onClick = onNavigateSettings)
         }
@@ -220,7 +220,7 @@ fun HomeScreen(
                 },
                 onSeeAll = { onNavigateHistory(null) },
             )
-        } else if (settings.isConfigured) {
+        } else if (settings.hasAnyConfiguredChannel) {
             Spacer(Modifier.height(18.dp))
             WaitingCard()
         }
@@ -564,7 +564,7 @@ private fun setupIcon(id: String): ImageVector = when (id) {
 private fun buildSetupItems(settings: AppSettings, permissions: PermissionState): List<SetupItem> {
     val smsReady = permissions.receiveSms
     val notificationsReady = permissions.notificationsReady
-    val serverReady = settings.isConfigured
+    val serverReady = settings.hasAnyConfiguredChannel
     val batteryReady = permissions.batteryOptimizationsIgnored
     val autoStartReady = settings.autoStartOnBoot
     return listOf(
@@ -584,11 +584,11 @@ private fun buildSetupItems(settings: AppSettings, permissions: PermissionState)
         ),
         SetupItem(
             id = SetupIds.SERVER,
-            title = "Bark 服务器",
+            title = "推送通道",
             subtitle = if (serverReady) {
-                "已配置 ${settings.normalizedServerBase()}"
+                "已配置 ${settings.activePushChannels().size} 个可用通道"
             } else {
-                "还没有填写服务器地址或 Device Key"
+                "还没有可用的推送通道"
             },
             done = serverReady,
             actionLabel = if (serverReady) "已配置" else "去配置",
@@ -638,7 +638,7 @@ private fun ServerPromptCard(onClick: () -> Unit) {
             )
             Spacer(Modifier.height(14.dp))
             Text(
-                text = "先配置 Bark 服务器",
+                text = "先配置推送通道",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,

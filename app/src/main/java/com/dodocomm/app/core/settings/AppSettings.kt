@@ -111,10 +111,7 @@ data class AppSettings(
 
     /** Channels that are enabled and have enough credentials to send. */
     fun activePushChannels(): List<PushChannel> = channels.filter { channel ->
-        channel.enabled && when (channel.type) {
-            ChannelType.BARK -> isConfigured
-            else -> channel.isConfigured()
-        }
+        channel.enabled && channel.isConfigured()
     }
 
     val hasAnyConfiguredChannel: Boolean get() = activePushChannels().isNotEmpty()

@@ -620,5 +620,15 @@
  "接收端收到后复制到剪贴板": "Copy to clipboard after the receiving device gets it",
  "显示在通知的第一行": "Shown as the first line of the notification",
  "嘟嘟可已把测试推送发出 ✅": "Dodoco has sent the test push ✅",
- "Bark 推送，沿用 Bark 服务器配置": "Bark push using the Bark server configuration"
+ "Bark 推送，沿用 Bark 服务器配置": "Bark push using the Bark server configuration",
+ "推送": "Push",
+ "共用模板、推送通道与路由规则": "Shared templates, channels and routing rules",
+ "共用样式、推送通道与路由规则": "Shared style, channels and routing rules",
+ "共用推送样式": "Shared push style",
+ "标题、消息体、设备名称与复制模式": "Title, body, device name and copy mode",
+ "个通道": " channels",
+ "个启用": " enabled",
+ "通知样式": "Notification style",
+ "1 个通道": "1 channel",
+ "1 个启用": "1 enabled"
 }

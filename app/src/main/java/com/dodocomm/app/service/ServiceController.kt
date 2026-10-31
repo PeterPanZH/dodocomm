@@ -42,7 +42,7 @@ class ServiceController(
         val settings = container.settings.current()
         if (!settings.forwardingEnabled) return false
         if (!settings.foregroundServiceEnabled) return false
-        if (!settings.isConfigured) return false
+        if (!settings.hasAnyConfiguredChannel) return false
         return start()
     }
 

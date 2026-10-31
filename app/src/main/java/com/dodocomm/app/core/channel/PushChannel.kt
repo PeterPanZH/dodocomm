@@ -28,6 +28,14 @@ data class PushChannel(
     val name: String,
     val enabled: Boolean = true,
     val serverUrl: String = "",
+    val deviceKey: String = "",
+    val pushGroup: String = "短信",
+    val pushSound: String = "",
+    val pushLevel: String = "active",
+    val pushIcon: String = "",
+    val pushUrl: String = "",
+    val isArchive: Boolean = true,
+    val badgeEnabled: Boolean = false,
     val topic: String = "",
     val token: String = "",
     val chatId: String = "",
@@ -43,7 +51,7 @@ data class PushChannel(
     val recipient: String = "",
 ) {
     fun isConfigured(): Boolean = when (type) {
-        ChannelType.BARK -> true // legacy AppSettings hold the credentials
+        ChannelType.BARK -> serverUrl.isNotBlank() && deviceKey.isNotBlank()
         ChannelType.NTFY -> serverUrl.isNotBlank() && topic.isNotBlank()
         ChannelType.TELEGRAM -> botToken.isNotBlank() && chatId.isNotBlank()
         ChannelType.PUSHOVER -> userKey.isNotBlank() && appToken.isNotBlank()
@@ -59,6 +67,14 @@ data class PushChannel(
         put("name", name)
         put("enabled", enabled)
         put("serverUrl", serverUrl)
+        put("deviceKey", deviceKey)
+        put("pushGroup", pushGroup)
+        put("pushSound", pushSound)
+        put("pushLevel", pushLevel)
+        put("pushIcon", pushIcon)
+        put("pushUrl", pushUrl)
+        put("isArchive", isArchive)
+        put("badgeEnabled", badgeEnabled)
         put("topic", topic)
         put("token", token)
         put("chatId", chatId)
@@ -75,11 +91,30 @@ data class PushChannel(
     }
 
     companion object {
-        fun bark(): PushChannel = PushChannel(
+        fun bark(
+            serverUrl: String = "",
+            deviceKey: String = "",
+            pushGroup: String = "短信",
+            pushSound: String = "",
+            pushLevel: String = "active",
+            pushIcon: String = "",
+            pushUrl: String = "",
+            isArchive: Boolean = true,
+            badgeEnabled: Boolean = false,
+        ): PushChannel = PushChannel(
             id = "bark",
             type = ChannelType.BARK,
             name = "Bark",
             enabled = true,
+            serverUrl = serverUrl,
+            deviceKey = deviceKey,
+            pushGroup = pushGroup,
+            pushSound = pushSound,
+            pushLevel = pushLevel,
+            pushIcon = pushIcon,
+            pushUrl = pushUrl,
+            isArchive = isArchive,
+            badgeEnabled = badgeEnabled,
         )
 
         fun create(type: ChannelType): PushChannel {
@@ -104,6 +139,14 @@ data class PushChannel(
             name = json.optString("name").ifBlank { "Channel" },
             enabled = json.optBoolean("enabled", true),
             serverUrl = json.optString("serverUrl"),
+            deviceKey = json.optString("deviceKey"),
+            pushGroup = json.optString("pushGroup", "短信"),
+            pushSound = json.optString("pushSound"),
+            pushLevel = json.optString("pushLevel", "active"),
+            pushIcon = json.optString("pushIcon"),
+            pushUrl = json.optString("pushUrl"),
+            isArchive = json.optBoolean("isArchive", true),
+            badgeEnabled = json.optBoolean("badgeEnabled", false),
             topic = json.optString("topic"),
             token = json.optString("token"),
             chatId = json.optString("chatId"),

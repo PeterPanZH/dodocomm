@@ -257,9 +257,6 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                 ChannelsScreen(
                     viewModel = viewModel,
                     onBack = { navController.popBackStack() },
-                    onEditBark = {
-                        navController.navigate(Routes.SETTINGS_SECTION_PREFIX + SettingsSection.BARK.route)
-                    },
                 )
             }
             composable(

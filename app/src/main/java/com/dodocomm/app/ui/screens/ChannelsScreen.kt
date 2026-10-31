@@ -51,6 +51,7 @@ import com.dodocomm.app.core.channel.ChannelSendResult
 import com.dodocomm.app.core.channel.ChannelType
 import com.dodocomm.app.core.channel.PushChannel
 import com.dodocomm.app.core.settings.AppSettings
+import com.dodocomm.app.core.settings.PushLevel
 import com.dodocomm.app.ui.AppViewModel
 import com.dodocomm.app.ui.components.InlineResult
 import com.dodocomm.app.ui.components.SecretField
@@ -65,7 +66,6 @@ import kotlinx.coroutines.launch
 fun ChannelsScreen(
     viewModel: AppViewModel,
     onBack: () -> Unit,
-    onEditBark: () -> Unit,
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -74,7 +74,6 @@ fun ChannelsScreen(
 
     if (editing != null) {
         ChannelEditContent(
-            settings = settings,
             channel = editing,
             onBack = { editingId = null },
             onChange = viewModel::updateChannel,
@@ -83,7 +82,6 @@ fun ChannelsScreen(
                 editingId = null
             },
             onTest = { viewModel.testChannel(editing.id) },
-            onEditBark = onEditBark,
         )
         return
     }
@@ -132,10 +130,8 @@ fun ChannelsScreen(
                         if (index > 0) com.dodocomm.app.ui.components.RowDivider()
                         ChannelRow(
                             channel = channel,
-                            configured = channel.type != ChannelType.BARK || settings.isConfigured,
-                            onOpen = {
-                                if (channel.type == ChannelType.BARK) onEditBark() else editingId = channel.id
-                            },
+                            configured = channel.isConfigured(),
+                            onOpen = { editingId = channel.id },
                             onToggle = { enabled -> viewModel.setChannelEnabled(channel.id, enabled) },
                         )
                     }
@@ -249,13 +245,11 @@ private fun channelTypeDescription(type: ChannelType): String = when (type) {
 
 @Composable
 private fun ChannelEditContent(
-    settings: AppSettings,
     channel: PushChannel,
     onBack: () -> Unit,
     onChange: (PushChannel) -> Unit,
     onDelete: () -> Unit,
     onTest: suspend () -> ChannelSendResult,
-    onEditBark: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     var testing by remember { mutableStateOf(false) }
@@ -306,32 +300,14 @@ private fun ChannelEditContent(
                 }
                 Spacer(Modifier.height(16.dp))
             }
-            if (channel.type == ChannelType.BARK) {
-                item(key = "bark") {
-                    SectionCard {
-                        Text(
-                            text = "Bark 的服务器地址与 Device Key 在「Bark 服务」页面配置。",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Spacer(Modifier.height(10.dp))
-                        SettingActionRow(
-                            title = "编辑 Bark 服务器",
-                            subtitle = if (settings.isConfigured) settings.normalizedServerBase() else "未配置",
-                            onClick = onEditBark,
-                        )
-                    }
-                }
-            } else {
-                item(key = "fields") {
-                    SectionCard {
-                        when (channel.type) {
-                            ChannelType.NTFY -> NtfyFields(channel, onChange)
-                            ChannelType.TELEGRAM -> TelegramFields(channel, onChange)
-                            ChannelType.PUSHOVER -> PushoverFields(channel, onChange)
-                            ChannelType.EMAIL -> EmailFields(channel, onChange)
-                            ChannelType.BARK -> Unit
-                        }
+            item(key = "fields") {
+                SectionCard {
+                    when (channel.type) {
+                        ChannelType.BARK -> BarkFields(channel, onChange)
+                        ChannelType.NTFY -> NtfyFields(channel, onChange)
+                        ChannelType.TELEGRAM -> TelegramFields(channel, onChange)
+                        ChannelType.PUSHOVER -> PushoverFields(channel, onChange)
+                        ChannelType.EMAIL -> EmailFields(channel, onChange)
                     }
                 }
             }
@@ -381,6 +357,95 @@ private fun ChannelEditContent(
             },
             dismissButton = { TextButton(onClick = { showDelete = false }) { Text("取消") } },
         )
+    }
+}
+
+@Composable
+private fun BarkFields(channel: PushChannel, onChange: (PushChannel) -> Unit) {
+    SettingTextField(
+        value = channel.serverUrl,
+        onCommit = { onChange(channel.copy(serverUrl = it.trim())) },
+        label = "服务器地址",
+        placeholder = "https://api.day.app",
+    )
+    Spacer(Modifier.height(12.dp))
+    SecretField(
+        value = channel.deviceKey,
+        onCommit = { onChange(channel.copy(deviceKey = it.trim())) },
+        label = "Device Key",
+        placeholder = "在 Bark App 的服务器页面查看",
+    )
+    Spacer(Modifier.height(16.dp))
+    Text("通知样式", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+    Spacer(Modifier.height(10.dp))
+    SettingTextField(
+        value = channel.pushGroup,
+        onCommit = { onChange(channel.copy(pushGroup = it.trim())) },
+        label = "通知分组",
+        placeholder = "短信",
+    )
+    Spacer(Modifier.height(12.dp))
+    SettingTextField(
+        value = channel.pushSound,
+        onCommit = { onChange(channel.copy(pushSound = it.trim())) },
+        label = "通知声音",
+        placeholder = "默认",
+    )
+    Spacer(Modifier.height(12.dp))
+    BarkLevelPicker(channel, onChange)
+    Spacer(Modifier.height(12.dp))
+    SettingTextField(
+        value = channel.pushIcon,
+        onCommit = { onChange(channel.copy(pushIcon = it.trim())) },
+        label = "图标 URL",
+        placeholder = "https://…/icon.png",
+    )
+    Spacer(Modifier.height(12.dp))
+    SettingTextField(
+        value = channel.pushUrl,
+        onCommit = { onChange(channel.copy(pushUrl = it.trim())) },
+        label = "点击跳转 URL",
+        placeholder = "https://…（可选）",
+    )
+    Spacer(Modifier.height(8.dp))
+    com.dodocomm.app.ui.components.RowDivider()
+    SettingSwitchRow(
+        title = "归档推送",
+        checked = channel.isArchive,
+        onCheckedChange = { onChange(channel.copy(isArchive = it)) },
+        subtitle = "在 Bark 历史中保留这条推送",
+    )
+    com.dodocomm.app.ui.components.RowDivider()
+    SettingSwitchRow(
+        title = "显示角标",
+        checked = channel.badgeEnabled,
+        onCheckedChange = { onChange(channel.copy(badgeEnabled = it)) },
+        subtitle = "Bark App 图标显示未读数",
+    )
+}
+
+@Composable
+private fun BarkLevelPicker(channel: PushChannel, onChange: (PushChannel) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    val current = PushLevel.fromName(channel.pushLevel)
+    androidx.compose.foundation.layout.Box {
+        SettingActionRow(
+            title = "推送级别",
+            subtitle = "决定接收端如何提醒这条推送",
+            value = current.label,
+            onClick = { expanded = true },
+        )
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            PushLevel.entries.forEach { level ->
+                DropdownMenuItem(
+                    text = { Text(level.label) },
+                    onClick = {
+                        onChange(channel.copy(pushLevel = level.apiValue))
+                        expanded = false
+                    },
+                )
+            }
+        }
     }
 }
 

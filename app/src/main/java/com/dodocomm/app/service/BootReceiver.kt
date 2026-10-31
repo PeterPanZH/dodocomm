@@ -44,7 +44,7 @@ class BootReceiver : BroadcastReceiver() {
             // Always (re)arm the periodic safety net, even when forwarding is
             // currently off: it is the self-healing hook after force-stops.
             container.workScheduler.ensureMaintenanceScheduled()
-            if (!startRequested && shouldStart && settings.foregroundServiceEnabled && settings.isConfigured) {
+            if (!startRequested && shouldStart && settings.foregroundServiceEnabled && settings.hasAnyConfiguredChannel) {
                 // Android 16 / OEM blocked the boot-time FGS start. MainActivity
                 // onResume will start it from a user-visible context on tap.
                 NotificationHelper.showBootRecoveryNotification(appContext)

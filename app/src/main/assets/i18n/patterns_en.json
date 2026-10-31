@@ -198,5 +198,13 @@
  {
   "regex": "^(\\d+) 小时$",
   "format": "{0} hours"
+ },
+ {
+  "regex": "^(\\d+) 个通道$",
+  "format": "{0} channels"
+ },
+ {
+  "regex": "^(\\d+) 个启用$",
+  "format": "{0} enabled"
  }
 ]

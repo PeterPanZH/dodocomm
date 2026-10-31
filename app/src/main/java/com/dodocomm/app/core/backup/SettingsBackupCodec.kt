@@ -56,17 +56,37 @@ object SettingsBackupCodec {
     fun fromJson(raw: String, base: AppSettings): AppSettings {
         val json = JSONObject(raw)
         require(json.optInt("version", VERSION) <= VERSION) { "备份版本过新" }
+        val legacyServer = json.optString("serverUrl", base.serverUrl)
+        val legacyDeviceKey = json.optString("deviceKey", base.deviceKey)
+        val legacyGroup = json.optString("pushGroup", base.pushGroup)
+        val legacySound = json.optString("pushSound", base.pushSound)
+        val legacyLevel = json.optString("pushLevel", base.pushLevel.name)
+        val legacyIcon = json.optString("pushIcon", base.pushIcon)
+        val legacyUrl = json.optString("pushUrl", base.pushUrl)
+        val legacyArchive = json.optBoolean("isArchive", base.isArchive)
+        val legacyBadge = json.optBoolean("badgeEnabled", base.badgeEnabled)
         return base.copy(
             forwardingEnabled = json.optBoolean("forwardingEnabled", base.forwardingEnabled),
             serverUrl = json.optString("serverUrl", base.serverUrl),
             deviceKey = json.optString("deviceKey", base.deviceKey),
-            channels = json.optJSONArray("channels")?.let { array ->
-                buildList {
-                    for (index in 0 until array.length()) {
-                        add(PushChannel.fromJson(array.getJSONObject(index)))
+            channels = migrateBarkChannel(
+                channels = json.optJSONArray("channels")?.let { array ->
+                    buildList {
+                        for (index in 0 until array.length()) {
+                            add(PushChannel.fromJson(array.getJSONObject(index)))
+                        }
                     }
-                }
-            } ?: base.channels,
+                } ?: base.channels,
+                serverUrl = legacyServer,
+                deviceKey = legacyDeviceKey,
+                group = legacyGroup,
+                sound = legacySound,
+                level = legacyLevel,
+                icon = legacyIcon,
+                url = legacyUrl,
+                archive = legacyArchive,
+                badge = legacyBadge,
+            ),
             routingRules = json.optJSONArray("routingRules")?.let { array ->
                 buildList {
                     for (index in 0 until array.length()) add(RoutingRule.fromJson(array.getJSONObject(index)))
@@ -107,6 +127,42 @@ object SettingsBackupCodec {
         return buildList {
             for (index in 0 until length()) {
                 optString(index, "").trim().takeIf { it.isNotEmpty() }?.let(::add)
+            }
+        }
+    }
+
+    private fun migrateBarkChannel(
+        channels: List<PushChannel>,
+        serverUrl: String,
+        deviceKey: String,
+        group: String,
+        sound: String,
+        level: String,
+        icon: String,
+        url: String,
+        archive: Boolean,
+        badge: Boolean,
+    ): List<PushChannel> {
+        val base = if (channels.any { it.type == com.dodocomm.app.core.channel.ChannelType.BARK }) {
+            channels
+        } else {
+            listOf(PushChannel.bark()) + channels
+        }
+        return base.map { channel ->
+            if (channel.type != com.dodocomm.app.core.channel.ChannelType.BARK || channel.serverUrl.isNotBlank()) {
+                channel
+            } else {
+                channel.copy(
+                    serverUrl = serverUrl,
+                    deviceKey = deviceKey,
+                    pushGroup = group,
+                    pushSound = sound,
+                    pushLevel = level,
+                    pushIcon = icon,
+                    pushUrl = url,
+                    isArchive = archive,
+                    badgeEnabled = badge,
+                )
             }
         }
     }
