@@ -9,6 +9,7 @@ import com.dodocomm.app.core.forward.DeliveryPolicy
 import com.dodocomm.app.core.model.ForwardRecord
 import com.dodocomm.app.core.model.ForwardSource
 import com.dodocomm.app.core.model.ForwardStatus
+import com.dodocomm.app.core.routing.RoutingContext
 import com.dodocomm.app.core.system.DeviceName
 import com.dodocomm.app.core.util.TimeFormatter
 import kotlinx.coroutines.Dispatchers
@@ -64,6 +65,13 @@ class EventForwarder(
             body = body,
             dedupe = "call|${if (missed) "missed" else "incoming"}|$safeNumber|$timestamp",
             timestamp = timestamp,
+            routingContext = RoutingContext(
+                sender = safeNumber,
+                body = type,
+                simLabel = null,
+                nowMinutes = java.time.Instant.ofEpochMilli(timestamp)
+                    .atZone(java.time.ZoneId.systemDefault()).toLocalTime().let { it.hour * 60 + it.minute },
+            ),
         )
     }
 
@@ -107,6 +115,13 @@ class EventForwarder(
             body = content,
             dedupe = "notif|$packageName|${notificationKey.orEmpty()}|$content",
             timestamp = timestamp,
+            routingContext = RoutingContext(
+                sender = packageName,
+                body = listOf(rawTitle, rawText).joinToString(" "),
+                simLabel = null,
+                nowMinutes = java.time.Instant.ofEpochMilli(timestamp)
+                    .atZone(java.time.ZoneId.systemDefault()).toLocalTime().let { it.hour * 60 + it.minute },
+            ),
         )
     }
 
@@ -117,6 +132,7 @@ class EventForwarder(
         body: String,
         dedupe: String,
         timestamp: Long,
+        routingContext: RoutingContext? = null,
     ): ForwardRecord? {
         val settings = container.settings.current()
         val record = ForwardRecord(
@@ -142,7 +158,7 @@ class EventForwarder(
         }
         val dispatch = try {
             withContext(Dispatchers.IO) {
-                container.pushDispatcher.dispatch(settings, title, body)
+                container.pushDispatcher.dispatch(settings, title, body, routingContext)
             }
         } catch (t: Throwable) {
             Log.w(TAG, "事件推送失败: ${t.javaClass.simpleName}")

@@ -20,6 +20,22 @@ enum class HistoryFilter(val label: String) {
     }
 }
 
+/** Source filter shown as a second chip row on the history screen. */
+enum class HistorySourceFilter(val label: String) {
+    ALL("全部"),
+    SMS("短信"),
+    CALL("电话"),
+    NOTIFICATION("通知"),
+    ;
+
+    fun matches(source: com.dodocomm.app.core.model.ForwardSource): Boolean = when (this) {
+        ALL -> true
+        SMS -> source == com.dodocomm.app.core.model.ForwardSource.SMS
+        CALL -> source == com.dodocomm.app.core.model.ForwardSource.CALL
+        NOTIFICATION -> source == com.dodocomm.app.core.model.ForwardSource.APP_NOTIFICATION
+    }
+}
+
 /** Snapshot of the system permission / power state used by the checklist. */
 data class PermissionState(
     val receiveSms: Boolean = false,
@@ -27,6 +43,8 @@ data class PermissionState(
     val notificationsEnabled: Boolean = false,
     val batteryOptimizationsIgnored: Boolean = false,
     val readPhoneState: Boolean = false,
+    val readCallLog: Boolean = false,
+    val notificationAccess: Boolean = false,
 ) {
     val notificationsReady: Boolean get() = postNotifications && notificationsEnabled
 
@@ -37,6 +55,8 @@ data class PermissionState(
             notificationsEnabled = AppPermissions.areNotificationsEnabled(context),
             batteryOptimizationsIgnored = AppPermissions.isIgnoringBatteryOptimizations(context),
             readPhoneState = AppPermissions.hasReadPhoneState(context),
+            readCallLog = AppPermissions.hasReadCallLog(context),
+            notificationAccess = AppPermissions.hasNotificationAccess(context),
         )
     }
 }

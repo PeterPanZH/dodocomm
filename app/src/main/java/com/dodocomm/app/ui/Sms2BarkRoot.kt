@@ -209,6 +209,10 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                     onNavigateTemplate = { navController.navigate(Routes.TEMPLATE) },
                     onNavigateChannels = { navController.navigate(Routes.CHANNELS) },
                     onNavigateRouting = { navController.navigate(Routes.ROUTING) },
+                    onNavigateRoutingSource = { source ->
+                        viewModel.setRoutingSourceForNextScreen(source)
+                        navController.navigate(Routes.ROUTING)
+                    },
                     onNavigateDiagnostics = { navController.navigate(Routes.DIAGNOSTICS) },
                     onNavigateAutomation = { navController.navigate(Routes.AUTOMATION) },
                     onNavigateSection = { section ->
@@ -234,8 +238,15 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                         onNavigateTemplate = { navController.navigate(Routes.TEMPLATE) },
                         onNavigateChannels = { navController.navigate(Routes.CHANNELS) },
                         onNavigateRouting = { navController.navigate(Routes.ROUTING) },
+                        onNavigateRoutingSource = { source ->
+                            viewModel.setRoutingSourceForNextScreen(source)
+                            navController.navigate(Routes.ROUTING)
+                        },
                         onNavigateDiagnostics = { navController.navigate(Routes.DIAGNOSTICS) },
                         onNavigateAutomation = { navController.navigate(Routes.AUTOMATION) },
+                        onNavigateSection = { target ->
+                            navController.navigate(Routes.SETTINGS_SECTION_PREFIX + target.route)
+                        },
                         section = section,
                         onBack = { navController.popBackStack() },
                     )

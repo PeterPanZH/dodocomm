@@ -185,6 +185,16 @@ fun KeepAliveGuideScreen(
             item(key = "status", contentType = "card") {
                 PermissionSummaryCard(
                     permissions = permissions,
+                    onOpenNotificationAccess = {
+                        ExternalNavigation.suppressNextLeave()
+                        runCatching {
+                            context.startActivity(
+                                android.content.Intent(
+                                    android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS,
+                                ),
+                            )
+                        }.onFailure { SystemNavigator.openAppDetails(context) }
+                    },
                     onRequestPhonePermission = {
                         ExternalNavigation.suppressNextLeave()
                         runCatching {
@@ -421,6 +431,7 @@ private fun GuideFamilyChip(text: String, selected: Boolean, onClick: () -> Unit
 private fun PermissionSummaryCard(
     permissions: PermissionState,
     onRequestPhonePermission: () -> Unit,
+    onOpenNotificationAccess: () -> Unit,
 ) {
     SectionCard {
         Row(Modifier.fillMaxWidth()) {
@@ -441,7 +452,7 @@ private fun PermissionSummaryCard(
         Row(Modifier.fillMaxWidth()) {
             GuideStatusCell(
                 icon = Icons.Rounded.PhoneAndroid,
-                label = "电话信息",
+                label = "电话权限",
                 ready = permissions.readPhoneState,
                 modifier = Modifier.weight(1f),
             )
@@ -449,6 +460,21 @@ private fun PermissionSummaryCard(
                 icon = Icons.Rounded.BatterySaver,
                 label = "电池优化",
                 ready = permissions.batteryOptimizationsIgnored,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        Spacer(Modifier.height(12.dp))
+        Row(Modifier.fillMaxWidth()) {
+            GuideStatusCell(
+                icon = Icons.Rounded.PhoneAndroid,
+                label = "来电号码",
+                ready = permissions.readCallLog,
+                modifier = Modifier.weight(1f),
+            )
+            GuideStatusCell(
+                icon = Icons.Rounded.NotificationsActive,
+                label = "通知使用权",
+                ready = permissions.notificationAccess,
                 modifier = Modifier.weight(1f),
             )
         }
@@ -460,6 +486,16 @@ private fun PermissionSummaryCard(
                 value = "去授权",
                 icon = Icons.Rounded.PhoneAndroid,
                 onClick = onRequestPhonePermission,
+            )
+        }
+        if (!permissions.notificationAccess) {
+            RowDivider()
+            SettingActionRow(
+                title = "授予通知使用权",
+                subtitle = "捕获应用通知需要系统通知使用权",
+                value = "去授权",
+                icon = Icons.Rounded.NotificationsActive,
+                onClick = onOpenNotificationAccess,
             )
         }
     }

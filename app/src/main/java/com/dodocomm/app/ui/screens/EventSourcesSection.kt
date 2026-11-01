@@ -10,6 +10,9 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,6 +23,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -49,6 +55,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dodocomm.app.core.system.ExternalNavigation
 import com.dodocomm.app.events.DodoNotificationListener
 import com.dodocomm.app.ui.AppViewModel
 import com.dodocomm.app.ui.components.FilterListEditor
@@ -59,12 +66,14 @@ import com.dodocomm.app.ui.components.SectionHeader
 import com.dodocomm.app.ui.components.SettingActionRow
 import com.dodocomm.app.ui.components.SettingSwitchRow
 import com.dodocomm.app.ui.components.Text
+import com.dodocomm.app.ui.components.TokenChip
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 private data class InstalledApp(val label: String, val packageName: String)
 
 private fun openAppDetails(context: android.content.Context) {
+    ExternalNavigation.suppressNextLeave()
     runCatching {
         context.startActivity(
             Intent(
@@ -80,16 +89,11 @@ fun EventSourcesSection(
     viewModel: AppViewModel,
     onOpenSmsTemplate: () -> Unit,
     onOpenSmsRules: () -> Unit,
+    onOpenRouting: (com.dodocomm.app.core.model.ForwardSource) -> Unit,
 ) {
     val context = LocalContext.current
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     var permissionEpoch by remember { mutableStateOf(0) }
-    val phonePermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { permissionEpoch++ }
-    val callLogPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { permissionEpoch++ }
     val hasPhonePermission = remember(permissionEpoch) {
         ContextCompat.checkSelfPermission(
             context,
@@ -133,6 +137,14 @@ fun EventSourcesSection(
                     icon = Icons.Rounded.FilterAlt,
                     onClick = onOpenSmsRules,
                 )
+                RowDivider()
+                SettingActionRow(
+                    title = "短信路由规则",
+                    subtitle = "按发送者、内容或时间段选择通道",
+                    value = "${settings.routingRules.count { it.source == com.dodocomm.app.core.model.ForwardSource.SMS }} 条",
+                    icon = Icons.Rounded.FilterAlt,
+                    onClick = { onOpenRouting(com.dodocomm.app.core.model.ForwardSource.SMS) },
+                )
             }
             Spacer(Modifier.height(10.dp))
             InfoNote("短信、电话和应用通知共用推送通道与路由规则，但分别配置内容和模板。")
@@ -155,6 +167,14 @@ fun EventSourcesSection(
                     value = "编辑",
                     icon = Icons.Rounded.Edit,
                     onClick = { templateMode = "call" },
+                )
+                RowDivider()
+                SettingActionRow(
+                    title = "电话路由规则",
+                    subtitle = "按号码、来电类型或时间段选择通道",
+                    value = "${settings.routingRules.count { it.source == com.dodocomm.app.core.model.ForwardSource.CALL }} 条",
+                    icon = Icons.Rounded.FilterAlt,
+                    onClick = { onOpenRouting(com.dodocomm.app.core.model.ForwardSource.CALL) },
                 )
                 if (settings.phoneForwardEnabled) {
                     RowDivider()
@@ -182,12 +202,12 @@ fun EventSourcesSection(
                         value = if (hasPhonePermission) "已授权" else "去授权",
                         icon = Icons.Rounded.Security,
                         onClick = {
-                            runCatching {
-                                phonePermissionLauncher.launch(Manifest.permission.READ_PHONE_STATE)
-                            }.onFailure {
-                                viewModel.postSnackbar("无法打开权限请求，请到系统设置中授权", isError = true)
-                                openAppDetails(context)
-                            }
+                            // Open App info → Permissions instead of launching a
+                            // runtime request. Some OEM permission controllers
+                            // close the app when READ_PHONE_STATE is requested
+                            // from a secondary settings screen; app details is
+                            // available on every Android device and never throws.
+                            openAppDetails(context)
                         },
                     )
                     if (!hasCallLogPermission) {
@@ -197,14 +217,7 @@ fun EventSourcesSection(
                             subtitle = "授予通话记录权限后可在推送中显示号码",
                             value = "去授权",
                             icon = Icons.Rounded.Security,
-                            onClick = {
-                                runCatching {
-                                    callLogPermissionLauncher.launch(Manifest.permission.READ_CALL_LOG)
-                                }.onFailure {
-                                    viewModel.postSnackbar("无法打开权限请求，请到系统设置中授权", isError = true)
-                                    openAppDetails(context)
-                                }
-                            },
+                            onClick = { openAppDetails(context) },
                         )
                         Spacer(Modifier.height(8.dp))
                         InfoNote("未授予通话记录权限时，系统可能不提供来电号码；来电事件仍会转发，号码会显示为未知。")
@@ -255,6 +268,14 @@ fun EventSourcesSection(
                     icon = Icons.Rounded.Edit,
                     onClick = { templateMode = "notification" },
                 )
+                RowDivider()
+                SettingActionRow(
+                    title = "应用通知路由规则",
+                    subtitle = "按应用、通知内容或时间段选择通道",
+                    value = "${settings.routingRules.count { it.source == com.dodocomm.app.core.model.ForwardSource.APP_NOTIFICATION }} 条",
+                    icon = Icons.Rounded.FilterAlt,
+                    onClick = { onOpenRouting(com.dodocomm.app.core.model.ForwardSource.APP_NOTIFICATION) },
+                )
                 if (settings.notificationForwardEnabled) {
                     RowDivider()
                     SettingSwitchRow(
@@ -303,12 +324,18 @@ fun EventSourcesSection(
                         value = if (notificationAccess) "已授权" else "去授权",
                         icon = Icons.Rounded.Security,
                         onClick = {
-                            runCatching {
+                            ExternalNavigation.suppressNextLeave()
+                            val opened = runCatching {
                                 context.startActivity(
-                                    Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS),
+                                    Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                                 )
-                            }.onFailure {
-                                viewModel.postSnackbar("无法打开通知使用权设置，请到系统设置中手动开启", isError = true)
+                            }.isSuccess
+                            if (!opened) {
+                                viewModel.postSnackbar(
+                                    "无法打开通知使用权设置，请到系统设置中手动开启",
+                                    isError = true,
+                                )
                                 openAppDetails(context)
                             }
                         },
@@ -376,21 +403,26 @@ private fun EventTemplateDialog(
 ) {
     var title by rememberSaveable { mutableStateOf(initialTitle) }
     var body by rememberSaveable { mutableStateOf(initialBody) }
-    val tokens = if (mode == "call") {
-        "{type} {sender} {time} {device}"
+    val titleTokens = if (mode == "call") {
+        listOf("{type}", "{sender}", "{time}", "{device}")
     } else {
-        "{app} {title} {body} {time} {device}"
+        listOf("{app}", "{title}", "{time}", "{device}")
+    }
+    val bodyTokens = if (mode == "call") {
+        listOf("{type}", "{sender}", "{number}", "{time}", "{device}")
+    } else {
+        listOf("{app}", "{package}", "{title}", "{body}", "{time}", "{device}")
     }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (mode == "call") "电话推送模板" else "应用通知推送模板") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(
-                    text = "可用变量：$tokens",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            Column(
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .imePadding(),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
                 androidx.compose.material3.OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
@@ -398,6 +430,14 @@ private fun EventTemplateDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    titleTokens.forEach { token ->
+                        TokenChip(text = token, onClick = { title += token })
+                    }
+                }
                 androidx.compose.material3.OutlinedTextField(
                     value = body,
                     onValueChange = { body = it },
@@ -406,6 +446,34 @@ private fun EventTemplateDialog(
                     maxLines = 8,
                     modifier = Modifier.fillMaxWidth(),
                 )
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    bodyTokens.forEach { token ->
+                        TokenChip(text = token, onClick = { body += token })
+                    }
+                }
+                Text(
+                    text = "预览",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                androidx.compose.material3.Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(Modifier.padding(12.dp)) {
+                        Text(title.ifBlank { "（空标题）" }, style = MaterialTheme.typography.titleSmall)
+                        Spacer(Modifier.height(3.dp))
+                        Text(
+                            body.ifBlank { "（空正文）" },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
             }
         },
         confirmButton = {

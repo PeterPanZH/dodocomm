@@ -444,8 +444,20 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun addRoutingRule(): RoutingRule {
-        val rule = RoutingRule.create()
+    private val _routingSourceForNextScreen = kotlinx.coroutines.flow.MutableStateFlow<com.dodocomm.app.core.model.ForwardSource?>(null)
+
+    fun setRoutingSourceForNextScreen(source: com.dodocomm.app.core.model.ForwardSource) {
+        _routingSourceForNextScreen.value = source
+    }
+
+    fun consumeRoutingSource(): com.dodocomm.app.core.model.ForwardSource? {
+        val value = _routingSourceForNextScreen.value
+        _routingSourceForNextScreen.value = null
+        return value
+    }
+
+    fun addRoutingRule(source: com.dodocomm.app.core.model.ForwardSource = com.dodocomm.app.core.model.ForwardSource.SMS): RoutingRule {
+        val rule = RoutingRule.create(source = source)
         updateSettings { it.copy(routingRules = it.routingRules + rule) }
         return rule
     }

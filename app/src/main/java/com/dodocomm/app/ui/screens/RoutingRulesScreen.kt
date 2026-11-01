@@ -45,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dodocomm.app.core.model.ForwardSource
 import com.dodocomm.app.core.routing.RoutingContext
 import com.dodocomm.app.core.routing.RoutingEngine
 import com.dodocomm.app.core.routing.RoutingRule
@@ -60,6 +61,15 @@ import com.dodocomm.app.ui.i18n.AppStrings
 @Composable
 fun RoutingRulesScreen(viewModel: AppViewModel, onBack: () -> Unit) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
+    var selectedSource by rememberSaveable {
+        mutableStateOf(viewModel.consumeRoutingSource() ?: ForwardSource.SMS)
+    }
+    val sourceRules = settings.routingRules.filter { it.source == selectedSource }
+    val sourceLabel = when (selectedSource) {
+        ForwardSource.SMS -> "短信"
+        ForwardSource.CALL -> "电话"
+        ForwardSource.APP_NOTIFICATION -> "应用通知"
+    }
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
     var testSender by rememberSaveable { mutableStateOf("") }
     var testBody by rememberSaveable { mutableStateOf("") }
@@ -96,6 +106,24 @@ fun RoutingRulesScreen(viewModel: AppViewModel, onBack: () -> Unit) {
                     "按顺序匹配；首条命中后默认停止",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            listOf(
+                ForwardSource.SMS to "短信",
+                ForwardSource.CALL to "电话",
+                ForwardSource.APP_NOTIFICATION to "应用通知",
+            ).forEach { (source, label) ->
+                FilterChip(
+                    selected = selectedSource == source,
+                    onClick = { selectedSource = source },
+                    label = { Text(label) },
                 )
             }
         }
@@ -164,12 +192,13 @@ fun RoutingRulesScreen(viewModel: AppViewModel, onBack: () -> Unit) {
                         simLabel = null,
                         nowMinutes = java.time.LocalTime.now().let { it.hour * 60 + it.minute },
                     )
-                    val matchedRule = with(RoutingEngine) { settings.routingRules.firstOrNull { it.enabled && it.matches(testContext) } }
+                    val matchedRule = with(RoutingEngine) { sourceRules.firstOrNull { it.enabled && it.matches(testContext) } }
                     val targets = RoutingEngine.targets(
                         context = testContext,
                         rules = settings.routingRules,
                         activeChannels = active,
                         defaultChannelIds = settings.defaultChannelIds,
+                        source = selectedSource,
                     )
                     Text(
                         text = "命中：" + (matchedRule?.name ?: "默认目标"),
@@ -188,7 +217,7 @@ fun RoutingRulesScreen(viewModel: AppViewModel, onBack: () -> Unit) {
                 Spacer(Modifier.height(16.dp))
             }
             item(key = "rules") {
-                if (settings.routingRules.isEmpty()) {
+                if (sourceRules.isEmpty()) {
                     SectionCard {
                         Text(
                             text = "还没有规则，所有短信走默认目标。",
@@ -198,7 +227,7 @@ fun RoutingRulesScreen(viewModel: AppViewModel, onBack: () -> Unit) {
                     }
                 } else {
                     SectionCard {
-                        settings.routingRules.forEachIndexed { index, rule ->
+                        sourceRules.forEachIndexed { index, rule ->
                             if (index > 0) RowDivider()
                             RuleRow(
                                 rule = rule,
@@ -216,7 +245,7 @@ fun RoutingRulesScreen(viewModel: AppViewModel, onBack: () -> Unit) {
             item(key = "add") {
                 Button(
                     onClick = {
-                        val rule = viewModel.addRoutingRule()
+                        val rule = viewModel.addRoutingRule(selectedSource)
                         editingId = rule.id
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -327,14 +356,26 @@ private fun RuleEditor(
                     SettingTextField(
                         value = rule.senderContains,
                         onCommit = { onChange(rule.copy(senderContains = it.trim())) },
-                        label = "发送者包含（可选）",
-                        placeholder = "95588",
+                        label = when (rule.source) {
+                            ForwardSource.SMS -> "发送者包含（可选）"
+                            ForwardSource.CALL -> "来电号码包含（可选）"
+                            ForwardSource.APP_NOTIFICATION -> "应用名称/包名包含（可选）"
+                        },
+                        placeholder = when (rule.source) {
+                            ForwardSource.CALL -> "95588"
+                            ForwardSource.APP_NOTIFICATION -> "微信 / com.tencent.mm"
+                            else -> "95588"
+                        },
                     )
                     Spacer(Modifier.height(10.dp))
                     SettingTextField(
                         value = rule.keywordContains,
                         onCommit = { onChange(rule.copy(keywordContains = it.trim())) },
-                        label = "内容关键词包含（可选）",
+                        label = when (rule.source) {
+                            ForwardSource.SMS -> "内容关键词包含（可选）"
+                            ForwardSource.CALL -> "通话类型包含（来电 / 未接）"
+                            ForwardSource.APP_NOTIFICATION -> "通知内容包含（可选）"
+                        },
                         placeholder = "验证码",
                     )
                     Spacer(Modifier.height(10.dp))
@@ -352,17 +393,19 @@ private fun RuleEditor(
                         placeholder = "验证码|动态码",
                     )
                     Spacer(Modifier.height(10.dp))
-                    Text("SIM 槽位", style = MaterialTheme.typography.labelMedium)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf(0 to "任意", 1 to "SIM 1", 2 to "SIM 2").forEach { (slot, label) ->
-                            FilterChip(
-                                selected = rule.simSlot == slot,
-                                onClick = { onChange(rule.copy(simSlot = slot)) },
-                                label = { Text(label) },
-                            )
+                    if (rule.source == ForwardSource.SMS) {
+                        Text("SIM 槽位", style = MaterialTheme.typography.labelMedium)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            listOf(0 to "任意", 1 to "SIM 1", 2 to "SIM 2").forEach { (slot, label) ->
+                                FilterChip(
+                                    selected = rule.simSlot == slot,
+                                    onClick = { onChange(rule.copy(simSlot = slot)) },
+                                    label = { Text(label) },
+                                )
+                            }
                         }
+                        Spacer(Modifier.height(10.dp))
                     }
-                    Spacer(Modifier.height(10.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         SettingTextField(
                             value = minutesToLabel(rule.timeStartMinutes),
@@ -460,7 +503,15 @@ private fun ruleSummary(rule: RoutingRule, settings: AppSettings): String {
         if (rule.timeStartMinutes >= 0 && rule.timeEndMinutes >= 0) {
             add("${minutesToLabel(rule.timeStartMinutes)}–${minutesToLabel(rule.timeEndMinutes)}")
         }
-    }.ifEmpty { listOf(AppStrings.translate("所有短信")) }
+    }.ifEmpty {
+        listOf(
+            when (rule.source) {
+                ForwardSource.CALL -> AppStrings.translate("所有来电")
+                ForwardSource.APP_NOTIFICATION -> AppStrings.translate("所有应用通知")
+                else -> AppStrings.translate("所有短信")
+            },
+        )
+    }
     val targets = rule.targetChannelIds.mapNotNull { id ->
         settings.channels.firstOrNull { it.id == id }?.name
     }.ifEmpty { listOf(AppStrings.translate("默认目标")) }

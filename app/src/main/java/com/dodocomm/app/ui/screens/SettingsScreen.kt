@@ -315,6 +315,7 @@ fun SettingsScreen(
     onNavigateTemplate: () -> Unit,
     onNavigateChannels: () -> Unit = {},
     onNavigateRouting: () -> Unit = {},
+    onNavigateRoutingSource: (com.dodocomm.app.core.model.ForwardSource) -> Unit = {},
     onNavigateDiagnostics: () -> Unit = {},
     onNavigateAutomation: () -> Unit = {},
     section: SettingsSection = SettingsSection.OVERVIEW,
@@ -424,6 +425,7 @@ fun SettingsScreen(
                     viewModel = viewModel,
                     onOpenSmsTemplate = onNavigateTemplate,
                     onOpenSmsRules = { onNavigateSection(SettingsSection.RULES) },
+                    onOpenRouting = onNavigateRoutingSource,
                 )
             }
         }

@@ -136,6 +136,19 @@ fun DiagnosticsScreen(
             DiagnosticAction.OPEN_HISTORY_RETRY -> onOpenRetryHistory()
             DiagnosticAction.OPEN_UPDATE ->
                 onOpenSettingsSection(SettingsSection.ABOUT)
+            DiagnosticAction.OPEN_EVENTS ->
+                onOpenSettingsSection(SettingsSection.EVENTS)
+            DiagnosticAction.OPEN_NOTIFICATION_ACCESS -> {
+                com.dodocomm.app.core.system.ExternalNavigation.suppressNextLeave()
+                runCatching {
+                    context.startActivity(
+                        Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    )
+                }.onFailure {
+                    viewModel.postSnackbar("无法打开通知使用权设置，请到系统设置中开启", isError = true)
+                }
+            }
             null -> Unit
         }
     }

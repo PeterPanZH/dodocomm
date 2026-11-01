@@ -1,5 +1,6 @@
 package com.dodocomm.app.core.routing
 
+import com.dodocomm.app.core.model.ForwardSource
 import java.time.LocalTime
 import org.json.JSONArray
 import org.json.JSONObject
@@ -12,6 +13,7 @@ data class RoutingRule(
     val id: String,
     val name: String,
     val enabled: Boolean = true,
+    val source: ForwardSource = ForwardSource.SMS,
     val senderContains: String = "",
     val senderRegex: String = "",
     val keywordContains: String = "",
@@ -27,6 +29,7 @@ data class RoutingRule(
         put("id", id)
         put("name", name)
         put("enabled", enabled)
+        put("source", source.name)
         put("senderContains", senderContains)
         put("senderRegex", senderRegex)
         put("keywordContains", keywordContains)
@@ -44,6 +47,7 @@ data class RoutingRule(
             id = json.optString("id"),
             name = json.optString("name").ifBlank { "规则" },
             enabled = json.optBoolean("enabled", true),
+            source = ForwardSource.fromStorage(json.optString("source")),
             senderContains = json.optString("senderContains"),
             senderRegex = json.optString("senderRegex"),
             keywordContains = json.optString("keywordContains"),
@@ -62,9 +66,10 @@ data class RoutingRule(
             fallbackToDefault = json.optBoolean("fallbackToDefault", true),
         )
 
-        fun create(name: String = "新规则"): RoutingRule = RoutingRule(
+        fun create(name: String = "新规则", source: ForwardSource = ForwardSource.SMS): RoutingRule = RoutingRule(
             id = "rule-" + java.util.UUID.randomUUID().toString().take(8),
             name = name,
+            source = source,
         )
     }
 }
@@ -89,6 +94,7 @@ object RoutingEngine {
         rules: List<RoutingRule>,
         activeChannels: List<com.dodocomm.app.core.channel.PushChannel>,
         defaultChannelIds: List<String> = emptyList(),
+        source: ForwardSource = ForwardSource.SMS,
     ): List<com.dodocomm.app.core.channel.PushChannel> {
         if (activeChannels.isEmpty()) return emptyList()
         val defaults = if (defaultChannelIds.isEmpty()) {
@@ -99,6 +105,7 @@ object RoutingEngine {
         val matchedTargets = LinkedHashSet<String>()
         var matched = false
         for (rule in rules) {
+            if (rule.source != source) continue
             if (!rule.enabled || !rule.matches(context)) continue
             matched = true
             matchedTargets += rule.targetChannelIds
@@ -107,7 +114,7 @@ object RoutingEngine {
         if (!matched) return defaults
         val selected = activeChannels.filter { it.id in matchedTargets }
         return if (selected.isEmpty()) {
-            if (rules.any { it.matches(context) && it.fallbackToDefault }) defaults else emptyList()
+            if (rules.any { it.source == source && it.matches(context) && it.fallbackToDefault }) defaults else emptyList()
         } else {
             selected
         }

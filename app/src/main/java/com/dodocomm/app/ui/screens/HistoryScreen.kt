@@ -93,6 +93,7 @@ import com.dodocomm.app.ui.components.SenderAvatar
 import com.dodocomm.app.ui.components.StatusChip
 import com.dodocomm.app.ui.components.displaySender
 import com.dodocomm.app.ui.model.HistoryFilter
+import com.dodocomm.app.ui.model.HistorySourceFilter
 import com.dodocomm.app.ui.theme.InnerShape
 import com.dodocomm.app.ui.theme.SheetShape
 import kotlinx.coroutines.launch
@@ -101,6 +102,7 @@ import kotlinx.coroutines.launch
 fun HistoryScreen(viewModel: AppViewModel) {
     val records by viewModel.records.collectAsStateWithLifecycle()
     val filter by viewModel.historyFilter.collectAsStateWithLifecycle()
+    var sourceFilter by rememberSaveable { mutableStateOf(HistorySourceFilter.ALL) }
     val openRequest by viewModel.openRecordRequest.collectAsStateWithLifecycle()
 
     var selectedId by rememberSaveable { mutableStateOf(-1L) }
@@ -174,9 +176,10 @@ fun HistoryScreen(viewModel: AppViewModel) {
     var showFilterSheet by rememberSaveable { mutableStateOf(false) }
     val dateFilter = RecordDateFilter.valueOf(dateFilterName)
     val filtersActive = senderFilter.isNotBlank() || keywordFilter.isNotBlank() || dateFilter != RecordDateFilter.ALL
-    val visibleRecords = remember(records, filter, senderFilter, keywordFilter, dateFilter) {
+    val visibleRecords = remember(records, filter, sourceFilter, senderFilter, keywordFilter, dateFilter) {
         records.filter { record ->
             filter.matches(record.status) &&
+                sourceFilter.matches(record.source) &&
                 (senderFilter.isBlank() || record.sender.contains(senderFilter.trim(), ignoreCase = true)) &&
                 (keywordFilter.isBlank() || (record.body.contains(keywordFilter.trim(), ignoreCase = true) ||
                     record.sender.contains(keywordFilter.trim(), ignoreCase = true))) &&
@@ -324,6 +327,27 @@ fun HistoryScreen(viewModel: AppViewModel) {
                 )
             }
         }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(start = 20.dp, end = 20.dp, top = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            HistorySourceFilter.entries.forEach { item ->
+                FilterChip(
+                    selected = sourceFilter == item,
+                    onClick = { sourceFilter = item },
+                    label = { Text(item.label, style = MaterialTheme.typography.labelMedium, maxLines = 1) },
+                    shape = CircleShape,
+                    colors = FilterChipDefaults.filterChipColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    ),
+                )
+            }
+        }
 
         Spacer(Modifier.height(10.dp))
 
@@ -356,6 +380,7 @@ fun HistoryScreen(viewModel: AppViewModel) {
                     actionLabel = "查看全部",
                     onAction = {
                         viewModel.setHistoryFilter(HistoryFilter.ALL)
+                        sourceFilter = HistorySourceFilter.ALL
                         senderFilter = ""
                         keywordFilter = ""
                         dateFilterName = RecordDateFilter.ALL.name

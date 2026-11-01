@@ -25,6 +25,8 @@ enum class DiagnosticAction {
     OPEN_ROUTING,
     OPEN_HISTORY_RETRY,
     OPEN_UPDATE,
+    OPEN_NOTIFICATION_ACCESS,
+    OPEN_EVENTS,
 }
 
 data class DiagnosticItem(
@@ -92,6 +94,39 @@ object DiagnosticsChecker {
             action = if (permissions.receiveSms) null else DiagnosticAction.RECEIVE_SMS,
             actionLabel = "去授权",
         )
+        if (settings.phoneForwardEnabled) {
+            items += DiagnosticItem(
+                id = "event_phone_state",
+                group = DiagnosticGroup.PERMISSIONS,
+                title = "电话事件权限",
+                detail = if (permissions.readPhoneState) "已授权，可以检测来电" else "未授权，来电/未接来电无法转发",
+                status = if (permissions.readPhoneState) DiagnosticStatus.PASS else DiagnosticStatus.WARN,
+                action = if (permissions.readPhoneState) null else DiagnosticAction.OPEN_EVENTS,
+                actionLabel = "去授权",
+            )
+            if (!permissions.readCallLog) {
+                items += DiagnosticItem(
+                    id = "event_call_log",
+                    group = DiagnosticGroup.PERMISSIONS,
+                    title = "来电号码权限",
+                    detail = "未授权通话记录，来电号码可能显示为未知",
+                    status = DiagnosticStatus.WARN,
+                    action = DiagnosticAction.OPEN_EVENTS,
+                    actionLabel = "去授权",
+                )
+            }
+        }
+        if (settings.notificationForwardEnabled) {
+            items += DiagnosticItem(
+                id = "event_notification_access",
+                group = DiagnosticGroup.PERMISSIONS,
+                title = "通知使用权",
+                detail = if (permissions.notificationAccess) "已授权，可以捕获应用通知" else "未授权，应用通知无法转发",
+                status = if (permissions.notificationAccess) DiagnosticStatus.PASS else DiagnosticStatus.FAIL,
+                action = if (permissions.notificationAccess) null else DiagnosticAction.OPEN_NOTIFICATION_ACCESS,
+                actionLabel = "去授权",
+            )
+        }
         items += DiagnosticItem(
             id = "notification_permission",
             group = DiagnosticGroup.PERMISSIONS,
