@@ -342,5 +342,9 @@
  {
   "regex": "^无法请求电话权限：(.*)，请在系统设置中开启$",
   "format": "Impossible de demander l'autorisation téléphonique : {0}. Activez-le dans les paramètres système."
+ },
+ {
+  "regex": "^(\\d+) / (\\d+) 个应用$",
+  "format": "{0} / {1} applis"
  }
 ]

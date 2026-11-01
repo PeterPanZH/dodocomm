@@ -16,10 +16,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,8 +36,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dodocomm.app.core.system.ExternalNavigation
 import com.dodocomm.app.ui.AppViewModel
 import com.dodocomm.app.ui.components.FilterListEditor
 import com.dodocomm.app.ui.components.InfoNote
@@ -128,20 +138,43 @@ internal fun AppPickerDialog(
     var chosen by remember { mutableStateOf(selected) }
     var apps by remember { mutableStateOf<List<InstalledApp>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
-
+    var query by rememberSaveable { mutableStateOf("") }
+    var listPermissionDenied by remember { mutableStateOf(false) }
+    var reloadKey by remember { mutableStateOf(0) }
+    val appListPermission = "com.android.permission.GET_INSTALLED_APPS"
+    val listPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { reloadKey++ }
     LaunchedEffect(Unit) {
+        if (ContextCompat.checkSelfPermission(context, appListPermission) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            ExternalNavigation.suppressNextLeave()
+            runCatching { listPermissionLauncher.launch(appListPermission) }
+                .onFailure { listPermissionDenied = true }
+        }
+    }
+    val visibleApps = remember(apps, query) {
+        val needle = query.trim().lowercase()
+        if (needle.isEmpty()) apps else apps.filter {
+            it.label.lowercase().contains(needle) || it.packageName.lowercase().contains(needle)
+        }
+    }
+
+    LaunchedEffect(reloadKey) {
         val loaded = withContext(Dispatchers.IO) {
             val packageManager = context.packageManager
-            val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
-            val activities = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                packageManager.queryIntentActivities(intent, PackageManager.ResolveInfoFlags.of(0L))
+            val installed = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                packageManager.getInstalledApplications(PackageManager.ApplicationInfoFlags.of(0L))
             } else {
                 @Suppress("DEPRECATION")
-                packageManager.queryIntentActivities(intent, 0)
+                packageManager.getInstalledApplications(0)
             }
-            activities.mapNotNull { resolveInfo ->
-                val packageName = resolveInfo.activityInfo?.packageName ?: return@mapNotNull null
-                InstalledApp(resolveInfo.loadLabel(packageManager).toString(), packageName)
+            installed.mapNotNull { info ->
+                val packageName = info.packageName ?: return@mapNotNull null
+                val label = runCatching { packageManager.getApplicationLabel(info).toString() }
+                    .getOrDefault(packageName)
+                InstalledApp(label.ifBlank { packageName }, packageName)
             }.distinctBy { it.packageName }.sortedBy { it.label.lowercase() }
         }
         apps = loaded
@@ -155,8 +188,30 @@ internal fun AppPickerDialog(
             if (loading) {
                 Text("正在读取应用列表…")
             } else {
+                Column {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("搜索应用名称或包名") },
+                        singleLine = true,
+                        leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
+                        trailingIcon = {
+                            if (query.isNotEmpty()) {
+                                IconButton(onClick = { query = "" }) {
+                                    Icon(Icons.Rounded.Clear, contentDescription = com.dodocomm.app.ui.i18n.AppStrings.translate("清空搜索"))
+                                }
+                            }
+                        },
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = "${visibleApps.size} / ${apps.size} 个应用",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 LazyColumn(modifier = Modifier.heightIn(max = 420.dp)) {
-                    items(apps, key = { it.packageName }) { app ->
+                    items(visibleApps, key = { it.packageName }) { app ->
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
                             verticalAlignment = Alignment.CenterVertically,
@@ -178,6 +233,7 @@ internal fun AppPickerDialog(
                             }
                         }
                     }
+                }
                 }
             }
         },

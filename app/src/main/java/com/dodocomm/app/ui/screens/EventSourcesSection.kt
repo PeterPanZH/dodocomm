@@ -134,8 +134,6 @@ fun EventSourcesSection(
                     onClick = { onOpenRouting(com.dodocomm.app.core.model.ForwardSource.SMS) },
                 )
             }
-            Spacer(Modifier.height(10.dp))
-            InfoNote("短信、电话和应用通知共用推送通道与路由规则，但分别配置内容和模板。")
         }
 
         Column {
@@ -264,8 +262,6 @@ fun EventSourcesSection(
                     )
                 }
             }
-            Spacer(Modifier.height(10.dp))
-            InfoNote("通知内容只发送到你配置的推送通道，不经过应用服务器。通知使用权请在后台设置向导或运行诊断中检查。")
         }
     }
 }

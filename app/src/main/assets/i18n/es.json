@@ -1110,5 +1110,8 @@
  "示例通知内容": "Contenido de notificación de muestra",
  "示例通话类型": "Tipos de llamadas de ejemplo",
  "输入示例应用与通知内容，实时查看命中的第一条规则与最终目标。": "Ingrese a la aplicación de muestra y al contenido de la notificación para ver el primer cumplimiento de la regla y el objetivo final en tiempo real.",
- "输入示例来电号码和通话类型，实时查看命中的第一条规则与最终目标。": "Ingrese un identificador de llamadas de muestra y un tipo de llamada para ver el primer cumplimiento de la regla versus el objetivo final en tiempo real."
+ "输入示例来电号码和通话类型，实时查看命中的第一条规则与最终目标。": "Ingrese un identificador de llamadas de muestra y un tipo de llamada para ver el primer cumplimiento de la regla versus el objetivo final en tiempo real.",
+ "应用通知变量": "Variables de notificaciones",
+ "电话变量": "Variables de llamada",
+ "搜索应用名称或包名": "Buscar nombre o paquete de app"
 }
