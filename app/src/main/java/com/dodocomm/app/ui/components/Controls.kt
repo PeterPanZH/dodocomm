@@ -484,27 +484,31 @@ fun SettingActionRow(
 /** Small "+ token" chip used by the title-template editor. */
 @Composable
 fun TokenChip(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Surface(
-        onClick = onClick,
-        modifier = modifier,
-        shape = CircleShape,
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+    // A plain clickable pill rather than Surface/FilterChip: Material's
+    // minimum interactive target adds invisible vertical space around chip
+    // rows, which made tag lists look much more spaced out than their 2dp
+    // FlowRow gap.
+    Box(
+        modifier = modifier
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.secondaryContainer)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+        contentAlignment = Alignment.Center,
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
             )
             Spacer(Modifier.width(3.dp))
             Icon(
                 imageVector = Icons.Rounded.Add,
                 contentDescription = null,
                 modifier = Modifier.size(12.dp),
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
             )
         }
     }

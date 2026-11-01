@@ -15,8 +15,8 @@ android {
         applicationId = "com.dodocomm.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 49
-        versionName = "1.13.4"
+        versionCode = 50
+        versionName = "1.13.5"
 
         // GitHub Releases is public; latest.json is attached to every release.
         buildConfigField(
