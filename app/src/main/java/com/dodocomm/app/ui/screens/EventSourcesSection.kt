@@ -98,40 +98,6 @@ fun EventSourcesSection(
 ) {
     val context = LocalContext.current
     val settings by viewModel.settings.collectAsStateWithLifecycle()
-    var permissionEpoch by remember { mutableStateOf(0) }
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                permissionEpoch++
-                viewModel.refreshSystemState()
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-    }
-    val phonePermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { permissionEpoch++ }
-    val callLogPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { permissionEpoch++ }
-    val hasPhonePermission = remember(permissionEpoch) {
-        ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.READ_PHONE_STATE,
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-    val hasCallLogPermission = remember(permissionEpoch) {
-        ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.READ_CALL_LOG,
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-    val notificationAccess = remember(permissionEpoch) {
-        DodoNotificationListener.isAccessGranted(context)
-    }
-
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Column {
             SectionHeader("短信")
@@ -223,46 +189,6 @@ fun EventSourcesSection(
                     )
                     RowDivider()
                     SettingActionRow(
-                        title = "电话权限",
-                        subtitle = if (hasPhonePermission) {
-                            "已允许检测来电状态"
-                        } else {
-                            "需要电话权限才能检测来电"
-                        },
-                        value = if (hasPhonePermission) "已授权" else "去授权",
-                        icon = Icons.Rounded.Security,
-                        onClick = {
-                            ExternalNavigation.suppressNextLeave()
-                            runCatching {
-                                phonePermissionLauncher.launch(Manifest.permission.READ_PHONE_STATE)
-                            }.onFailure {
-                                openAppDetails(context)
-                                viewModel.postSnackbar(
-                                    "无法打开权限请求，请在应用详情中手动授权",
-                                    isError = true,
-                                )
-                            }
-                        },
-                    )
-                    if (!hasCallLogPermission) {
-                        RowDivider()
-                        SettingActionRow(
-                            title = "读取来电号码",
-                            subtitle = "授予通话记录权限后可在推送中显示号码",
-                            value = "去授权",
-                            icon = Icons.Rounded.Security,
-                            onClick = {
-                                ExternalNavigation.suppressNextLeave()
-                                runCatching {
-                                    callLogPermissionLauncher.launch(Manifest.permission.READ_CALL_LOG)
-                                }.onFailure { openAppDetails(context) }
-                            },
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        InfoNote("未授予通话记录权限时，系统可能不提供来电号码；来电事件仍会转发，号码会显示为未知。")
-                    }
-                    RowDivider()
-                    SettingActionRow(
                         title = "测试电话事件",
                         subtitle = "发送一条模拟来电到当前推送通道",
                         value = "测试",
@@ -301,6 +227,14 @@ fun EventSourcesSection(
                     icon = Icons.Rounded.FilterAlt,
                     onClick = { onOpenRouting(com.dodocomm.app.core.model.ForwardSource.APP_NOTIFICATION) },
                 )
+                RowDivider()
+                SettingActionRow(
+                    title = "应用转发规则",
+                    subtitle = "应用白名单与黑名单",
+                    value = "${settings.notificationSelectedPackages.size + settings.notificationBlacklistPackages.size} 个",
+                    icon = Icons.Rounded.Badge,
+                    onClick = onOpenAppRules,
+                )
                 if (settings.notificationForwardEnabled) {
                     RowDivider()
                     SettingSwitchRow(
@@ -313,49 +247,12 @@ fun EventSourcesSection(
                             "只转发下方选中的应用"
                         },
                     )
-                    if (!settings.notificationAllApps) {
-                        RowDivider()
-                        SettingActionRow(
-                            title = "应用转发规则",
-                            subtitle = "应用白名单与黑名单",
-                            value = "${settings.notificationSelectedPackages.size + settings.notificationBlacklistPackages.size} 个",
-                            icon = Icons.Rounded.Badge,
-                            onClick = onOpenAppRules,
-                        )
-                    }
                     RowDivider()
                     SettingSwitchRow(
                         title = "忽略常驻通知",
                         checked = settings.notificationIgnoreOngoing,
                         onCheckedChange = viewModel::setNotificationIgnoreOngoing,
                         subtitle = "忽略前台服务、下载进度等持续更新的通知",
-                    )
-                    RowDivider()
-                    SettingActionRow(
-                        title = "通知使用权",
-                        subtitle = if (notificationAccess) {
-                            "已获得通知访问权限"
-                        } else {
-                            "需要通知访问权限才能捕获应用通知"
-                        },
-                        value = if (notificationAccess) "已授权" else "去授权",
-                        icon = Icons.Rounded.Security,
-                        onClick = {
-                            ExternalNavigation.suppressNextLeave()
-                            val opened = runCatching {
-                                context.startActivity(
-                                    Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
-                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                                )
-                            }.isSuccess
-                            if (!opened) {
-                                viewModel.postSnackbar(
-                                    "无法打开通知使用权设置，请到系统设置中手动开启",
-                                    isError = true,
-                                )
-                                openAppDetails(context)
-                            }
-                        },
                     )
                     RowDivider()
                     SettingActionRow(
@@ -368,7 +265,7 @@ fun EventSourcesSection(
                 }
             }
             Spacer(Modifier.height(10.dp))
-            InfoNote("应用通知转发依赖系统的通知使用权；关闭授权后服务会自动停止捕获。通知内容只发送到你配置的推送通道，不经过应用服务器。")
+            InfoNote("通知内容只发送到你配置的推送通道，不经过应用服务器。通知使用权请在后台设置向导或运行诊断中检查。")
         }
     }
 }

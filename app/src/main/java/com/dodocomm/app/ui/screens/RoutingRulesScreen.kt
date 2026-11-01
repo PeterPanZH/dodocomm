@@ -148,7 +148,11 @@ fun RoutingRulesScreen(viewModel: AppViewModel, onBack: () -> Unit) {
                 SectionCard {
                     Text("测试规则", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                     Text(
-                        "输入示例号码和内容，实时查看命中的第一条规则与最终目标。",
+                        when (selectedSource) {
+                            ForwardSource.APP_NOTIFICATION -> "输入示例应用与通知内容，实时查看命中的第一条规则与最终目标。"
+                            ForwardSource.CALL -> "输入示例来电号码和通话类型，实时查看命中的第一条规则与最终目标。"
+                            else -> "输入示例号码和内容，实时查看命中的第一条规则与最终目标。"
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -156,15 +160,30 @@ fun RoutingRulesScreen(viewModel: AppViewModel, onBack: () -> Unit) {
                     SettingTextField(
                         value = testSender,
                         onCommit = { testSender = it },
-                        label = "示例发送者",
-                        placeholder = "95588",
+                        label = when (selectedSource) {
+                            ForwardSource.APP_NOTIFICATION -> "示例应用名称或包名"
+                            ForwardSource.CALL -> "示例来电号码"
+                            else -> "示例发送者"
+                        },
+                        placeholder = when (selectedSource) {
+                            ForwardSource.APP_NOTIFICATION -> "微信 / com.tencent.mm"
+                            else -> "95588"
+                        },
                     )
                     Spacer(Modifier.height(8.dp))
                     SettingTextField(
                         value = testBody,
                         onCommit = { testBody = it },
-                        label = "示例内容",
-                        placeholder = "您的验证码是 123456",
+                        label = when (selectedSource) {
+                            ForwardSource.APP_NOTIFICATION -> "示例通知内容"
+                            ForwardSource.CALL -> "示例通话类型"
+                            else -> "示例内容"
+                        },
+                        placeholder = when (selectedSource) {
+                            ForwardSource.APP_NOTIFICATION -> "你有一条新消息"
+                            ForwardSource.CALL -> "来电 / 未接来电"
+                            else -> "您的验证码是 123456"
+                        },
                     )
                     Spacer(Modifier.height(10.dp))
                     val active = settings.activePushChannels()

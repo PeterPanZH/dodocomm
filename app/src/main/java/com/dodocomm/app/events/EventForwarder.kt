@@ -116,7 +116,7 @@ class EventForwarder(
             dedupe = "notif|$packageName|${notificationKey.orEmpty()}|$content",
             timestamp = timestamp,
             routingContext = RoutingContext(
-                sender = packageName,
+                sender = "$safeApp $packageName",
                 body = listOf(rawTitle, rawText).joinToString(" "),
                 simLabel = null,
                 nowMinutes = java.time.Instant.ofEpochMilli(timestamp)

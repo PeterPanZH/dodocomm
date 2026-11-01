@@ -433,7 +433,27 @@ fun TemplateEditorScreen(
     }
 
     if (showHelp) {
-        TemplateVariableHelpSheet(onDismiss = { showHelp = false })
+        if (source == ForwardSource.SMS) {
+            TemplateVariableHelpSheet(onDismiss = { showHelp = false })
+        } else {
+            AlertDialog(
+                onDismissRequest = { showHelp = false },
+                title = { Text(if (source == ForwardSource.CALL) "电话变量" else "应用通知变量") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        variables.forEach { variable ->
+                            Text(
+                                text = "${variable.token}  ${variable.name}  ·  ${variable.example}",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showHelp = false }) { Text("知道了") }
+                },
+            )
+        }
     }
     if (showResetDialog) {
         AlertDialog(

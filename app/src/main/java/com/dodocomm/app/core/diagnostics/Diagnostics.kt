@@ -18,6 +18,7 @@ enum class DiagnosticAction {
     RECEIVE_SMS,
     POST_NOTIFICATIONS,
     READ_PHONE_STATE,
+    READ_CALL_LOG,
     BATTERY_OPTIMIZATION,
     OPEN_RELIABILITY,
     OPEN_GUIDE,
@@ -101,7 +102,7 @@ object DiagnosticsChecker {
                 title = "电话事件权限",
                 detail = if (permissions.readPhoneState) "已授权，可以检测来电" else "未授权，来电/未接来电无法转发",
                 status = if (permissions.readPhoneState) DiagnosticStatus.PASS else DiagnosticStatus.WARN,
-                action = if (permissions.readPhoneState) null else DiagnosticAction.OPEN_EVENTS,
+                action = if (permissions.readPhoneState) null else DiagnosticAction.READ_PHONE_STATE,
                 actionLabel = "去授权",
             )
             if (!permissions.readCallLog) {
@@ -111,7 +112,7 @@ object DiagnosticsChecker {
                     title = "来电号码权限",
                     detail = "未授权通话记录，来电号码可能显示为未知",
                     status = DiagnosticStatus.WARN,
-                    action = DiagnosticAction.OPEN_EVENTS,
+                    action = DiagnosticAction.READ_CALL_LOG,
                     actionLabel = "去授权",
                 )
             }

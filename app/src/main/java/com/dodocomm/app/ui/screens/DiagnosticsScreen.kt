@@ -120,12 +120,22 @@ fun DiagnosticsScreen(
 
     fun action(item: DiagnosticItem) {
         when (item.action) {
+            DiagnosticAction.RECEIVE_SMS,
+            DiagnosticAction.POST_NOTIFICATIONS,
+            DiagnosticAction.READ_PHONE_STATE,
+            DiagnosticAction.READ_CALL_LOG,
+            -> com.dodocomm.app.core.system.ExternalNavigation.suppressNextLeave()
+            else -> Unit
+        }
+        when (item.action) {
             DiagnosticAction.RECEIVE_SMS ->
                 permissionLauncher.launch(Manifest.permission.RECEIVE_SMS)
             DiagnosticAction.POST_NOTIFICATIONS ->
                 permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             DiagnosticAction.READ_PHONE_STATE ->
                 permissionLauncher.launch(Manifest.permission.READ_PHONE_STATE)
+            DiagnosticAction.READ_CALL_LOG ->
+                permissionLauncher.launch(Manifest.permission.READ_CALL_LOG)
             DiagnosticAction.BATTERY_OPTIMIZATION ->
                 SystemNavigator.requestIgnoreBatteryOptimizations(context)
             DiagnosticAction.OPEN_RELIABILITY ->

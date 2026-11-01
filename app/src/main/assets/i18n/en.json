@@ -1098,5 +1098,17 @@
  "通知标题": "Notification title",
  "通知正文": "Notification text",
  "黑名单优先于白名单。应用列表只用于通知转发，不会读取通知以外的数据。": "Blacklist takes precedence over whitelist. The application list is only used for notification forwarding and will not read data other than notifications.",
- "黑名单优先于白名单；号码按数字后缀匹配，与短信发送者规则一致。": "The blacklist takes precedence over the whitelist; numbers are matched by numerical suffix, consistent with the SMS sender rules."
+ "黑名单优先于白名单；号码按数字后缀匹配，与短信发送者规则一致。": "The blacklist takes precedence over the whitelist; numbers are matched by numerical suffix, consistent with the SMS sender rules.",
+ "你好": "Hello",
+ "你有一条新消息": "You have a new message",
+ "微信": "WeChat",
+ "授予来电号码权限": "Grant caller ID permissions",
+ "新消息": "new news",
+ "显示来电号码需要通话记录权限；不授权时显示未知号码": "Call record permission is required to display the caller number; unknown numbers will be displayed without authorization.",
+ "示例应用名称或包名": "Sample app name or package name",
+ "示例来电号码": "Sample caller ID",
+ "示例通知内容": "Sample notification content",
+ "示例通话类型": "Example call types",
+ "输入示例应用与通知内容，实时查看命中的第一条规则与最终目标。": "Enter the sample application and notification content to see the first rule hit and the final goal in real time.",
+ "输入示例来电号码和通话类型，实时查看命中的第一条规则与最终目标。": "Enter a sample caller ID and call type to see the first rule hit versus the final goal in real time."
 }

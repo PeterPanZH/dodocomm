@@ -45,6 +45,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import com.dodocomm.app.ui.components.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,6 +63,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dodocomm.app.core.system.GuideAction
 import com.dodocomm.app.core.system.GuideStep
@@ -108,6 +112,17 @@ fun KeepAliveGuideScreen(
     val phonePermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { viewModel.refreshSystemState() }
+    val callLogPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { viewModel.refreshSystemState() }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) viewModel.refreshSystemState()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     fun detectedFor(step: GuideStep): Boolean? = when (step.action) {
         GuideAction.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
@@ -185,6 +200,12 @@ fun KeepAliveGuideScreen(
             item(key = "status", contentType = "card") {
                 PermissionSummaryCard(
                     permissions = permissions,
+                    onRequestCallLogPermission = {
+                        ExternalNavigation.suppressNextLeave()
+                        runCatching {
+                            callLogPermissionLauncher.launch(Manifest.permission.READ_CALL_LOG)
+                        }.onFailure { SystemNavigator.openAppDetails(context) }
+                    },
                     onOpenNotificationAccess = {
                         ExternalNavigation.suppressNextLeave()
                         runCatching {
@@ -431,6 +452,7 @@ private fun GuideFamilyChip(text: String, selected: Boolean, onClick: () -> Unit
 private fun PermissionSummaryCard(
     permissions: PermissionState,
     onRequestPhonePermission: () -> Unit,
+    onRequestCallLogPermission: () -> Unit,
     onOpenNotificationAccess: () -> Unit,
 ) {
     SectionCard {
@@ -486,6 +508,16 @@ private fun PermissionSummaryCard(
                 value = "去授权",
                 icon = Icons.Rounded.PhoneAndroid,
                 onClick = onRequestPhonePermission,
+            )
+        }
+        if (!permissions.readCallLog) {
+            RowDivider()
+            SettingActionRow(
+                title = "授予来电号码权限",
+                subtitle = "显示来电号码需要通话记录权限；不授权时显示未知号码",
+                value = "去授权",
+                icon = Icons.Rounded.PhoneAndroid,
+                onClick = onRequestCallLogPermission,
             )
         }
         if (!permissions.notificationAccess) {

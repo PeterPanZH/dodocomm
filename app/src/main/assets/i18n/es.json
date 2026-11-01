@@ -1098,5 +1098,17 @@
  "通知标题": "Título de la notificación",
  "通知正文": "Texto de notificación",
  "黑名单优先于白名单。应用列表只用于通知转发，不会读取通知以外的数据。": "La lista negra tiene prioridad sobre la lista blanca. La lista de aplicaciones solo se utiliza para el reenvío de notificaciones y no leerá datos distintos de las notificaciones.",
- "黑名单优先于白名单；号码按数字后缀匹配，与短信发送者规则一致。": "La lista negra tiene prioridad sobre la lista blanca; Los números coinciden mediante un sufijo numérico, de conformidad con las reglas del remitente de SMS."
+ "黑名单优先于白名单；号码按数字后缀匹配，与短信发送者规则一致。": "La lista negra tiene prioridad sobre la lista blanca; Los números coinciden mediante un sufijo numérico, de conformidad con las reglas del remitente de SMS.",
+ "你好": "Hola",
+ "你有一条新消息": "Tienes un nuevo mensaje",
+ "微信": "WeChat",
+ "授予来电号码权限": "Conceder permisos de identificación de llamadas",
+ "新消息": "nuevas noticias",
+ "显示来电号码需要通话记录权限；不授权时显示未知号码": "Se requiere permiso de registro de llamadas para mostrar el número de la persona que llama; Se mostrarán números desconocidos sin autorización.",
+ "示例应用名称或包名": "Nombre de la aplicación o del paquete de muestra",
+ "示例来电号码": "Ejemplo de identificador de llamadas",
+ "示例通知内容": "Contenido de notificación de muestra",
+ "示例通话类型": "Tipos de llamadas de ejemplo",
+ "输入示例应用与通知内容，实时查看命中的第一条规则与最终目标。": "Ingrese a la aplicación de muestra y al contenido de la notificación para ver el primer cumplimiento de la regla y el objetivo final en tiempo real.",
+ "输入示例来电号码和通话类型，实时查看命中的第一条规则与最终目标。": "Ingrese un identificador de llamadas de muestra y un tipo de llamada para ver el primer cumplimiento de la regla versus el objetivo final en tiempo real."
 }
