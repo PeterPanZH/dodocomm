@@ -35,6 +35,16 @@ class TranslationParityTest {
     }
 
     @Test
+    fun `no translator protection tokens leak into assets`() {
+        listOf("en", "ja", "zh-TW", "ko", "es", "fr").forEach { language ->
+            val dictionary = File(assetsDir(), "$language.json").readText()
+            assertTrue("$language dictionary leaked ZXQ", !dictionary.contains("ZXQ", ignoreCase = true))
+            val patterns = File(assetsDir(), "patterns_$language.json").readText()
+            assertTrue("$language patterns leaked ZXQ", !patterns.contains("ZXQ", ignoreCase = true))
+        }
+    }
+
+    @Test
     fun `dynamic count patterns are present in every language`() {
         val required = listOf(
             "^(\\d+) 条记录$",

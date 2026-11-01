@@ -41,7 +41,6 @@ import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.FilterAlt
 import androidx.compose.material.icons.rounded.Inbox
 import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
@@ -167,19 +166,17 @@ fun HistoryScreen(viewModel: AppViewModel) {
     val clipboard = remember(context) { context.getSystemService(ClipboardManager::class.java) }
     val selectedRecord = remember(records, selectedId) { records.firstOrNull { it.id == selectedId } }
 
-    // S2: search + advanced filters (sender, keyword, date range)
-    var searchOpen by rememberSaveable { mutableStateOf(false) }
-    var query by rememberSaveable { mutableStateOf("") }
+    // Advanced filters (sender, keyword, date range). Search is handled by
+    // the same filter sheet so the toolbar does not duplicate two entry points.
     var senderFilter by rememberSaveable { mutableStateOf("") }
     var keywordFilter by rememberSaveable { mutableStateOf("") }
     var dateFilterName by rememberSaveable { mutableStateOf(RecordDateFilter.ALL.name) }
     var showFilterSheet by rememberSaveable { mutableStateOf(false) }
     val dateFilter = RecordDateFilter.valueOf(dateFilterName)
     val filtersActive = senderFilter.isNotBlank() || keywordFilter.isNotBlank() || dateFilter != RecordDateFilter.ALL
-    val visibleRecords = remember(records, filter, query, senderFilter, keywordFilter, dateFilter) {
+    val visibleRecords = remember(records, filter, senderFilter, keywordFilter, dateFilter) {
         records.filter { record ->
             filter.matches(record.status) &&
-                query.matchesRecord(record) &&
                 (senderFilter.isBlank() || record.sender.contains(senderFilter.trim(), ignoreCase = true)) &&
                 (keywordFilter.isBlank() || (record.body.contains(keywordFilter.trim(), ignoreCase = true) ||
                     record.sender.contains(keywordFilter.trim(), ignoreCase = true))) &&
@@ -250,13 +247,6 @@ fun HistoryScreen(viewModel: AppViewModel) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            IconButton(onClick = { searchOpen = !searchOpen }) {
-                Icon(
-                    imageVector = Icons.Rounded.Search,
-                    contentDescription = AppStrings.translate("搜索记录"),
-                    tint = if (searchOpen) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
             Box {
                 IconButton(onClick = { menuExpanded = true }) {
                     Icon(
@@ -286,26 +276,6 @@ fun HistoryScreen(viewModel: AppViewModel) {
                     )
                 }
             }
-        }
-
-        if (searchOpen) {
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 4.dp),
-                placeholder = { Text("搜索号码或内容") },
-                singleLine = true,
-                leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
-                trailingIcon = {
-                    if (query.isNotEmpty()) {
-                        IconButton(onClick = { query = "" }) {
-                            Icon(Icons.Rounded.Delete, contentDescription = AppStrings.translate("清空搜索"))
-                        }
-                    }
-                },
-            )
         }
 
         Spacer(Modifier.height(10.dp))
@@ -386,7 +356,6 @@ fun HistoryScreen(viewModel: AppViewModel) {
                     actionLabel = "查看全部",
                     onAction = {
                         viewModel.setHistoryFilter(HistoryFilter.ALL)
-                        query = ""
                         senderFilter = ""
                         keywordFilter = ""
                         dateFilterName = RecordDateFilter.ALL.name

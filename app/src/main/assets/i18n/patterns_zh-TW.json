@@ -1,247 +1,247 @@
 [
  {
   "regex": "^(\\d+) 条$",
-  "format": "ZXQH0Z items"
+  "format": "{0} 筆"
  },
  {
   "regex": "^(\\d+) 天$",
-  "format": "ZXQH0Z days"
+  "format": "{0} 天"
  },
  {
   "regex": "^(\\d+) 次$",
-  "format": "ZXQH0Z times"
+  "format": "{0} 次"
  },
  {
   "regex": "^共 (\\d+) 条 · 本地转发记录$",
-  "format": "Total ZXQH0Z · local history"
+  "format": "共 {0} 筆 · 本機轉發記錄"
  },
  {
   "regex": "^共 (\\d+) 条$",
-  "format": "ZXQH0Z records"
+  "format": "{0} 筆記錄"
  },
  {
   "regex": "^本地最多保存的记录条数（当前 (\\d+) 条）$",
-  "format": "Max local records (currently ZXQH0Z)"
+  "format": "本機最多保存的記錄數（目前 {0} 筆）"
  },
  {
   "regex": "^删除本地全部 (\\d+) 条记录$",
-  "format": "Delete all ZXQH0Z local records"
+  "format": "刪除本機全部 {0} 筆記錄"
  },
  {
   "regex": "^服务运行中 · 今日已送达 (\\d+) 条$",
-  "format": "Service running · ZXQH0Z delivered today"
+  "format": "服務運行中 · 今日已送達 {0} 則"
  },
  {
   "regex": "^今日已送达 (\\d+) 条$",
-  "format": "ZXQH0Z delivered today"
+  "format": "今日已送達 {0} 則"
  },
  {
   "regex": "^还差 (\\d+) 步完成设置$",
-  "format": "ZXQH0Z steps left to finish setup"
+  "format": "還剩 {0} 步才能完成設定"
  },
  {
   "regex": "^已导出 (\\d+) 条记录$",
-  "format": "Exported ZXQH0Z records"
+  "format": "已匯出 {0} 筆記錄"
  },
  {
   "regex": "^发现新版本 v(.+)$",
-  "format": "New version vZXQH0Z available"
+  "format": "新版本 v{0} 可用"
  },
  {
   "regex": "^发现新版本 v(.+)，点击查看$",
-  "format": "New version vZXQH0Z available, tap to view"
+  "format": "新版本 v{0} 已推出，點選即可查看"
  },
  {
   "regex": "^嘟嘟通讯 ([\\d.]+)$",
-  "format": "ZXQ0Z ZXQH1Z"
+  "format": "DodoComm {0}"
  },
  {
   "regex": "^已配置 (.+)$",
-  "format": "Configured ZXQH0Z"
+  "format": "已設定 {0}"
  },
  {
   "regex": "^(\\d+) 分钟前$",
-  "format": "ZXQH0Z min ago"
+  "format": "{0} 分鐘前"
  },
  {
   "regex": "^(\\d+) 小时前$",
-  "format": "ZXQH0Z hr ago"
+  "format": "{0} 小時前"
  },
  {
   "regex": "^昨天 (.+)$",
-  "format": "Yesterday ZXQH0Z"
+  "format": "昨天{0}"
  },
  {
   "regex": "^本地保存的 (\\d+) 条记录会被全部删除，无法恢复。$",
-  "format": "All ZXQH0Z locally stored records will be deleted. This cannot be undone."
+  "format": "本機儲存的 {0} 筆記錄將全部刪除，無法復原。"
  },
  {
   "regex": "^安装包大小：(.*)$",
-  "format": "APK size: ZXQH0Z"
+  "format": "APK 大小：{0}"
  },
  {
   "regex": "^已自动识别为 (.+)，识别不准可手动切换$",
-  "format": "Detected ZXQH0Z. You can switch manually if needed."
+  "format": "檢測到{0}。如果需要，您可以手動切換。"
  },
  {
   "regex": "^已手动选择 (.+)，可切回自动识别$",
-  "format": "Manually selected ZXQH0Z. You can switch back to auto."
+  "format": "手動選擇 {0}。您可以切換回自動。"
  },
  {
   "regex": "^手动选择 · (.+)$",
-  "format": "Manual · ZXQH0Z"
+  "format": "手冊·{0}"
  },
  {
   "regex": "^发送失败：(.*)$",
-  "format": "Send failed: ZXQH0Z"
+  "format": "發送失敗：{0}"
  },
  {
   "regex": "^嘟嘟可送信失败：(.*)$",
-  "format": "ZXQ1Z delivery failed: ZXQH1Z"
+  "format": "Dodoco 傳送失敗：{0}"
  },
  {
   "regex": "^备份导出失败：(.*)$",
-  "format": "Backup export failed: ZXQH0Z"
+  "format": "備份匯出失敗：{0}"
  },
  {
   "regex": "^恢复失败：(.*)$",
-  "format": "Restore failed: ZXQH0Z"
+  "format": "恢復失敗：{0}"
  },
  {
   "regex": "^导出失败：(.*)$",
-  "format": "Export failed: ZXQH0Z"
+  "format": "匯出失敗：{0}"
  },
  {
   "regex": "^已暂停转发.*$",
-  "format": "Forwarding paused."
+  "format": "轉發暫停。"
  },
  {
   "regex": "^当前 (\\d+) 条$",
-  "format": "ZXQH0Z currently"
+  "format": "目前 {0} 筆"
  },
  {
   "regex": "^针对 (.+) 的分步设置说明$",
-  "format": "Step-by-step setup for ZXQH0Z"
+  "format": "{0} 的逐步設定"
  },
  {
   "regex": "^正在下载更新：(\\d+)%$",
-  "format": "Downloading update: ZXQH0Z%"
+  "format": "正在下載更新：{0}%"
  },
  {
   "regex": "^推送失败：HTTP (\\d+) ?(.*)$",
-  "format": "Push failed: ZXQ14Z ZXQH1Z ZXQH2Z"
+  "format": "推播失敗：HTTP {0} {1}"
  },
  {
   "regex": "^推送被拒绝：Device Key 无效或无权限（HTTP (\\d+)）$",
-  "format": "Push rejected: invalid ZXQ8Z or no permission (ZXQ14Z ZXQH2Z)"
+  "format": "推播被拒絕：裝置金鑰無效或沒有權限 (HTTP {0})"
  },
  {
   "regex": "^更新服务返回 HTTP (\\d+)$",
-  "format": "Update server returned ZXQ14Z ZXQH1Z"
+  "format": "更新伺服器回傳的 HTTP {0}"
  },
  {
   "regex": "^嘟嘟可报到！测试推送成功 ✅ 时间 (.+)$",
-  "format": "ZXQ1Z reporting! Test push succeeded ✅ at ZXQH1Z"
+  "format": "多多科報道！测试推送成功 ✅ 在 {0}"
  },
  {
   "regex": "^发送方「(.*)」不在白名单中$",
-  "format": "Sender \"ZXQH0Z\" is not in the allowlist"
+  "format": "寄件者「{0}」不在允許清單中"
  },
  {
   "regex": "^发送方「(.*)」命中黑名单「(.*)」$",
-  "format": "Sender \"ZXQH0Z\" matched blocklist \"ZXQH1Z\""
+  "format": "寄件者「{0}」與封鎖清單「{1}」相符"
  },
  {
   "regex": "^请等待 (\\d+) 秒$",
-  "format": "Please wait ZXQH0Zs"
+  "format": "請稍候{0}秒"
  },
  {
   "regex": "^PIN 必须为 (\\d+) 位数字$",
-  "format": "ZXQ18Z must be ZXQH1Z digits"
+  "format": "PIN 碼必須為 {0} 位"
  },
  {
   "regex": "^本机恢复失败：(.*)$",
-  "format": "Local restore failed: ZXQH0Z"
+  "format": "本地復原失敗：{0}"
  },
  {
   "regex": "^检查更新失败：(.*)$",
-  "format": "Update check failed: ZXQH0Z"
+  "format": "更新檢查失敗：{0}"
  },
  {
   "regex": "^推送失败：(.*)$",
-  "format": "Push failed: ZXQH0Z"
+  "format": "推播失敗：{0}"
  },
  {
   "regex": "^当前版本 v(.+) → 新版本 v(.+)$",
-  "format": "Current vZXQH0Z → new vZXQH1Z"
+  "format": "當前 v{0} → 新 v{1}"
  },
  {
   "regex": "^自动识别 · (.+)$",
-  "format": "Auto-detected · ZXQH0Z"
+  "format": "自動檢測·{0}"
  },
  {
   "regex": "^示例：(.+)$",
-  "format": "例： ZXQH0Z"
+  "format": "範例：{0}"
  },
  {
   "regex": "^有新版本 v(.+)$",
-  "format": "New version vZXQH0Z available"
+  "format": "新版本 v{0} 可用"
  },
  {
   "regex": "^(\\d+) 个启用$",
-  "format": "ZXQH0Z enabled"
+  "format": "{0} 活躍"
  },
  {
   "regex": "^(.+) · (已停用|未配置|已启用)$",
-  "format": "ZXQH0Z · ZXQH1Z"
+  "format": "{0} · {1}"
  },
  {
   "regex": "^(\\d+) 小时$",
-  "format": "ZXQH0Z hours"
+  "format": "{0} 小時"
  },
  {
   "regex": "^(\\d+) 个通道$",
-  "format": "ZXQH0Z channels"
+  "format": "{0} 個頻道"
  },
  {
   "regex": "^(\\d+) 个启用$",
-  "format": "ZXQH0Z enabled"
+  "format": "{0} 活躍"
  },
  {
   "regex": "^(\\d+) 项通过 · (\\d+) 项提醒 · (\\d+) 项异常$",
-  "format": "ZXQH0Z passed · ZXQH1Z warnings · ZXQH2Z failed"
+  "format": "{0} 透過 · {1} 警告 · {2} 失敗"
  },
  {
   "regex": "^验证码 (.+)$",
-  "format": "Code ZXQH0Z"
+  "format": "代碼{0}"
  },
  {
   "regex": "^隐藏(.+)$",
-  "format": "Hide ZXQH0Z"
+  "format": "隱藏{0}"
  },
  {
   "regex": "^显示(.+)$",
-  "format": "Show ZXQH0Z"
+  "format": "顯示{0}"
  },
  {
   "regex": "^发送者含 (.+)$",
-  "format": "Sender contains ZXQH0Z"
+  "format": "寄件者包含{0}"
  },
  {
   "regex": "^内容含 (.+)$",
-  "format": "Body contains ZXQH0Z"
+  "format": "正文包含{0}"
  },
  {
   "regex": "^所有短信$",
-  "format": "All SMS"
+  "format": "所有簡訊"
  },
  {
   "regex": "^约 (.+) 后自动恢复$",
-  "format": "Resumes in ZXQH0Z"
+  "format": "{0}後恢復"
  },
  {
   "regex": "^已选 (\\d+) 条$",
-  "format": "ZXQH0Z selected"
+  "format": "已選 {0} 筆"
  },
  {
   "regex": "^(\\d+) 条记录$",
@@ -249,39 +249,39 @@
  },
  {
   "regex": "^(\\d+) 条失败记录，可打开记录查看原因$",
-  "format": "{0}失敗記錄；開啟歷史記錄查看詳細資訊"
+  "format": "{0}筆失敗記錄；開啟歷史記錄查看詳細資訊"
  },
  {
   "regex": "^(\\d+) 条记录等待重试$",
-  "format": "{0}記錄等待重試"
+  "format": "{0} 筆記錄等待重試"
  },
  {
   "regex": "^已删除 (\\d+) 条记录$",
-  "format": "已刪除 {0} 記錄"
+  "format": "已刪除 {0} 筆記錄"
  },
  {
   "regex": "^将删除 (\\d+) 条本地记录，无法恢复。$",
-  "format": "這將永久刪除 {0} 本地記錄。"
+  "format": "這將永久刪除 {0} 筆本機記錄。"
  },
  {
   "regex": "^已加密 (\\d+) 条本地记录$",
-  "format": "Encrypted {0} local records"
+  "format": "加密的 {0} 本機記錄"
  },
  {
   "regex": "^重新发送失败：(.*)$",
-  "format": "Resend failed: {0}"
+  "format": "重新傳送失敗：{0}"
  },
  {
   "regex": "^模板测试推送失败：(.*)$",
-  "format": "模板測試推送失敗：{0}"
+  "format": "範本測試推送失敗：{0}"
  },
  {
   "regex": "^已配置 (\\d+) 个可用通道：$",
-  "format": "配置的{0}可用通道："
+  "format": "已配置 {0} 個可用通道："
  },
  {
   "regex": "^已配置 (\\d+) 个可用通道$",
-  "format": "{0} available channels configured"
+  "format": "已配置 {0} 個可用頻道"
  },
  {
   "regex": "^已暂停 (\\d+) 分钟$",
@@ -289,19 +289,19 @@
  },
  {
   "regex": "^临时暂停转发 (\\d+) 分钟$",
-  "format": "轉發暫停 {0} 分鐘"
+  "format": "轉送已暫停 {0} 分鐘"
  },
  {
   "regex": "^已暂停转发 (\\d+) 分钟$",
-  "format": "轉發暫停 {0} 分鐘"
+  "format": "轉送已暫停 {0} 分鐘"
  },
  {
   "regex": "^，暂停剩余约 (\\d+) 分钟$",
-  "format": "，剩餘約 {0} 分鐘"
+  "format": "，大約還剩 {0} 分鐘"
  },
  {
   "regex": "^短信转发超过 (\\d+)ms，已交给重试队列$",
-  "format": "{0}ms後簡訊轉發超時；排隊等待重試"
+  "format": "簡訊轉發在 {0} 毫秒後逾時；排隊等待重試"
  },
  {
   "regex": "^推送失败：服务器不支持该推送接口（HTTP (\\d+)）$",
@@ -341,6 +341,6 @@
  },
  {
   "regex": "^无法请求电话权限：(.*)，请在系统设置中开启$",
-  "format": "無法請求電話權限：{0}。在系統設定中啟用它。"
+  "format": "無法要求電話權限：{0}。在系統設定中啟用它。"
  }
 ]

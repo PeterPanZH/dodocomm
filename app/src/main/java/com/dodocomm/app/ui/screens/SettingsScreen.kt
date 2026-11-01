@@ -447,20 +447,26 @@ fun SettingsScreen(
 
         if (section == SettingsSection.RELIABILITY) {
             item(key = "reliability_card", contentType = "card") {
-                ReliabilityCard(
-                    settings = settings,
-                    permissions = permissions,
-                    deviceLabel = deviceLabel,
-                    onToggleForegroundService = viewModel::setForegroundServiceEnabled,
-                    onToggleAutoStart = viewModel::setAutoStartOnBoot,
-                    onToggleHideFromRecents = viewModel::setHideFromRecents,
-                    onOpenGuide = onNavigateGuide,
-                    onOpenBatterySettings = { SystemNavigator.requestIgnoreBatteryOptimizations(context) },
-                    onOpenDiagnostics = onNavigateDiagnostics,
-                )
+                Column {
+                    SectionHeader("运行与保活")
+                    ReliabilityCard(
+                        settings = settings,
+                        permissions = permissions,
+                        deviceLabel = deviceLabel,
+                        onToggleForegroundService = viewModel::setForegroundServiceEnabled,
+                        onToggleAutoStart = viewModel::setAutoStartOnBoot,
+                        onToggleHideFromRecents = viewModel::setHideFromRecents,
+                        onOpenGuide = onNavigateGuide,
+                        onOpenBatterySettings = { SystemNavigator.requestIgnoreBatteryOptimizations(context) },
+                        onOpenDiagnostics = onNavigateDiagnostics,
+                    )
+                }
             }
             item(key = "retry_card", contentType = "card") {
-                RetryPolicyCard(settings = settings, viewModel = viewModel)
+                Column {
+                    SectionHeader("失败重试")
+                    RetryPolicyCard(settings = settings, viewModel = viewModel)
+                }
             }
         }
 
@@ -520,15 +526,6 @@ fun SettingsScreen(
                     )
                     Spacer(Modifier.height(20.dp))
                 }
-            }
-            item(key = "footer", contentType = "footer") {
-                Text(
-                    text = "本地运行 · 无账号 · 无广告",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                )
             }
         }
     }

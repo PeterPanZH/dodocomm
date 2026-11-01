@@ -94,7 +94,7 @@
  "即时": "Instant",
  "去开启": "Turn on",
  "去授权": "Authorize",
- "去设置": "Open settings",
+ "去设置": "Settings",
  "去配置": "Set up",
  "去配置 Bark 服务器": "Go to configure Bark server",
  "发一条测试推送验证配置": "Send a test push to verify the configuration",
@@ -170,7 +170,7 @@
  "已授权，可以接收短信广播": "Authorized to receive SMS broadcasts",
  "已是最新版本": "Up to date",
  "已暂停": "Suspended",
- "已豁免": "exempted",
+ "已豁免": "Exempt",
  "已豁免，系统不会冻结后台服务": "Exempted, the system will not freeze background services",
  "已跳过": "skipped",
  "已过滤": "Filtered",
@@ -952,5 +952,7 @@
  "常驻": "Ongoing",
  "广播": "Broadcast",
  "后台收信、自启动与省电": "Background, boot and battery",
- "如果你不使用自动化接口或远程管理，建议保持关闭。": "If you do not use the automation API or remote management, it is best to keep this off."
+ "如果你不使用自动化接口或远程管理，建议保持关闭。": "If you do not use the automation API or remote management, it is best to keep this off.",
+ "运行与保活": "Running & keep-alive",
+ "失败重试": "Failed retries"
 }

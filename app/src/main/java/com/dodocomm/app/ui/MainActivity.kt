@@ -91,7 +91,7 @@ class MainActivity : FragmentActivity() {
             }
 
             LaunchedEffect(settings.appLanguage) {
-                AppLocale.apply(settings.appLanguage)
+                AppLocale.apply(settings.appLanguage, resources.configuration.locales.get(0))
                 applySystemLocale(settings.appLanguage)
             }
 

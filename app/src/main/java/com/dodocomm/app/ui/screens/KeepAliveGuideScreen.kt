@@ -201,7 +201,6 @@ fun KeepAliveGuideScreen(
             }
             item(key = "steps_header", contentType = "header") {
                 SectionHeader("按顺序设置", subtitle = "完成后系统会尽量保留后台服务")
-                Spacer(Modifier.height(10.dp))
             }
             item(key = "steps_card", contentType = "card") {
                 SectionCard {
@@ -219,7 +218,6 @@ fun KeepAliveGuideScreen(
             }
             item(key = "actions_header", contentType = "header") {
                 SectionHeader("快捷入口")
-                Spacer(Modifier.height(10.dp))
             }
             item(key = "actions_card", contentType = "card") {
                 GuideShortcutsCard(
@@ -373,7 +371,7 @@ private fun GuideFamilySwitcher(
         Spacer(Modifier.height(10.dp))
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             GuideFamilyChip(
                 text = "自动",

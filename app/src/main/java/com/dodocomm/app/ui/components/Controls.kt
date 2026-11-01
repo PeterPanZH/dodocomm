@@ -446,7 +446,7 @@ fun SettingActionRow(
         if (value != null) {
             Spacer(Modifier.width(10.dp))
             val valueColor = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-            val valueModifier = Modifier.widthIn(max = 112.dp)
+            val valueModifier = Modifier.widthIn(max = 96.dp)
             if (translateValue) {
                 Text(
                     text = value,

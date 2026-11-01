@@ -13,7 +13,10 @@ class Sms2BarkApp : Application() {
         com.dodocomm.app.core.crash.CrashLogger.install(this)
         container = AppContainer(this)
         AppStrings.init(this)
-        AppLocale.apply(container.settings.current().appLanguage)
+        AppLocale.apply(
+            container.settings.current().appLanguage,
+            resources.configuration.locales.get(0),
+        )
         container.onAppStart()
     }
 }

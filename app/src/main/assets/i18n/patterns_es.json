@@ -1,115 +1,115 @@
 [
  {
   "regex": "^(\\d+) 条$",
-  "format": "Artículos ZXQH0Z"
+  "format": "Artículos {0}"
  },
  {
   "regex": "^(\\d+) 天$",
-  "format": "ZXQH0Z días"
+  "format": "{0} días"
  },
  {
   "regex": "^(\\d+) 次$",
-  "format": "ZXQH0Z veces"
+  "format": "{0} veces"
  },
  {
   "regex": "^共 (\\d+) 条 · 本地转发记录$",
-  "format": "Total ZXQH0Z · historia local"
+  "format": "Total {0} · historia local"
  },
  {
   "regex": "^共 (\\d+) 条$",
-  "format": "Registros de ZXQH0Z"
+  "format": "Registros de {0}"
  },
  {
   "regex": "^本地最多保存的记录条数（当前 (\\d+) 条）$",
-  "format": "Registros locales máximos (actualmente ZXQH0Z)"
+  "format": "Registros locales máximos (actualmente {0})"
  },
  {
   "regex": "^删除本地全部 (\\d+) 条记录$",
-  "format": "Eliminar todos los registros locales ZXQH0Z"
+  "format": "Eliminar todos los registros locales {0}"
  },
  {
   "regex": "^服务运行中 · 今日已送达 (\\d+) 条$",
-  "format": "Servicio en funcionamiento · ZXQH0Z entregado hoy"
+  "format": "Servicio en funcionamiento · {0} entregado hoy"
  },
  {
   "regex": "^今日已送达 (\\d+) 条$",
-  "format": "ZXQH0Z entregado hoy"
+  "format": "{0} entregado hoy"
  },
  {
   "regex": "^还差 (\\d+) 步完成设置$",
-  "format": "Faltan pasos ZXQH0Z para finalizar la configuración"
+  "format": "Faltan pasos {0} para finalizar la configuración"
  },
  {
   "regex": "^已导出 (\\d+) 条记录$",
-  "format": "Registros ZXQH0Z exportados"
+  "format": "Registros {0} exportados"
  },
  {
   "regex": "^发现新版本 v(.+)$",
-  "format": "Nueva versión vZXQH0Z disponible"
+  "format": "Nueva versión v{0} disponible"
  },
  {
   "regex": "^发现新版本 v(.+)，点击查看$",
-  "format": "Nueva versión vZXQH0Z disponible, toque para ver"
+  "format": "Nueva versión v{0} disponible, toque para ver"
  },
  {
   "regex": "^嘟嘟通讯 ([\\d.]+)$",
-  "format": "ZXQ0Z ZXQH1Z"
+  "format": "DodoComm {1}"
  },
  {
   "regex": "^已配置 (.+)$",
-  "format": "Configurado ZXQH0Z"
+  "format": "Configurado {0}"
  },
  {
   "regex": "^(\\d+) 分钟前$",
-  "format": "ZXQH0Z hace minutos"
+  "format": "{0} hace minutos"
  },
  {
   "regex": "^(\\d+) 小时前$",
-  "format": "ZXQH0Z hace horas"
+  "format": "{0} hace horas"
  },
  {
   "regex": "^昨天 (.+)$",
-  "format": "Ayer ZXQH0Z"
+  "format": "Ayer {0}"
  },
  {
   "regex": "^本地保存的 (\\d+) 条记录会被全部删除，无法恢复。$",
-  "format": "Se eliminarán todos los registros almacenados localmente de ZXQH0Z. Esto no se puede deshacer."
+  "format": "Se eliminarán todos los registros almacenados localmente de {0}. Esto no se puede deshacer."
  },
  {
   "regex": "^安装包大小：(.*)$",
-  "format": "Tamaño de APK: ZXQH0Z"
+  "format": "Tamaño de APK: {0}"
  },
  {
   "regex": "^已自动识别为 (.+)，识别不准可手动切换$",
-  "format": "Detectado ZXQH0Z. Puede cambiar manualmente si es necesario."
+  "format": "Detectado {0}. Puede cambiar manualmente si es necesario."
  },
  {
   "regex": "^已手动选择 (.+)，可切回自动识别$",
-  "format": "ZXQH0Z seleccionado manualmente. Puede volver a cambiar a automático."
+  "format": "{0} seleccionado manualmente. Puede volver a cambiar a automático."
  },
  {
   "regex": "^手动选择 · (.+)$",
-  "format": "Manual · ZXQH0Z"
+  "format": "Manual · {0}"
  },
  {
   "regex": "^发送失败：(.*)$",
-  "format": "Error de envío: ZXQH0Z"
+  "format": "Error de envío: {0}"
  },
  {
   "regex": "^嘟嘟可送信失败：(.*)$",
-  "format": "Error en la entrega de ZXQ1Z: ZXQH1Z"
+  "format": "Error en la entrega de Dodoco: {1}"
  },
  {
   "regex": "^备份导出失败：(.*)$",
-  "format": "Error al exportar la copia de seguridad: ZXQH0Z"
+  "format": "Error al exportar la copia de seguridad: {0}"
  },
  {
   "regex": "^恢复失败：(.*)$",
-  "format": "Error de restauración: ZXQH0Z"
+  "format": "Error de restauración: {0}"
  },
  {
   "regex": "^导出失败：(.*)$",
-  "format": "Exportación fallida: ZXQH0Z"
+  "format": "Exportación fallida: {0}"
  },
  {
   "regex": "^已暂停转发.*$",
@@ -117,119 +117,119 @@
  },
  {
   "regex": "^当前 (\\d+) 条$",
-  "format": "ZXQH0Z actualmente"
+  "format": "{0} actualmente"
  },
  {
   "regex": "^针对 (.+) 的分步设置说明$",
-  "format": "Configuración paso a paso para ZXQH0Z"
+  "format": "Configuración paso a paso para {0}"
  },
  {
   "regex": "^正在下载更新：(\\d+)%$",
-  "format": "Descargando actualización: ZXQH0Z%"
+  "format": "Descargando actualización: {0}%"
  },
  {
   "regex": "^推送失败：HTTP (\\d+) ?(.*)$",
-  "format": "Empuje fallido: ZXQ14Z ZXQH1Z ZXQH2Z"
+  "format": "Empuje fallido: HTTP {1} {2}"
  },
  {
   "regex": "^推送被拒绝：Device Key 无效或无权限（HTTP (\\d+)）$",
-  "format": "Push rechazado: ZXQ8Z no válido o sin permiso (ZXQ14Z ZXQH2Z)"
+  "format": "Push rechazado: Device Key no válido o sin permiso (HTTP {2})"
  },
  {
   "regex": "^更新服务返回 HTTP (\\d+)$",
-  "format": "El servidor de actualización devolvió ZXQ14Z ZXQH1Z"
+  "format": "El servidor de actualización devolvió HTTP {1}"
  },
  {
   "regex": "^嘟嘟可报到！测试推送成功 ✅ 时间 (.+)$",
-  "format": "Informes ZXQ1Z! La prueba fue exitosa ✅ en ZXQH1Z"
+  "format": "Informes Dodoco! La prueba fue exitosa ✅ en {1}"
  },
  {
   "regex": "^发送方「(.*)」不在白名单中$",
-  "format": "El remitente \"ZXQH0Z\" no está en la lista de permitidos"
+  "format": "El remitente \"{0}\" no está en la lista de permitidos"
  },
  {
   "regex": "^发送方「(.*)」命中黑名单「(.*)」$",
-  "format": "El remitente \"ZXQH0Z\" coincide con la lista de bloqueo \"ZXQH1Z\""
+  "format": "El remitente \"{0}\" coincide con la lista de bloqueo \"{1}\""
  },
  {
   "regex": "^请等待 (\\d+) 秒$",
-  "format": "Por favor espera ZXQH0Zs"
+  "format": "Por favor espera {0}s"
  },
  {
   "regex": "^PIN 必须为 (\\d+) 位数字$",
-  "format": "ZXQ18Z debe tener dígitos ZXQH1Z"
+  "format": "PIN debe tener dígitos {1}"
  },
  {
   "regex": "^本机恢复失败：(.*)$",
-  "format": "Error de restauración local: ZXQH0Z"
+  "format": "Error de restauración local: {0}"
  },
  {
   "regex": "^检查更新失败：(.*)$",
-  "format": "Error en la comprobación de actualización: ZXQH0Z"
+  "format": "Error en la comprobación de actualización: {0}"
  },
  {
   "regex": "^推送失败：(.*)$",
-  "format": "Empuje fallido: ZXQH0Z"
+  "format": "Empuje fallido: {0}"
  },
  {
   "regex": "^当前版本 v(.+) → 新版本 v(.+)$",
-  "format": "vZXQH0Z actual → nuevo vZXQH1Z"
+  "format": "v{0} actual → nuevo v{1}"
  },
  {
   "regex": "^自动识别 · (.+)$",
-  "format": "Detectado automáticamente · ZXQH0Z"
+  "format": "Detectado automáticamente · {0}"
  },
  {
   "regex": "^示例：(.+)$",
-  "format": "Ejemplo: ZXQH0Z"
+  "format": "Ejemplo: {0}"
  },
  {
   "regex": "^有新版本 v(.+)$",
-  "format": "Nueva versión vZXQH0Z disponible"
+  "format": "Nueva versión v{0} disponible"
  },
  {
   "regex": "^(\\d+) 个启用$",
-  "format": "ZXQH0Z habilitado"
+  "format": "{0} habilitado"
  },
  {
   "regex": "^(.+) · (已停用|未配置|已启用)$",
-  "format": "ZXQH0Z · ZXQH1Z"
+  "format": "{0} · {1}"
  },
  {
   "regex": "^(\\d+) 小时$",
-  "format": "Horas ZXQH0Z"
+  "format": "Horas {0}"
  },
  {
   "regex": "^(\\d+) 个通道$",
-  "format": "Canales ZXQH0Z"
+  "format": "Canales {0}"
  },
  {
   "regex": "^(\\d+) 个启用$",
-  "format": "ZXQH0Z habilitado"
+  "format": "{0} habilitado"
  },
  {
   "regex": "^(\\d+) 项通过 · (\\d+) 项提醒 · (\\d+) 项异常$",
-  "format": "ZXQH0Z pasó · Advertencias de ZXQH1Z · ZXQH2Z falló"
+  "format": "{0} pasó · Advertencias de {1} · {2} falló"
  },
  {
   "regex": "^验证码 (.+)$",
-  "format": "Código ZXQH0Z"
+  "format": "Código {0}"
  },
  {
   "regex": "^隐藏(.+)$",
-  "format": "Ocultar ZXQH0Z"
+  "format": "Ocultar {0}"
  },
  {
   "regex": "^显示(.+)$",
-  "format": "Mostrar ZXQH0Z"
+  "format": "Mostrar {0}"
  },
  {
   "regex": "^发送者含 (.+)$",
-  "format": "El remitente contiene ZXQH0Z"
+  "format": "El remitente contiene {0}"
  },
  {
   "regex": "^内容含 (.+)$",
-  "format": "El cuerpo contiene ZXQH0Z"
+  "format": "El cuerpo contiene {0}"
  },
  {
   "regex": "^所有短信$",
@@ -237,11 +237,11 @@
  },
  {
   "regex": "^约 (.+) 后自动恢复$",
-  "format": "Currículums en ZXQH0Z"
+  "format": "Currículums en {0}"
  },
  {
   "regex": "^已选 (\\d+) 条$",
-  "format": "ZXQH0Z seleccionado"
+  "format": "{0} seleccionado"
  },
  {
   "regex": "^(\\d+) 条记录$",
