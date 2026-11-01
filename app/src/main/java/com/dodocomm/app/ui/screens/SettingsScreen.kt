@@ -464,6 +464,7 @@ fun SettingsScreen(
             }
             item(key = "retry_card", contentType = "card") {
                 Column {
+                    Spacer(Modifier.height(8.dp))
                     SectionHeader("失败重试")
                     RetryPolicyCard(settings = settings, viewModel = viewModel)
                 }

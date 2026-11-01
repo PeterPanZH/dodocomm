@@ -235,7 +235,7 @@ fun TemplateField(
         Spacer(Modifier.height(8.dp))
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             tokens.forEach { token ->
                 TokenChip(text = token, onClick = { insert(token) })

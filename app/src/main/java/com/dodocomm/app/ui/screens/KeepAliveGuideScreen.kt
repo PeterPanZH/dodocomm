@@ -371,7 +371,7 @@ private fun GuideFamilySwitcher(
         Spacer(Modifier.height(10.dp))
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             GuideFamilyChip(
                 text = "自动",
