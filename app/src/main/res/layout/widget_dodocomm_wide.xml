@@ -62,6 +62,16 @@
                 android:textColor="#FFFFFFFF"
                 android:textSize="9sp" />
 
+            <TextView
+                android:id="@+id/widget_stats"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#E6FFFFFF"
+                android:textSize="9sp" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
@@ -111,10 +121,25 @@
                 android:textSize="10sp" />
 
             <TextView
+                android:id="@+id/widget_test"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/widget_chip"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="1"
+                android:paddingHorizontal="4dp"
+                android:text="@string/widget_action_test"
+                android:textColor="#FFFFFFFF"
+                android:textSize="10sp" />
+
+            <TextView
                 android:id="@+id/widget_toggle"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="6dp"
                 android:layout_weight="1"
                 android:background="@drawable/widget_chip"
                 android:ellipsize="end"

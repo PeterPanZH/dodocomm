@@ -25,6 +25,7 @@ class WidgetLayoutContractTest {
         "widget_dodocomm_wide.xml",
         "widget_dodocomm_bar.xml",
         "widget_dodocomm_tall.xml",
+        "widget_dodocomm_dashboard.xml",
     )
 
     @Test

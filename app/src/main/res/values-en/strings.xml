@@ -34,4 +34,11 @@ Time: %2$s</string>
     <string name="event_no_channel">No push channel is available. Configure one first.</string>
     <string name="event_call_type_incoming">Incoming call</string>
     <string name="event_call_type_missed">Missed call</string>
+    <string name="widget_action_test">Test</string>
+    <string name="widget_desc_dashboard">4×4 detailed card</string>
+    <string name="widget_stats_format">%1$d delivered · %2$d retry · %3$d filtered</string>
+    <string name="widget_no_recent">No events yet</string>
+    <string name="widget_source_sms">SMS</string>
+    <string name="widget_source_call">Call</string>
+    <string name="widget_source_notification">Notification</string>
 </resources>

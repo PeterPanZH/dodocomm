@@ -34,4 +34,11 @@
     <string name="event_no_channel">沒有可用的推送通道，請先設定至少一個通道</string>
     <string name="event_call_type_incoming">來電</string>
     <string name="event_call_type_missed">未接來電</string>
+    <string name="widget_action_test">測試</string>
+    <string name="widget_desc_dashboard">4×4 詳細卡片</string>
+    <string name="widget_stats_format">送達 %1$d · 重試 %2$d · 過濾 %3$d</string>
+    <string name="widget_no_recent">尚無轉發記錄</string>
+    <string name="widget_source_sms">簡訊</string>
+    <string name="widget_source_call">電話</string>
+    <string name="widget_source_notification">通知</string>
 </resources>

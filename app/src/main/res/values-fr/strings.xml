@@ -34,4 +34,11 @@ Heure : %2$s</string>
     <string name="event_no_channel">Aucun canal push disponible. Configurez-en un d\'abord.</string>
     <string name="event_call_type_incoming">Appel entrant</string>
     <string name="event_call_type_missed">Appel manqué</string>
+    <string name="widget_action_test">Test</string>
+    <string name="widget_desc_dashboard">Carte détaillée 4×4</string>
+    <string name="widget_stats_format">%1$d livrés · %2$d reprise · %3$d filtrés</string>
+    <string name="widget_no_recent">Aucun événement</string>
+    <string name="widget_source_sms">SMS</string>
+    <string name="widget_source_call">Appel</string>
+    <string name="widget_source_notification">Notification</string>
 </resources>

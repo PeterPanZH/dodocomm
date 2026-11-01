@@ -34,4 +34,11 @@
     <string name="event_no_channel">利用可能なプッシュチャンネルがありません。先に設定してください。</string>
     <string name="event_call_type_incoming">着信</string>
     <string name="event_call_type_missed">不在着信</string>
+    <string name="widget_action_test">テスト</string>
+    <string name="widget_desc_dashboard">4×4 詳細カード</string>
+    <string name="widget_stats_format">%1$d 送信 · %2$d 再試行 · %3$d フィルター</string>
+    <string name="widget_no_recent">転送履歴はまだありません</string>
+    <string name="widget_source_sms">SMS</string>
+    <string name="widget_source_call">通話</string>
+    <string name="widget_source_notification">通知</string>
 </resources>
