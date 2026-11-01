@@ -132,13 +132,8 @@ fun AutomationScreen(
                         )
                     }
                     Spacer(Modifier.height(10.dp))
-                    InfoNote(
-                        if (WidgetHost.isColorOS()) {
-                            "ColorOS 的「卡片」与「插件」入口已合并：双指捏合桌面 → 底部「卡片」→ 滑到底部「插件」，即可添加嘟嘟通讯。小组件已按 ColorOS 深色圆角卡片样式适配。"
-                        } else {
-                            "小组件会按当前桌面尺寸自动切换布局，显示今日送达、转发状态和最近事件，可直接测试推送或暂停 30 分钟。"
-                        },
-                    )
+                    val hostProfile = remember { WidgetHost.profile(context) }
+                    InfoNote(hostProfile.guide)
                 }
             }
 

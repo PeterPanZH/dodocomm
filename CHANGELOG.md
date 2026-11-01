@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.14.8] - 2026-11-01
+
+### 国产桌面适配
+- 增加华为/荣耀/小米/Redmi/POCO/vivo/iQOO 的桌面宿主识别。
+- 对 ColorOS、HarmonyOS、MagicOS、HyperOS、OriginOS 使用宿主卡片背景与外边距配置。
+- 自动化页按桌面显示对应添加路径提示。
+- 明确 ColorOS 系统「卡片中心」需要 OPPO CardWidget 授权，标准 Android 组件只能在「插件」入口添加；待授权后接入原生卡片 Provider。
+
 ## [1.14.7] - 2026-11-01
 
 ### ColorOS 桌面适配

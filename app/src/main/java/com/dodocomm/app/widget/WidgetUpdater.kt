@@ -48,10 +48,11 @@ object WidgetUpdater {
         val options = manager.getAppWidgetOptions(widgetId)
         val widthDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
         val heightDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
+        val hostProfileForLayout = WidgetHost.profile(context)
         val layout = if (widthDp <= 0 || heightDp <= 0) {
             layoutForProvider(manager, widgetId)
         } else {
-            chooseLayout(widthDp, heightDp)
+            chooseLayout(widthDp, heightDp, hostProfileForLayout)
         }
 
         val statusText = when {
@@ -71,7 +72,7 @@ object WidgetUpdater {
             statusText
         }
 
-        val colorOS = WidgetHost.isColorOS()
+        val hostProfile = WidgetHost.profile(context)
         val views = RemoteViews(context.packageName, layout).apply {
             setTextViewText(R.id.widget_title, context.getString(R.string.widget_title))
             setTextViewText(R.id.widget_status, statusDetail)
@@ -182,11 +183,11 @@ object WidgetUpdater {
             if (layout == R.layout.widget_dodocomm_bar) {
                 setViewVisibility(R.id.widget_count_label, android.view.View.GONE)
             }
-            if (colorOS) {
+            if (hostProfile.hostCard) {
                 setViewVisibility(R.id.widget_coloros_backdrop, android.view.View.VISIBLE)
                 setInt(R.id.widget_card, "setBackgroundColor", android.graphics.Color.TRANSPARENT)
             }
-            val outerPadding = if (colorOS) 1 else outerPaddingDp(context)
+            val outerPadding = hostProfile.outerInsetDp
             val px = (outerPadding * context.resources.displayMetrics.density).roundToInt()
             setViewPadding(R.id.widget_root, px, px, px, px)
             setOnClickPendingIntent(R.id.widget_root, openApp(context))
@@ -219,31 +220,12 @@ object WidgetUpdater {
             else -> R.layout.widget_dodocomm
         }
 
-    private fun chooseLayout(widthDp: Int, heightDp: Int): Int = when {
+    private fun chooseLayout(widthDp: Int, heightDp: Int, host: WidgetHostProfile): Int = when {
         widthDp >= 220 && heightDp >= 220 -> R.layout.widget_dodocomm_dashboard
-        heightDp in 1..90 -> R.layout.widget_dodocomm_bar
+        heightDp in 1..host.shortBarThresholdDp -> R.layout.widget_dodocomm_bar
         heightDp >= 165 -> R.layout.widget_dodocomm_tall
         widthDp >= 230 -> R.layout.widget_dodocomm_wide
         else -> R.layout.widget_dodocomm
-    }
-
-    /**
-     * OEM launchers add different amounts of host padding/card chrome. Keep our
-     * own outer inset small on heavily padded launchers and a touch larger on
-     * near-stock hosts so content never touches the rounded host card.
-     */
-    private fun outerPaddingDp(context: Context): Int {
-        val manufacturer = Build.MANUFACTURER.orEmpty().lowercase(Locale.ROOT)
-        return when {
-            manufacturer.contains("oppo") ||
-                manufacturer.contains("oneplus") ||
-                manufacturer.contains("realme") ||
-                manufacturer.contains("xiaomi") ||
-                manufacturer.contains("redmi") ||
-                manufacturer.contains("poco") -> 2
-            manufacturer.contains("samsung") -> 3
-            else -> 4
-        }
     }
 
     private fun openApp(context: Context): PendingIntent {
