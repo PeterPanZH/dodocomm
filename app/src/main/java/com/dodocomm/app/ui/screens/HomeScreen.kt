@@ -457,7 +457,7 @@ private fun TodayStatsRow(
     val sentTonal = if (dark) SentDark else SentLight
     val pendingTonal = if (dark) PendingDark else PendingLight
     val filteredTonal = if (dark) FilteredDark else FilteredLight
-    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         StatPill(
             value = stats.sent,
             label = "已送达",
@@ -529,7 +529,7 @@ private fun SetupChecklistCard(
             gapSize = 0.dp,
             drawStopIndicator = {},
         )
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(8.dp))
         items.forEachIndexed { index, item ->
             if (index > 0) RowDivider()
             SetupRow(item = item, onClick = { onAction(item) })

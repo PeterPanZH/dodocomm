@@ -226,8 +226,8 @@ private fun SettingsOverviewScreen(
                 RowDivider()
                 OverviewRow(
                     title = "后台与可靠性",
-                    subtitle = "后台收信、开机恢复与省电设置",
-                    value = if (settings.foregroundServiceEnabled) "常驻通知" else "广播模式",
+                    subtitle = "后台收信、自启动与省电",
+                    value = if (settings.foregroundServiceEnabled) "常驻" else "广播",
                     icon = Icons.Rounded.Bolt,
                     onClick = { onNavigateSection(SettingsSection.RELIABILITY) },
                 )

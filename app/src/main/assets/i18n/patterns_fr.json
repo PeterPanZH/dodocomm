@@ -242,5 +242,105 @@
  {
   "regex": "^已选 (\\d+) 条$",
   "format": "ZXQH0Z sélectionné"
+ },
+ {
+  "regex": "^(\\d+) 条记录$",
+  "format": "{0} enregistrements"
+ },
+ {
+  "regex": "^(\\d+) 条失败记录，可打开记录查看原因$",
+  "format": "Enregistrements échoués {0} ; ouvrir l'historique pour plus de détails"
+ },
+ {
+  "regex": "^(\\d+) 条记录等待重试$",
+  "format": "Enregistrements {0} en attente de nouvelle tentative"
+ },
+ {
+  "regex": "^已删除 (\\d+) 条记录$",
+  "format": "Enregistrements {0} supprimés"
+ },
+ {
+  "regex": "^将删除 (\\d+) 条本地记录，无法恢复。$",
+  "format": "Cela supprimera définitivement les enregistrements locaux {0}."
+ },
+ {
+  "regex": "^已加密 (\\d+) 条本地记录$",
+  "format": "Enregistrements locaux {0} cryptés"
+ },
+ {
+  "regex": "^重新发送失败：(.*)$",
+  "format": "Échec du renvoi : {0}"
+ },
+ {
+  "regex": "^模板测试推送失败：(.*)$",
+  "format": "Échec du test push du modèle : {0}"
+ },
+ {
+  "regex": "^已配置 (\\d+) 个可用通道：$",
+  "format": "Canaux disponibles {0} configurés :"
+ },
+ {
+  "regex": "^已配置 (\\d+) 个可用通道$",
+  "format": "Canaux disponibles {0} configurés"
+ },
+ {
+  "regex": "^已暂停 (\\d+) 分钟$",
+  "format": "En pause pendant {0} min"
+ },
+ {
+  "regex": "^临时暂停转发 (\\d+) 分钟$",
+  "format": "Transfert interrompu pendant {0} min"
+ },
+ {
+  "regex": "^已暂停转发 (\\d+) 分钟$",
+  "format": "Transfert interrompu pendant {0} min"
+ },
+ {
+  "regex": "^，暂停剩余约 (\\d+) 分钟$",
+  "format": ", environ {0} min restantes"
+ },
+ {
+  "regex": "^短信转发超过 (\\d+)ms，已交给重试队列$",
+  "format": "Le délai de transfert des SMS a expiré après {0}ms ; en file d'attente pour réessayer"
+ },
+ {
+  "regex": "^推送失败：服务器不支持该推送接口（HTTP (\\d+)）$",
+  "format": "Échec du push : cette API push n'est pas prise en charge (HTTP {0})"
+ },
+ {
+  "regex": "^推送失败：Bark 服务器内部错误（HTTP (\\d+)），请稍后重试$",
+  "format": "Échec du push : erreur du serveur Bark (HTTP {0}) ; réessayez plus tard"
+ },
+ {
+  "regex": "^(.+) (\\d+)$",
+  "format": "{0} {1}"
+ },
+ {
+  "regex": "^(\\d+) 秒$",
+  "format": "{0} s"
+ },
+ {
+  "regex": "^(\\d+) 分钟$",
+  "format": "{0} min"
+ },
+ {
+  "regex": "^发现新版本 (.+)，可在「设置 → 检查更新」中查看$",
+  "format": "Nouvelle version {0} disponible dans Paramètres → Rechercher les mises à jour"
+ },
+ {
+  "regex": "^这是一条测试推送：(.+)$",
+  "format": "Ceci est une campagne de test : {0}"
+ },
+ {
+  "regex": "^备份时间：(.*)$",
+  "format": "Temps de sauvegarde : {0}"
+ },
+ {
+  "regex": "^无法打开系统文件选择器：(.*)$",
+  "format": "Impossible d'ouvrir le sélecteur de fichiers système : {0}"
+ },
+ {
+  "regex": "^无法请求电话权限：(.*)，请在系统设置中开启$",
+  "format": "Impossible de demander l'autorisation téléphonique : {0}. Activez-le dans les paramètres système."
  }
 ]

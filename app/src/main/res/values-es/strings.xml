@@ -2,14 +2,14 @@
 <resources>
     <string name="app_name">DodoComm</string>
     <string name="widget_title">DodoComm</string>
-    <string name="widget_label_today">Entregados hoy</string>
-    <string name="widget_status_on">Reenviando</string>
+    <string name="widget_label_today">Hoy</string>
+    <string name="widget_status_on">Activo</string>
     <string name="widget_status_paused">En pausa</string>
-    <string name="widget_status_off">Reenvío desactivado</string>
-    <string name="widget_status_paused_until">Se reanuda a las %1$s</string>
-    <string name="widget_action_pause">Pausar 30 min</string>
+    <string name="widget_status_off">Apagado</string>
+    <string name="widget_status_paused_until">hasta %1$s</string>
+    <string name="widget_action_pause">Pausar</string>
     <string name="widget_action_resume">Reanudar</string>
-    <string name="widget_action_open">Abrir app</string>
+    <string name="widget_action_open">Abrir</string>
     <string name="shortcut_test_push_short">Prueba</string>
     <string name="shortcut_test_push_long">Enviar una notificación de prueba</string>
     <string name="shortcut_toggle_short">Pausar/Reanudar</string>

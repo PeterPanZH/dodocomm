@@ -63,7 +63,7 @@ fun SectionCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(18.dp),
+                .padding(16.dp),
             content = content,
         )
     }

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">도도컴</string>
-    <string name="widget_title">도도컴 전달</string>
-    <string name="widget_label_today">오늘 전달됨</string>
-    <string name="widget_status_on">전달 중</string>
-    <string name="widget_status_paused">일시 중지</string>
-    <string name="widget_status_off">전달 꺼짐</string>
-    <string name="widget_status_paused_until">%1$s 재개</string>
-    <string name="widget_action_pause">30분 일시 중지</string>
-    <string name="widget_action_resume">전달 재개</string>
-    <string name="widget_action_open">앱 열기</string>
+    <string name="widget_title">도도컴</string>
+    <string name="widget_label_today">오늘</string>
+    <string name="widget_status_on">켜짐</string>
+    <string name="widget_status_paused">일시중지</string>
+    <string name="widget_status_off">꺼짐</string>
+    <string name="widget_status_paused_until">%1$s까지</string>
+    <string name="widget_action_pause">일시정지</string>
+    <string name="widget_action_resume">재개</string>
+    <string name="widget_action_open">열기</string>
     <string name="shortcut_test_push_short">테스트 전송</string>
     <string name="shortcut_test_push_long">테스트 푸시 보내기</string>
     <string name="shortcut_toggle_short">일시 중지/재개</string>

@@ -35,6 +35,27 @@ class TranslationParityTest {
     }
 
     @Test
+    fun `dynamic count patterns are present in every language`() {
+        val required = listOf(
+            "^(\\d+) 条记录$",
+            "^(\\d+) 个通道$",
+            "^(\\d+) 个启用$",
+            "^(\\d+) 分钟$",
+            "^(\\d+) 秒$",
+            "^(.+) (\\d+)$",
+        )
+        listOf("en", "ja", "zh-TW", "ko", "es", "fr").forEach { language ->
+            val array = JSONArray(File(assetsDir(), "patterns_$language.json").readText(Charsets.UTF_8))
+            val regexes = (0 until array.length())
+                .map { array.getJSONObject(it).getString("regex") }
+                .toSet()
+            required.forEach { pattern ->
+                assertTrue("$language missing dynamic pattern $pattern", pattern in regexes)
+            }
+        }
+    }
+
+    @Test
     fun `pattern files compile and reference valid placeholders`() {
         listOf(
             "patterns_en.json", "patterns_ja.json", "patterns_zh-TW.json",

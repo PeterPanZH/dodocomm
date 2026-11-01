@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">DodoComm</string>
-    <string name="widget_title">Dodoco delivers</string>
-    <string name="widget_label_today">Delivered today</string>
-    <string name="widget_status_on">Forwarding</string>
+    <string name="widget_title">DodoComm</string>
+    <string name="widget_label_today">Today</string>
+    <string name="widget_status_on">On</string>
     <string name="widget_status_paused">Paused</string>
-    <string name="widget_status_off">Forwarding off</string>
-    <string name="widget_status_paused_until">Resumes %1$s</string>
-    <string name="widget_action_pause">Pause 30 min</string>
+    <string name="widget_status_off">Off</string>
+    <string name="widget_status_paused_until">until %1$s</string>
+    <string name="widget_action_pause">Pause</string>
     <string name="widget_action_resume">Resume</string>
-    <string name="widget_action_open">Open app</string>
+    <string name="widget_action_open">Open</string>
     <string name="shortcut_test_push_short">Test push</string>
     <string name="shortcut_test_push_long">Send a test push</string>
     <string name="shortcut_toggle_short">Pause/Resume</string>

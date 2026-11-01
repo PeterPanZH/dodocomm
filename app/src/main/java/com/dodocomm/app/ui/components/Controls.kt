@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -70,7 +71,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text as MaterialText
-import androidx.compose.material3.Text as MaterialText
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -87,6 +87,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -442,17 +443,26 @@ fun SettingActionRow(
         if (value != null) {
             Spacer(Modifier.width(10.dp))
             val valueColor = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+            val valueModifier = Modifier.widthIn(max = 112.dp)
             if (translateValue) {
                 Text(
                     text = value,
+                    modifier = valueModifier,
                     style = MaterialTheme.typography.labelMedium,
                     color = valueColor,
+                    textAlign = TextAlign.End,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
             } else {
                 MaterialText(
                     text = value,
+                    modifier = valueModifier,
                     style = MaterialTheme.typography.labelMedium,
                     color = valueColor,
+                    textAlign = TextAlign.End,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }

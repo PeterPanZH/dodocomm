@@ -13,7 +13,7 @@
         android:background="@drawable/widget_background"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="10dp"
+        android:paddingHorizontal="12dp"
         android:paddingVertical="4dp">
 
         <ImageView
@@ -43,6 +43,7 @@
             android:background="@drawable/widget_chip"
             android:ellipsize="end"
             android:maxLines="1"
+            android:maxWidth="76dp"
             android:paddingHorizontal="6dp"
             android:paddingVertical="2dp"
             android:text="@string/widget_status_on"
@@ -75,8 +76,10 @@
             android:layout_height="28dp"
             android:layout_marginStart="8dp"
             android:background="@drawable/widget_chip"
+            android:ellipsize="end"
             android:gravity="center"
             android:maxLines="1"
+            android:paddingHorizontal="4dp"
             android:text="@string/widget_action_open"
             android:textColor="#FFFFFFFF"
             android:textSize="9sp" />
@@ -85,10 +88,12 @@
             android:id="@+id/widget_toggle"
             android:layout_width="52dp"
             android:layout_height="28dp"
-            android:layout_marginStart="6dp"
+            android:layout_marginStart="8dp"
             android:background="@drawable/widget_chip"
+            android:ellipsize="end"
             android:gravity="center"
             android:maxLines="1"
+            android:paddingHorizontal="4dp"
             android:text="@string/widget_action_pause"
             android:textColor="#FFFFFFFF"
             android:textSize="9sp" />

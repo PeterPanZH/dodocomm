@@ -45,19 +45,22 @@
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/widget_status"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/widget_chip"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:paddingHorizontal="7dp"
-                    android:paddingVertical="2dp"
-                    android:text="@string/widget_status_on"
-                    android:textColor="#FFFFFFFF"
-                    android:textSize="9sp" />
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/widget_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/widget_chip"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:maxWidth="96dp"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="2dp"
+                android:text="@string/widget_status_on"
+                android:textColor="#FFFFFFFF"
+                android:textSize="9sp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -99,8 +102,10 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:background="@drawable/widget_chip"
+                android:ellipsize="end"
                 android:gravity="center"
                 android:maxLines="1"
+                android:paddingHorizontal="4dp"
                 android:text="@string/widget_action_open"
                 android:textColor="#FFFFFFFF"
                 android:textSize="10sp" />
@@ -109,11 +114,13 @@
                 android:id="@+id/widget_toggle"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="8dp"
                 android:layout_weight="1"
                 android:background="@drawable/widget_chip"
+                android:ellipsize="end"
                 android:gravity="center"
                 android:maxLines="1"
+                android:paddingHorizontal="4dp"
                 android:text="@string/widget_action_pause"
                 android:textColor="#FFFFFFFF"
                 android:textSize="10sp" />

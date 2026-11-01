@@ -72,8 +72,29 @@ object WidgetUpdater {
             setTextViewText(R.id.widget_toggle, toggleText)
             // Compact cards can be resized very small; hide non-essential
             // text instead of letting OEM launchers clip the button row.
-            if (layout == R.layout.widget_dodocomm && (heightDp in 1..114 || widthDp in 1..125)) {
-                setViewVisibility(R.id.widget_count_label, android.view.View.GONE)
+            if (layout == R.layout.widget_dodocomm) {
+                // 2x2 cards are often only ~110–150dp wide. Showing the brand
+                // next to the mascot and status chip would ellipsize it to
+                // "Dodo…"; keep the mascot + status instead.
+                setViewVisibility(
+                    R.id.widget_title,
+                    if (widthDp >= 180) android.view.View.VISIBLE else android.view.View.GONE,
+                )
+                if (heightDp in 1..104) {
+                    setViewVisibility(R.id.widget_count_label, android.view.View.GONE)
+                }
+            }
+            if (layout == R.layout.widget_dodocomm_tall) {
+                setViewVisibility(
+                    R.id.widget_title,
+                    if (widthDp >= 170) android.view.View.VISIBLE else android.view.View.GONE,
+                )
+            }
+            if (layout == R.layout.widget_dodocomm_bar) {
+                setViewVisibility(
+                    R.id.widget_title,
+                    if (widthDp >= 320) android.view.View.VISIBLE else android.view.View.GONE,
+                )
             }
             if (layout == R.layout.widget_dodocomm_bar) {
                 setViewVisibility(R.id.widget_count_label, android.view.View.GONE)

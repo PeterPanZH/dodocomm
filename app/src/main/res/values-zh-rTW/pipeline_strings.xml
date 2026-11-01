@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notify_channel_service">簡訊轉發服務</string>
+    <string name="notify_channel_service_desc">常駐通知，用於讓系統保持簡訊轉發服務運行</string>
+    <string name="notify_channel_alerts">轉發提醒</string>
+    <string name="notify_channel_alerts_desc">轉發失敗等重要提醒</string>
+    <string name="notify_title">嘟嘟通訊</string>
+    <string name="notify_ongoing_idle">嘟嘟可待命中 · 今日已送出 %1$d 則</string>
+    <string name="notify_ongoing_stats">嘟嘟可傳送中 · 今日已送出 %1$d 則</string>
+    <string name="notify_ongoing_last">嘟嘟可剛送出一則簡訊 · 今日 %1$d 則 · 最新 %2$s %3$s</string>
+    <string name="notify_paused">轉發已暫停，點擊開關可恢復</string>
+    <string name="notify_unknown_sender">未知號碼</string>
+    <string name="notify_action_pause">暫停</string>
+    <string name="notify_action_pause_30">暫停30分</string>
+    <string name="notify_action_resume">恢復轉發</string>
+    <string name="notify_action_test">測試</string>
+    <string name="notify_action_stop">停止</string>
+    <string name="notify_paused_until">已暫時暫停轉發 · 約 %1$d 分鐘後自動恢復</string>
+    <string name="notify_boot_recovery_title">嘟嘟可暫時掉線了</string>
+    <string name="notify_boot_recovery_text">點按開啟應用程式叫醒嘟嘟可繼續送信（簡訊接收本身不受影響）</string>
+    <string name="notify_test_sending">正在發送測試推送…</string>
+    <string name="notify_test_success">測試推送成功 ✅</string>
+    <string name="notify_test_failed">測試推送失敗：%1$s</string>
+</resources>
