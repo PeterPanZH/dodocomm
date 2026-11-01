@@ -53,7 +53,7 @@ class ForwardEngine(
      */
     suspend fun handleIncoming(payload: SmsPayload): ForwardRecord? {
         val settings = container.settings.current()
-        if (!settings.forwardingEnabled) return null
+        if (!settings.forwardingEnabled || !settings.smsForwardEnabled) return null
         if (settings.isPaused()) {
             Log.i(TAG, "临时暂停中，跳过短信 sender=${payload.sender}")
             return null

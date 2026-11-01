@@ -9,6 +9,7 @@ import com.dodocomm.app.core.forward.DeliveryPolicy
 import com.dodocomm.app.core.model.ForwardRecord
 import com.dodocomm.app.core.model.ForwardSource
 import com.dodocomm.app.core.model.ForwardStatus
+import com.dodocomm.app.core.system.DeviceName
 import com.dodocomm.app.core.util.TimeFormatter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -35,16 +36,27 @@ class EventForwarder(
         if (!settings.phoneForwardEnabled) return null
         if (missed && !settings.phoneForwardMissed) return null
         if (!missed && !settings.phoneForwardIncoming) return null
+        if (!EventFilters.callAllowed(settings, number)) return null
         val safeNumber = number?.trim().orEmpty()
         val displayNumber = safeNumber.ifBlank { appContext.getString(R.string.event_unknown_number) }
-        val title = appContext.getString(
-            if (missed) R.string.event_call_missed_title else R.string.event_call_incoming_title,
+        val type = appContext.getString(
+            if (missed) R.string.event_call_type_missed else R.string.event_call_type_incoming,
         )
-        val body = appContext.getString(
-            R.string.event_call_body,
-            displayNumber,
-            TimeFormatter.formatFull(timestamp),
+        val time = TimeFormatter.formatFull(timestamp)
+        val vars = mapOf(
+            "type" to type,
+            "sender" to displayNumber,
+            "number" to displayNumber,
+            "time" to time,
+            "device" to DeviceName.resolve(appContext),
+            "missed" to missed.toString(),
         )
+        val title = render(settings.callTitleTemplate, vars).ifBlank {
+            appContext.getString(R.string.event_call_incoming_title)
+        }
+        val body = render(settings.callBodyTemplate, vars).ifBlank {
+            appContext.getString(R.string.event_call_body, displayNumber, time)
+        }
         return deliver(
             source = ForwardSource.CALL,
             sender = displayNumber,
@@ -66,13 +78,28 @@ class EventForwarder(
         val settings = container.settings.current()
         if (!settings.forwardingEnabled || settings.isPaused()) return null
         if (!settings.notificationForwardEnabled) return null
-        if (!settings.notificationAllApps && packageName !in settings.notificationSelectedPackages) return null
+        if (!EventFilters.appAllowed(settings, packageName)) return null
         val safeApp = appName.trim().ifBlank { packageName }
-        val title = appContext.getString(R.string.event_notification_title, safeApp)
-        val content = listOfNotNull(
-            notificationTitle?.trim()?.takeIf { it.isNotEmpty() },
-            notificationText?.trim()?.takeIf { it.isNotEmpty() },
-        ).joinToString("\n").ifBlank { appContext.getString(R.string.event_notification_empty) }
+        val rawTitle = notificationTitle?.trim().orEmpty()
+        val rawText = notificationText?.trim().orEmpty()
+        val vars = mapOf(
+            "app" to safeApp,
+            "package" to packageName,
+            "title" to rawTitle,
+            "body" to rawText,
+            "text" to rawText,
+            "time" to TimeFormatter.formatFull(timestamp),
+            "device" to DeviceName.resolve(appContext),
+        )
+        val title = render(settings.notificationTitleTemplate, vars).ifBlank {
+            appContext.getString(R.string.event_notification_title, safeApp)
+        }
+        val content = render(settings.notificationBodyTemplate, vars).ifBlank {
+            listOfNotNull(
+                rawTitle.takeIf { it.isNotEmpty() },
+                rawText.takeIf { it.isNotEmpty() },
+            ).joinToString("\n").ifBlank { appContext.getString(R.string.event_notification_empty) }
+        }
         return deliver(
             source = ForwardSource.APP_NOTIFICATION,
             sender = safeApp,
@@ -148,6 +175,11 @@ class EventForwarder(
             error = outcome.error,
         )
     }
+
+    private fun render(template: String, vars: Map<String, String>): String =
+        Regex("\\{(\\w+)\\}").replace(template) { match ->
+            vars[match.groupValues[1]] ?: ""
+        }
 
     private companion object {
         const val TAG = "SMS2BARK"

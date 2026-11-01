@@ -676,6 +676,24 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setThemeMode(mode: ThemeMode) = updateSettings { it.copy(themeMode = mode) }
 
+    fun setSmsForwardEnabled(enabled: Boolean) = updateSettings { it.copy(smsForwardEnabled = enabled) }
+
+    fun setCallWhitelist(values: List<String>) = updateSettings { it.copy(callWhitelist = values) }
+
+    fun setCallBlacklist(values: List<String>) = updateSettings { it.copy(callBlacklist = values) }
+
+    fun setNotificationBlacklistPackages(packages: List<String>) = updateSettings {
+        it.copy(notificationBlacklistPackages = packages.distinct())
+    }
+
+    fun setCallTemplates(title: String, body: String) = updateSettings {
+        it.copy(callTitleTemplate = title, callBodyTemplate = body)
+    }
+
+    fun setNotificationTemplates(title: String, body: String) = updateSettings {
+        it.copy(notificationTitleTemplate = title, notificationBodyTemplate = body)
+    }
+
     fun setPhoneForwardEnabled(enabled: Boolean) = updateSettings { it.copy(phoneForwardEnabled = enabled) }
 
     fun setPhoneForwardIncoming(enabled: Boolean) = updateSettings { it.copy(phoneForwardIncoming = enabled) }

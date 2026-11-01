@@ -134,8 +134,8 @@ enum class SettingsSection(
     val route: String,
 ) {
     OVERVIEW("设置", "按类别管理所有设置", "overview"),
-    PUSH("推送", "推送内容、推送通道与路由规则", "push"),
-    EVENTS("更多事件", "电话与应用通知转发", "events"),
+    PUSH("推送", "推送通道、路由与推送样式", "push"),
+    EVENTS("事件与模板", "短信、来电与应用通知", "events"),
     RULES("转发规则", "白名单、黑名单与关键词过滤", "rules"),
     PRIVACY("隐私与安全", "应用锁与本地数据保护", "privacy"),
     RELIABILITY("后台与可靠性", "常驻通知、开机恢复与电池优化", "reliability"),
@@ -198,23 +198,15 @@ private fun SettingsOverviewScreen(
             SectionCard {
                 OverviewRow(
                     title = "推送",
-                    subtitle = "共用模板、推送通道与路由规则",
+                    subtitle = "推送通道、路由与推送样式",
                     value = "${settings.channels.count { it.enabled }} 个通道",
                     icon = Icons.Rounded.NotificationsActive,
                     onClick = { onNavigateSection(SettingsSection.PUSH) },
                 )
                 RowDivider()
                 OverviewRow(
-                    title = "转发规则",
-                    subtitle = "白名单、黑名单与关键词过滤",
-                    value = if (settings.hasFilters) "已启用" else "未设置",
-                    icon = Icons.Rounded.FilterAlt,
-                    onClick = { onNavigateSection(SettingsSection.RULES) },
-                )
-                RowDivider()
-                OverviewRow(
-                    title = "更多事件",
-                    subtitle = "来电与应用通知转发",
+                    title = "事件与模板",
+                    subtitle = "短信、来电与应用通知",
                     value = if (settings.phoneForwardEnabled || settings.notificationForwardEnabled) "已开启" else "未开启",
                     icon = Icons.Rounded.NotificationsActive,
                     onClick = { onNavigateSection(SettingsSection.EVENTS) },
@@ -420,7 +412,6 @@ fun SettingsScreen(
                 PushStyleCard(
                     settings = settings,
                     viewModel = viewModel,
-                    onEditTemplate = onNavigateTemplate,
                     onNavigateChannels = onNavigateChannels,
                     onNavigateRouting = onNavigateRouting,
                 )
@@ -429,7 +420,11 @@ fun SettingsScreen(
 
         if (section == SettingsSection.EVENTS) {
             item(key = "events_card", contentType = "card") {
-                com.dodocomm.app.ui.screens.EventSourcesSection(viewModel = viewModel)
+                com.dodocomm.app.ui.screens.EventSourcesSection(
+                    viewModel = viewModel,
+                    onOpenSmsTemplate = onNavigateTemplate,
+                    onOpenSmsRules = { onNavigateSection(SettingsSection.RULES) },
+                )
             }
         }
 
@@ -538,7 +533,7 @@ fun SettingsScreen(
                     )
                     Spacer(Modifier.height(8.dp))
                     InfoNote(
-                        text = "短信只会发送到你配置的推送通道，不经过我们自己的服务器；本地只保留最近的转发记录，随时可以清空。",
+                        text = "消息只会发送到你配置的推送通道，不经过我们自己的服务器；本地只保留最近的转发记录，随时可以清空。",
                     )
                     Spacer(Modifier.height(20.dp))
                 }
@@ -575,7 +570,7 @@ fun SettingsScreen(
             title = { Text("开启应用锁") },
             text = {
                 Column {
-                    Text("每次打开嘟嘟通讯都需要输入 6 位 PIN，防止别人查看短信记录和设置。")
+                    Text("每次打开嘟嘟通讯都需要输入 6 位 PIN，防止别人查看转发记录和设置。")
                     Spacer(Modifier.height(8.dp))
                     Text("忘记 PIN 只能清除应用数据，转发记录也会一并删除。")
                     Spacer(Modifier.height(8.dp))
@@ -962,7 +957,6 @@ private fun RetryPolicyCard(settings: AppSettings, viewModel: AppViewModel) {
 private fun PushStyleCard(
     settings: AppSettings,
     viewModel: AppViewModel,
-    onEditTemplate: () -> Unit,
     onNavigateChannels: () -> Unit,
     onNavigateRouting: () -> Unit,
 ) {
@@ -981,13 +975,6 @@ private fun PushStyleCard(
             value = if (settings.routingRules.isEmpty()) "默认" else "${settings.routingRules.size} 条",
             icon = Icons.Rounded.FilterAlt,
             onClick = onNavigateRouting,
-        )
-        RowDivider()
-        SettingActionRow(
-            title = "推送内容",
-            subtitle = "标题、消息体与设备名称",
-            icon = Icons.Rounded.Edit,
-            onClick = onEditTemplate,
         )
     }
 }
@@ -1101,7 +1088,7 @@ private fun ReliabilityCard(
             icon = Icons.Rounded.NotificationsActive,
         )
         Spacer(Modifier.height(8.dp))
-        InfoNote("关闭常驻通知后，系统可能延迟处理新短信。建议保留常驻通知，让嘟嘟可随时待命。")
+        InfoNote("关闭常驻通知后，系统可能延迟处理新消息。建议保留常驻通知，让嘟嘟可随时待命。")
         RowDivider()
         SettingSwitchRow(
             title = "后台隐藏",

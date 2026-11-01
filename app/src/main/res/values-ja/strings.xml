@@ -32,4 +32,6 @@
     <string name="event_notification_title">📱 %1$s</string>
     <string name="event_notification_empty">（本文なし）</string>
     <string name="event_no_channel">利用可能なプッシュチャンネルがありません。先に設定してください。</string>
+    <string name="event_call_type_incoming">着信</string>
+    <string name="event_call_type_missed">不在着信</string>
 </resources>

@@ -130,6 +130,17 @@ data class AppSettings(
     val notificationAllApps: Boolean = true,
     val notificationSelectedPackages: List<String> = emptyList(),
     val notificationIgnoreOngoing: Boolean = true,
+    /** Per-source switches; the global forwarding switch still applies. */
+    val smsForwardEnabled: Boolean = true,
+    val callTitleTemplate: String = "📞 {type} · {sender}",
+    val callBodyTemplate: String = "{sender}\n{time}",
+    val notificationTitleTemplate: String = "📱 {app}",
+    val notificationBodyTemplate: String = "{title}\n{body}",
+    /** Call-number allow/block lists (same suffix matching as SMS senders). */
+    val callWhitelist: List<String> = emptyList(),
+    val callBlacklist: List<String> = emptyList(),
+    /** App package blocklist; selectedPackages remains the optional allowlist. */
+    val notificationBlacklistPackages: List<String> = emptyList(),
 ) {
     fun isPaused(now: Long = System.currentTimeMillis()): Boolean = pauseUntil > now
 

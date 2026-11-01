@@ -32,4 +32,6 @@
     <string name="event_notification_title">📱 %1$s</string>
     <string name="event_notification_empty">（无正文）</string>
     <string name="event_no_channel">没有可用的推送通道，请先配置至少一个通道</string>
+    <string name="event_call_type_incoming">来电</string>
+    <string name="event_call_type_missed">未接来电</string>
 </resources>

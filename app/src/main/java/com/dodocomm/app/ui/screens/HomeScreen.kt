@@ -324,7 +324,7 @@ private fun HomeHeroCard(
                             fontWeight = FontWeight.SemiBold,
                         )
                         Text(
-                            text = "嘟嘟可传信 · 短信一响就出发",
+                            text = "嘟嘟可传信 · 消息一响就出发",
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.White.copy(alpha = 0.74f),
                         )
@@ -372,10 +372,10 @@ private fun HomeHeroCard(
                         Text(
                             text = when {
                                 paused -> "约 ${formatPauseRemaining(remainingSeconds)} 后自动恢复"
-                                !configured -> "先配置推送通道，短信才能送达"
-                                !forwardingEnabled -> "点击开启转发，短信会自动推送"
+                                !configured -> "先配置推送通道，消息才能送达"
+                                !forwardingEnabled -> "点击开启转发，消息会自动推送"
                                 todaySent > 0 -> "今日已送达 $todaySent 条"
-                                else -> "已开启转发，新短信会自动推送"
+                                else -> "已开启转发，新消息会自动推送"
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.White.copy(alpha = 0.82f),
@@ -700,7 +700,7 @@ private fun ServerPromptCard(onClick: () -> Unit) {
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "填入推送通道配置后，收到的短信就会自动推送。",
+                text = "填入推送通道配置后，收到的消息就会自动推送。",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f),
                 textAlign = TextAlign.Center,
@@ -730,13 +730,13 @@ private fun WaitingCard() {
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(
-                    text = "等待第一条短信",
+                    text = "等待第一条消息",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text = "可莉已经把嘟嘟可放出去啦，一有短信就飞过来。",
+                    text = "可莉已经把嘟嘟可放出去啦，一有消息就飞过来。",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -925,7 +925,7 @@ private fun PrivacyFooter() {
         )
         Spacer(Modifier.width(5.dp))
         Text(
-            text = "短信内容仅发送到你配置的推送通道或 SMTP 服务器",
+            text = "消息内容仅发送到你配置的推送通道或 SMTP 服务器",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
         )

@@ -239,7 +239,7 @@ fun HistoryScreen(viewModel: AppViewModel) {
                 Spacer(Modifier.height(3.dp))
                 Text(
                     text = if (records.isEmpty()) {
-                        "短信送达状态都在这里"
+                        "消息送达状态都在这里"
                     } else {
                         "共 ${records.size} 条 · 本地转发记录"
                     },
@@ -337,8 +337,8 @@ fun HistoryScreen(viewModel: AppViewModel) {
                 EmptyState(
                     icon = Icons.Rounded.Inbox,
                     mascotRes = R.drawable.dodoco_sleep,
-                    title = "嘟嘟可还在等第一条短信",
-                    message = "收到的短信会出现在这里，转发状态也能随时查看。",
+                    title = "嘟嘟可还在等第一条消息",
+                    message = "收到的消息会出现在这里，转发状态也能随时查看。",
                 )
             }
         } else if (visibleRecords.isEmpty()) {
@@ -461,8 +461,8 @@ fun HistoryScreen(viewModel: AppViewModel) {
             viewModel = viewModel,
             onDismiss = { selectedId = -1L },
             onCopy = { text ->
-                clipboard?.setPrimaryClip(ClipData.newPlainText("短信内容", text))
-                viewModel.postSnackbar("已复制短信内容")
+                clipboard?.setPrimaryClip(ClipData.newPlainText("消息内容", text))
+                viewModel.postSnackbar("已复制消息内容")
             },
             onExport = {
                 pendingSingleExport = record

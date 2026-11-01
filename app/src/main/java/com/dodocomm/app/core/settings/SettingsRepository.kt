@@ -244,6 +244,22 @@ class SettingsRepository(context: Context) {
                 KEY_NOTIFICATION_IGNORE_ONGOING,
                 defaults.notificationIgnoreOngoing,
             ),
+            smsForwardEnabled = prefs.getBoolean(KEY_SMS_FORWARD_ENABLED, defaults.smsForwardEnabled),
+            callTitleTemplate = prefs.getString(KEY_CALL_TITLE_TEMPLATE, defaults.callTitleTemplate).orEmpty(),
+            callBodyTemplate = prefs.getString(KEY_CALL_BODY_TEMPLATE, defaults.callBodyTemplate).orEmpty(),
+            notificationTitleTemplate = prefs.getString(
+                KEY_NOTIFICATION_TITLE_TEMPLATE,
+                defaults.notificationTitleTemplate,
+            ).orEmpty(),
+            notificationBodyTemplate = prefs.getString(
+                KEY_NOTIFICATION_BODY_TEMPLATE,
+                defaults.notificationBodyTemplate,
+            ).orEmpty(),
+            callWhitelist = decodeList(prefs.getString(KEY_CALL_WHITELIST, null)),
+            callBlacklist = decodeList(prefs.getString(KEY_CALL_BLACKLIST, null)),
+            notificationBlacklistPackages = decodeList(
+                prefs.getString(KEY_NOTIFICATION_BLACKLIST_PACKAGES, null),
+            ),
         )
     }
 
@@ -303,6 +319,14 @@ class SettingsRepository(context: Context) {
             .putBoolean(KEY_NOTIFICATION_ALL_APPS, settings.notificationAllApps)
             .putString(KEY_NOTIFICATION_SELECTED_PACKAGES, encodeList(settings.notificationSelectedPackages))
             .putBoolean(KEY_NOTIFICATION_IGNORE_ONGOING, settings.notificationIgnoreOngoing)
+            .putBoolean(KEY_SMS_FORWARD_ENABLED, settings.smsForwardEnabled)
+            .putString(KEY_CALL_TITLE_TEMPLATE, settings.callTitleTemplate)
+            .putString(KEY_CALL_BODY_TEMPLATE, settings.callBodyTemplate)
+            .putString(KEY_NOTIFICATION_TITLE_TEMPLATE, settings.notificationTitleTemplate)
+            .putString(KEY_NOTIFICATION_BODY_TEMPLATE, settings.notificationBodyTemplate)
+            .putString(KEY_CALL_WHITELIST, encodeList(settings.callWhitelist))
+            .putString(KEY_CALL_BLACKLIST, encodeList(settings.callBlacklist))
+            .putString(KEY_NOTIFICATION_BLACKLIST_PACKAGES, encodeList(settings.notificationBlacklistPackages))
             .commit()
     }
 
@@ -363,6 +387,14 @@ class SettingsRepository(context: Context) {
         private const val KEY_NOTIFICATION_ALL_APPS = "notification_all_apps"
         private const val KEY_NOTIFICATION_SELECTED_PACKAGES = "notification_selected_packages"
         private const val KEY_NOTIFICATION_IGNORE_ONGOING = "notification_ignore_ongoing"
+        private const val KEY_SMS_FORWARD_ENABLED = "sms_forward_enabled"
+        private const val KEY_CALL_TITLE_TEMPLATE = "call_title_template"
+        private const val KEY_CALL_BODY_TEMPLATE = "call_body_template"
+        private const val KEY_NOTIFICATION_TITLE_TEMPLATE = "notification_title_template"
+        private const val KEY_NOTIFICATION_BODY_TEMPLATE = "notification_body_template"
+        private const val KEY_CALL_WHITELIST = "call_whitelist"
+        private const val KEY_CALL_BLACKLIST = "call_blacklist"
+        private const val KEY_NOTIFICATION_BLACKLIST_PACKAGES = "notification_blacklist_packages"
 
         fun encodeList(values: List<String>): String {
             val array = JSONArray()

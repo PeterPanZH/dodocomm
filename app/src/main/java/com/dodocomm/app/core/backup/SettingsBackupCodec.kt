@@ -61,6 +61,14 @@ object SettingsBackupCodec {
         put("notificationAllApps", settings.notificationAllApps)
         put("notificationSelectedPackages", JSONArray(settings.notificationSelectedPackages))
         put("notificationIgnoreOngoing", settings.notificationIgnoreOngoing)
+        put("smsForwardEnabled", settings.smsForwardEnabled)
+        put("callTitleTemplate", settings.callTitleTemplate)
+        put("callBodyTemplate", settings.callBodyTemplate)
+        put("notificationTitleTemplate", settings.notificationTitleTemplate)
+        put("notificationBodyTemplate", settings.notificationBodyTemplate)
+        put("callWhitelist", JSONArray(settings.callWhitelist))
+        put("callBlacklist", JSONArray(settings.callBlacklist))
+        put("notificationBlacklistPackages", JSONArray(settings.notificationBlacklistPackages))
         put("senderWhitelist", JSONArray(settings.senderWhitelist))
         put("senderBlacklist", JSONArray(settings.senderBlacklist))
         put("keywordBlacklist", JSONArray(settings.keywordBlacklist))
@@ -146,6 +154,20 @@ object SettingsBackupCodec {
             notificationAllApps = json.optBoolean("notificationAllApps", base.notificationAllApps),
             notificationSelectedPackages = json.optJSONArray("notificationSelectedPackages").toStringList(),
             notificationIgnoreOngoing = json.optBoolean("notificationIgnoreOngoing", base.notificationIgnoreOngoing),
+            smsForwardEnabled = json.optBoolean("smsForwardEnabled", base.smsForwardEnabled),
+            callTitleTemplate = json.optString("callTitleTemplate", base.callTitleTemplate),
+            callBodyTemplate = json.optString("callBodyTemplate", base.callBodyTemplate),
+            notificationTitleTemplate = json.optString(
+                "notificationTitleTemplate",
+                base.notificationTitleTemplate,
+            ),
+            notificationBodyTemplate = json.optString(
+                "notificationBodyTemplate",
+                base.notificationBodyTemplate,
+            ),
+            callWhitelist = json.optJSONArray("callWhitelist").toStringList(),
+            callBlacklist = json.optJSONArray("callBlacklist").toStringList(),
+            notificationBlacklistPackages = json.optJSONArray("notificationBlacklistPackages").toStringList(),
             senderWhitelist = json.optJSONArray("senderWhitelist").toStringList(),
             senderBlacklist = json.optJSONArray("senderBlacklist").toStringList(),
             keywordBlacklist = json.optJSONArray("keywordBlacklist").toStringList(),
