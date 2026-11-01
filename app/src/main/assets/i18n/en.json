@@ -1115,5 +1115,8 @@
  "电话变量": "Call variables",
  "搜索应用名称或包名": "Search app name or package",
  "白名单为空时转发所有应用；白名单非空时只转发其中的应用。黑名单始终优先，且只用于通知转发。": "When the allowlist is empty, all apps are forwarded. A non-empty allowlist restricts forwarding to those apps. The blocklist always wins and is used only for notification forwarding.",
- "为空时转发所有应用": "Empty means all apps"
+ "为空时转发所有应用": "Empty means all apps",
+ "可选 2×2 / 4×2 / 4×1 / 2×3 / 4×4，按桌面尺寸自适应": "2×2 / 4×2 / 4×1 / 2×3 / 4×4, adapts to the desktop size",
+ "ColorOS 的「卡片」与「插件」入口已合并：双指捏合桌面 → 底部「卡片」→ 滑到底部「插件」，即可添加嘟嘟通讯。小组件已按 ColorOS 深色圆角卡片样式适配。": "ColorOS merges Cards and Plugins: pinch the home screen → Cards at the bottom → scroll to Plugins to add DodoComm. Widgets use a ColorOS-style dark rounded card.",
+ "小组件会按当前桌面尺寸自动切换布局，显示今日送达、转发状态和最近事件，可直接测试推送或暂停 30 分钟。": "Widgets switch layouts by size and show today’s deliveries, status and the latest event, with test-push and pause controls."
 }

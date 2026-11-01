@@ -1,6 +1,7 @@
 package com.dodocomm.app.widget
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -36,6 +37,8 @@ class WidgetLayoutContractTest {
         )
         layouts.forEach { name ->
             val text = File(root(), "app/src/main/res/layout/$name").readText()
+            // RemoteViews cannot inflate a raw <View>; only framework view subclasses.
+            assertFalse("$name uses a raw <View>", text.contains("<View\n"))
             ids.forEach { id ->
                 assertTrue("$name missing @id/$id", text.contains("@+id/$id"))
             }

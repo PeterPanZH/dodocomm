@@ -1115,5 +1115,8 @@
  "电话变量": "Variables d'appel",
  "搜索应用名称或包名": "Rechercher un nom ou package d'app",
  "白名单为空时转发所有应用；白名单非空时只转发其中的应用。黑名单始终优先，且只用于通知转发。": "Si la liste d'autorisation est vide, toutes les applis sont transférées ; sinon, seules celles-ci le sont. La liste de blocage est prioritaire et ne concerne que les notifications.",
- "为空时转发所有应用": "Vide = toutes les applis"
+ "为空时转发所有应用": "Vide = toutes les applis",
+ "可选 2×2 / 4×2 / 4×1 / 2×3 / 4×4，按桌面尺寸自适应": "2×2 / 4×2 / 4×1 / 2×3 / 4×4, s’adapte à la taille de l’écran",
+ "ColorOS 的「卡片」与「插件」入口已合并：双指捏合桌面 → 底部「卡片」→ 滑到底部「插件」，即可添加嘟嘟通讯。小组件已按 ColorOS 深色圆角卡片样式适配。": "ColorOS réunit Cartes et Plugins : pincez l’écran d’accueil → Cartes en bas → faites défiler jusqu’à Plugins pour ajouter DodoComm. Le widget adopte le style carte sombre arrondie de ColorOS.",
+ "小组件会按当前桌面尺寸自动切换布局，显示今日送达、转发状态和最近事件，可直接测试推送或暂停 30 分钟。": "Les widgets adaptent leur mise en page à la taille et affichent les livraisons, l’état et le dernier événement, avec test et pause de 30 min."
 }

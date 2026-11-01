@@ -47,6 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dodocomm.app.widget.DodoWidgetProvider
+import com.dodocomm.app.widget.WidgetHost
 import com.dodocomm.app.ui.AppViewModel
 import com.dodocomm.app.ui.components.InfoNote
 import com.dodocomm.app.ui.components.RowDivider
@@ -111,7 +112,7 @@ fun AutomationScreen(
                     SectionCard {
                         SettingActionRow(
                             title = "添加桌面小组件",
-                            subtitle = "长按桌面 → 小组件 → 嘟嘟通讯，可选 2×2 / 4×2 / 4×1 / 2×3",
+                            subtitle = "可选 2×2 / 4×2 / 4×1 / 2×3 / 4×4，按桌面尺寸自适应",
                             icon = Icons.Rounded.AddToHomeScreen,
                             onClick = {
                                 if (canPinWidget) {
@@ -131,7 +132,13 @@ fun AutomationScreen(
                         )
                     }
                     Spacer(Modifier.height(10.dp))
-                    InfoNote("小组件会按当前桌面尺寸自动切换布局，显示今日送达数和转发状态，可直接暂停 30 分钟或打开 App。")
+                    InfoNote(
+                        if (WidgetHost.isColorOS()) {
+                            "ColorOS 的「卡片」与「插件」入口已合并：双指捏合桌面 → 底部「卡片」→ 滑到底部「插件」，即可添加嘟嘟通讯。小组件已按 ColorOS 深色圆角卡片样式适配。"
+                        } else {
+                            "小组件会按当前桌面尺寸自动切换布局，显示今日送达、转发状态和最近事件，可直接测试推送或暂停 30 分钟。"
+                        },
+                    )
                 }
             }
 

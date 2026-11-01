@@ -71,6 +71,7 @@ object WidgetUpdater {
             statusText
         }
 
+        val colorOS = WidgetHost.isColorOS()
         val views = RemoteViews(context.packageName, layout).apply {
             setTextViewText(R.id.widget_title, context.getString(R.string.widget_title))
             setTextViewText(R.id.widget_status, statusDetail)
@@ -181,7 +182,11 @@ object WidgetUpdater {
             if (layout == R.layout.widget_dodocomm_bar) {
                 setViewVisibility(R.id.widget_count_label, android.view.View.GONE)
             }
-            val outerPadding = outerPaddingDp(context)
+            if (colorOS) {
+                setViewVisibility(R.id.widget_coloros_backdrop, android.view.View.VISIBLE)
+                setInt(R.id.widget_card, "setBackgroundColor", android.graphics.Color.TRANSPARENT)
+            }
+            val outerPadding = if (colorOS) 1 else outerPaddingDp(context)
             val px = (outerPadding * context.resources.displayMetrics.density).roundToInt()
             setViewPadding(R.id.widget_root, px, px, px, px)
             setOnClickPendingIntent(R.id.widget_root, openApp(context))
@@ -216,7 +221,7 @@ object WidgetUpdater {
 
     private fun chooseLayout(widthDp: Int, heightDp: Int): Int = when {
         widthDp >= 220 && heightDp >= 220 -> R.layout.widget_dodocomm_dashboard
-        heightDp in 1..70 -> R.layout.widget_dodocomm_bar
+        heightDp in 1..90 -> R.layout.widget_dodocomm_bar
         heightDp >= 165 -> R.layout.widget_dodocomm_tall
         widthDp >= 230 -> R.layout.widget_dodocomm_wide
         else -> R.layout.widget_dodocomm
