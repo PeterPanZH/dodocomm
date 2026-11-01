@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -457,27 +459,30 @@ private fun TodayStatsRow(
     val sentTonal = if (dark) SentDark else SentLight
     val pendingTonal = if (dark) PendingDark else PendingLight
     val filteredTonal = if (dark) FilteredDark else FilteredLight
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.height(IntrinsicSize.Min),
+    ) {
         StatPill(
             value = stats.sent,
             label = "已送达",
             tonal = sentTonal,
             onClick = onSentClick,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
         )
         StatPill(
             value = stats.failed + stats.pending,
             label = "待重试",
             tonal = pendingTonal,
             onClick = onRetryClick,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
         )
         StatPill(
             value = stats.filtered,
             label = "已过滤",
             tonal = filteredTonal,
             onClick = onFilteredClick,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
         )
     }
 }
@@ -795,7 +800,10 @@ private fun QuickActionsSection(
         modifier = Modifier.padding(start = 4.dp),
     )
     Spacer(Modifier.height(10.dp))
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.height(IntrinsicSize.Min),
+    ) {
         QuickActionCard(
             title = "发送测试推送",
             subtitle = "验证服务器配置",
@@ -806,7 +814,7 @@ private fun QuickActionsSection(
             ),
             loading = testPushState is TestPushState.Loading,
             onClick = onTestPush,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
         )
         QuickActionCard(
             title = "后台设置向导",
@@ -818,7 +826,7 @@ private fun QuickActionsSection(
             ),
             loading = false,
             onClick = onGuide,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
         )
         QuickActionCard(
             title = "运行诊断",
@@ -830,7 +838,7 @@ private fun QuickActionsSection(
             ),
             loading = false,
             onClick = onDiagnostics,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
         )
     }
 }

@@ -156,6 +156,7 @@ fun AppLockPinScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
                     .padding(horizontal = 30.dp)
                     .padding(top = 24.dp, bottom = 36.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,

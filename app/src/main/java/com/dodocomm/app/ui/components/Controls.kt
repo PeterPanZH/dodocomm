@@ -241,6 +241,9 @@ fun StatPill(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,
                 color = tonal.content.copy(alpha = 0.9f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
             )
         }
     }

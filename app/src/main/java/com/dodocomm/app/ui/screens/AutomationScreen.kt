@@ -129,18 +129,9 @@ fun AutomationScreen(
                                 }
                             },
                         )
-                        RowDivider()
-                        InfoNote("小组件会按当前桌面尺寸自动切换布局，显示今日送达数和转发状态，可直接暂停 30 分钟或打开 App。")
                     }
-                }
-            }
-
-            item(key = "shortcuts") {
-                Column {
-                    SectionHeader("应用快捷方式")
-                    SectionCard {
-                        InfoNote("长按桌面上的嘟嘟通讯图标，可以快速「测试推送」或「暂停/恢复转发」，不用先打开 App。")
-                    }
+                    Spacer(Modifier.height(10.dp))
+                    InfoNote("小组件会按当前桌面尺寸自动切换布局，显示今日送达数和转发状态，可直接暂停 30 分钟或打开 App。")
                 }
             }
 
@@ -187,10 +178,10 @@ fun AutomationScreen(
                                     Icon(Icons.Rounded.Refresh, contentDescription = AppStrings.translate("更换令牌"))
                                 }
                             }
-                            RowDivider()
-                            InfoNote("每次发送命令都必须带上这个令牌。更换令牌后，旧配置会立即失效。")
                         }
                     }
+                    Spacer(Modifier.height(10.dp))
+                    InfoNote("自动化接口默认关闭，并需要每次携带令牌。令牌等同于操作权限，请不要发给他人。")
                 }
             }
 
@@ -256,17 +247,8 @@ fun AutomationScreen(
                             onClick = onOpenRemote,
                         )
                     }
-                }
-            }
-
-            item(key = "security") {
-                Column {
-                    SectionHeader("安全说明")
-                    SectionCard {
-                        InfoNote("自动化接口默认关闭，并需要每次携带令牌。令牌等同于操作权限，请不要发给他人。")
-                        Spacer(Modifier.height(8.dp))
-                        InfoNote("如果你不使用 Tasker 或 adb，建议保持关闭。")
-                    }
+                    Spacer(Modifier.height(10.dp))
+                    InfoNote("如果你不使用自动化接口或远程管理，建议保持关闭。")
                 }
             }
         }

@@ -951,5 +951,6 @@
  "（原因已隐藏）": "(Reason hidden)",
  "常驻": "Ongoing",
  "广播": "Broadcast",
- "后台收信、自启动与省电": "Background, boot and battery"
+ "后台收信、自启动与省电": "Background, boot and battery",
+ "如果你不使用自动化接口或远程管理，建议保持关闭。": "If you do not use the automation API or remote management, it is best to keep this off."
 }

@@ -458,13 +458,6 @@ fun SettingsScreen(
                     onOpenBatterySettings = { SystemNavigator.requestIgnoreBatteryOptimizations(context) },
                     onOpenDiagnostics = onNavigateDiagnostics,
                 )
-                Spacer(Modifier.height(10.dp))
-            }
-            item(key = "reliability_note", contentType = "note") {
-                InfoNote(
-                    text = "关闭常驻通知后，系统可能延迟处理新短信。建议保留常驻通知，让嘟嘟可随时待命。",
-                )
-                Spacer(Modifier.height(16.dp))
             }
             item(key = "retry_card", contentType = "card") {
                 RetryPolicyCard(settings = settings, viewModel = viewModel)
@@ -498,25 +491,35 @@ fun SettingsScreen(
 
         if (section == SettingsSection.ABOUT) {
             item(key = "about_card", contentType = "card") {
-                AboutCard(
-                    recordCount = records.size,
-                    autoUpdateCheck = settings.autoUpdateCheck,
-                    updateState = updateState,
-                    onOpenGuide = onNavigateGuide,
-                    onClearHistory = { showClearDialog = true },
-                    onCheckUpdates = {
-                        if (updateState is UpdateState.Available ||
-                            updateState is UpdateState.Error ||
-                            updateState is UpdateState.Ready
-                        ) {
-                            viewModel.showUpdateDialog()
-                        } else {
-                            viewModel.checkForUpdates()
-                        }
-                    },
-                    onToggleAutoUpdate = viewModel::setAutoUpdateCheck,
-                )
-                Spacer(Modifier.height(20.dp))
+                Column {
+                    AboutCard(
+                        recordCount = records.size,
+                        autoUpdateCheck = settings.autoUpdateCheck,
+                        updateState = updateState,
+                        onOpenGuide = onNavigateGuide,
+                        onClearHistory = { showClearDialog = true },
+                        onCheckUpdates = {
+                            if (updateState is UpdateState.Available ||
+                                updateState is UpdateState.Error ||
+                                updateState is UpdateState.Ready
+                            ) {
+                                viewModel.showUpdateDialog()
+                            } else {
+                                viewModel.checkForUpdates()
+                            }
+                        },
+                        onToggleAutoUpdate = viewModel::setAutoUpdateCheck,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    InfoNote(
+                        text = "图标与吉祥物「嘟嘟可」灵感来自原神「嘟嘟通讯」活动，是非官方同人作品，与米哈游无关。",
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    InfoNote(
+                        text = "短信只会发送到你配置的推送通道，不经过我们自己的服务器；本地只保留最近的转发记录，随时可以清空。",
+                    )
+                    Spacer(Modifier.height(20.dp))
+                }
             }
             item(key = "footer", contentType = "footer") {
                 Text(
@@ -1084,6 +1087,8 @@ private fun ReliabilityCard(
             },
             icon = Icons.Rounded.NotificationsActive,
         )
+        Spacer(Modifier.height(8.dp))
+        InfoNote("关闭常驻通知后，系统可能延迟处理新短信。建议保留常驻通知，让嘟嘟可随时待命。")
         RowDivider()
         SettingSwitchRow(
             title = "后台隐藏",
@@ -1362,6 +1367,7 @@ private fun PrivacyCard(
     onToggleBiometric: (Boolean) -> Unit,
 ) {
     var autoLockExpanded by remember { mutableStateOf(false) }
+    Column {
     SectionCard {
         SettingSwitchRow(
             title = "应用锁",
@@ -1419,16 +1425,17 @@ private fun PrivacyCard(
                 )
             }
         }
-        RowDivider()
-        val context = androidx.compose.ui.platform.LocalContext.current
-        val encryptionState = RecordEncryptionStatus.state(context)
-        InfoNote(
-            when (encryptionState) {
-                RecordEncryptionState.DONE -> "本地转发记录已加密保存，加密密钥只在这台手机上，不会随备份导出。"
-                RecordEncryptionState.FAILED -> "本地记录加密失败。请重新打开 App 或运行诊断；未加密的记录不会被当作已加密展示。"
-                RecordEncryptionState.PENDING -> "正在准备本地记录加密。打开记录页后会自动完成迁移。"
-            },
-        )
+    }
+    Spacer(Modifier.height(10.dp))
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val encryptionState = RecordEncryptionStatus.state(context)
+    InfoNote(
+        when (encryptionState) {
+            RecordEncryptionState.DONE -> "本地转发记录已加密保存，加密密钥只在这台手机上，不会随备份导出。"
+            RecordEncryptionState.FAILED -> "本地记录加密失败。请重新打开 App 或运行诊断；未加密的记录不会被当作已加密展示。"
+            RecordEncryptionState.PENDING -> "正在准备本地记录加密。打开记录页后会自动完成迁移。"
+        },
+    )
     }
 }
 
@@ -1768,14 +1775,6 @@ private fun AboutCard(
             icon = Icons.Rounded.Delete,
             destructive = true,
             onClick = onClearHistory,
-        )
-        Spacer(Modifier.height(12.dp))
-        InfoNote(
-            text = "图标与吉祥物「嘟嘟可」灵感来自原神「嘟嘟通讯」活动，是非官方同人作品，与米哈游无关。",
-        )
-        Spacer(Modifier.height(8.dp))
-        InfoNote(
-            text = "短信只会发送到你配置的推送通道，不经过我们自己的服务器；本地只保留最近的转发记录，随时可以清空。",
         )
     }
 }

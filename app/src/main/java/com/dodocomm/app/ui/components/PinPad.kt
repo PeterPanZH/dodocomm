@@ -2,6 +2,8 @@ package com.dodocomm.app.ui.components
 
 import com.dodocomm.app.ui.i18n.AppStrings
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,14 +15,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Backspace
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -45,31 +48,41 @@ fun PinKeypad(
                     if (key.isEmpty()) {
                         Spacer(Modifier.size(72.dp))
                     } else {
-                        Surface(
-                            onClick = {
-                                if (!enabled) return@Surface
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                if (key == "⌫") onBackspace() else onDigit(key.first())
-                            },
-                            shape = CircleShape,
-                            color = containerColor,
-                            modifier = Modifier.size(72.dp),
+                        val interaction = remember { MutableInteractionSource() }
+                        Box(
+                            modifier = Modifier
+                                .size(72.dp)
+                                .clip(CircleShape)
+                                .background(containerColor)
+                                .clickable(
+                                    interactionSource = interaction,
+                                    indication = null,
+                                    role = Role.Button,
+                                ) {
+                                    if (!enabled) return@clickable
+                                    // Apply input first. Haptic feedback is a
+                                    // system round-trip and must never delay or
+                                    // swallow a fast PIN tap.
+                                    if (key == "⌫") onBackspace() else onDigit(key.first())
+                                    runCatching {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    }
+                                },
+                            contentAlignment = Alignment.Center,
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                if (key == "⌫") {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Backspace,
-                                        contentDescription = AppStrings.translate("删除"),
-                                        tint = contentColor,
-                                        modifier = Modifier.size(24.dp),
-                                    )
-                                } else {
-                                    Text(
-                                        text = key,
-                                        fontSize = 26.sp,
-                                        color = contentColor,
-                                    )
-                                }
+                            if (key == "⌫") {
+                                Icon(
+                                    imageVector = Icons.Rounded.Backspace,
+                                    contentDescription = AppStrings.translate("删除"),
+                                    tint = contentColor,
+                                    modifier = Modifier.size(24.dp),
+                                )
+                            } else {
+                                Text(
+                                    text = key,
+                                    fontSize = 26.sp,
+                                    color = contentColor,
+                                )
                             }
                         }
                     }

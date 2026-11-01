@@ -91,6 +91,7 @@ fun SectionHeader(
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f),
             )
         }
+        Spacer(Modifier.height(10.dp))
     }
 }
 

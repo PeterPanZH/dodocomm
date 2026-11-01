@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.dodocomm.app.R
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -312,12 +313,12 @@ fun HistoryScreen(viewModel: AppViewModel) {
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            FlowRow(
+            Row(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(start = 20.dp, end = 8.dp),
+                    .horizontalScroll(rememberScrollState())
+                    .padding(start = 20.dp, end = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 HistoryFilter.entries.forEach { item ->
                     val count = counts[item] ?: 0

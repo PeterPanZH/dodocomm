@@ -951,5 +951,6 @@
  "（原因已隐藏）": "(Razón oculta)",
  "常驻": "Activo",
  "广播": "Difusión",
- "后台收信、自启动与省电": "Recepción, inicio y batería"
+ "后台收信、自启动与省电": "Recepción, inicio y batería",
+ "如果你不使用自动化接口或远程管理，建议保持关闭。": "Si no usas la API de automatización ni la gestión remota, es mejor mantenerlo desactivado."
 }

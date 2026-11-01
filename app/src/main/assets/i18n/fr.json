@@ -951,5 +951,6 @@
  "（原因已隐藏）": "(Raison cachée)",
  "常驻": "Actif",
  "广播": "Diffusion",
- "后台收信、自启动与省电": "Réception, démarrage et batterie"
+ "后台收信、自启动与省电": "Réception, démarrage et batterie",
+ "如果你不使用自动化接口或远程管理，建议保持关闭。": "Si vous n'utilisez pas l'interface d'automatisation ni la gestion à distance, il est préférable de laisser cette option désactivée."
 }
