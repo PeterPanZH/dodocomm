@@ -7,6 +7,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RemoteCommandTest {
+    @Test
+    fun `next nonce stays monotonic within the same second`() {
+        assertEquals(1_700_000_000L, RemoteCommandParser.nextNonce(1_700_000_000L, 0L))
+        assertEquals(1_700_000_001L, RemoteCommandParser.nextNonce(1_700_000_000L, 1_700_000_000L))
+        assertEquals(1_700_000_010L, RemoteCommandParser.nextNonce(1_700_000_000L, 1_700_000_009L))
+    }
+
 
     private val secret = "0123456789abcdef0123456789abcdef"
 

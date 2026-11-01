@@ -25,13 +25,13 @@ class EventFiltersTest {
 
     @Test
     fun `empty app allowlist allows all apps`() {
-        val settings = AppSettings(notificationAllApps = false, notificationSelectedPackages = emptyList())
+        val settings = AppSettings(notificationSelectedPackages = emptyList())
         assertTrue(EventFilters.appAllowed(settings, "com.example.any"))
     }
 
     @Test
     fun `app blacklist wins and allowlist applies when set`() {
-        val all = AppSettings(notificationAllApps = true, notificationBlacklistPackages = listOf("com.example.chat"))
+        val all = AppSettings(notificationBlacklistPackages = listOf("com.example.chat"))
         assertFalse(EventFilters.appAllowed(all, "com.example.chat"))
         assertTrue(EventFilters.appAllowed(all, "com.example.mail"))
 

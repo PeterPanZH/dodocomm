@@ -15,8 +15,8 @@ import kotlinx.coroutines.flow.asStateFlow
  * Single source of truth for [AppSettings].
  *
  * Thread-safe: the SMS receiver may call [current] on a binder thread while the
- * UI updates settings on the main thread. Writes use [SharedPreferences.commit]
- * so a process that is killed right after a toggle keeps its configuration.
+ * UI updates settings on the main thread. Writes use [SharedPreferences.apply]
+ * so fast UI toggles do not block the main thread on disk I/O.
  */
 class SettingsRepository(context: Context) {
     private val appContext = context.applicationContext
@@ -30,7 +30,7 @@ class SettingsRepository(context: Context) {
     /** Cheap, synchronous snapshot used from receivers/workers. */
     fun current(): AppSettings = _settings.value
 
-    /** Applies [transform], persists synchronously and publishes the new state. */
+    /** Applies [transform], persists and publishes the new state. */
     fun update(transform: (AppSettings) -> AppSettings): AppSettings = synchronized(lock) {
         val updated = transform(_settings.value)
         writeAll(updated)
@@ -46,12 +46,12 @@ class SettingsRepository(context: Context) {
     }
 
     private fun encryptChannel(channel: PushChannel): PushChannel = channel.copy(
-        deviceKey = cipher.encrypt(channel.deviceKey).orEmpty(),
-        token = cipher.encrypt(channel.token).orEmpty(),
-        botToken = cipher.encrypt(channel.botToken).orEmpty(),
-        userKey = cipher.encrypt(channel.userKey).orEmpty(),
-        appToken = cipher.encrypt(channel.appToken).orEmpty(),
-        smtpPassword = cipher.encrypt(channel.smtpPassword).orEmpty(),
+        deviceKey = cipher.encryptOrThrow(channel.deviceKey).orEmpty(),
+        token = cipher.encryptOrThrow(channel.token).orEmpty(),
+        botToken = cipher.encryptOrThrow(channel.botToken).orEmpty(),
+        userKey = cipher.encryptOrThrow(channel.userKey).orEmpty(),
+        appToken = cipher.encryptOrThrow(channel.appToken).orEmpty(),
+        smtpPassword = cipher.encryptOrThrow(channel.smtpPassword).orEmpty(),
     )
 
     private fun decryptChannel(channel: PushChannel): PushChannel = channel.copy(
@@ -196,6 +196,12 @@ class SettingsRepository(context: Context) {
             autoStartOnBoot = prefs.getBoolean(KEY_AUTO_START_ON_BOOT, defaults.autoStartOnBoot),
             hideFromRecents = prefs.getBoolean(KEY_HIDE_FROM_RECENTS, defaults.hideFromRecents),
             appLockEnabled = prefs.getBoolean(KEY_APP_LOCK_ENABLED, defaults.appLockEnabled),
+            allowScreenshots = prefs.getBoolean(KEY_ALLOW_SCREENSHOTS, defaults.allowScreenshots),
+            showSensitivePreviews = prefs.getBoolean(
+                KEY_SHOW_SENSITIVE_PREVIEWS,
+                defaults.showSensitivePreviews,
+            ),
+            allowInsecureHttp = prefs.getBoolean(KEY_ALLOW_INSECURE_HTTP, defaults.allowInsecureHttp),
             appLockPinSalt = cipher.decrypt(
                 prefs.getString(KEY_APP_LOCK_SALT, defaults.appLockPinSalt).orEmpty(),
             ).orEmpty(),
@@ -236,7 +242,6 @@ class SettingsRepository(context: Context) {
                 KEY_NOTIFICATION_FORWARD_ENABLED,
                 defaults.notificationForwardEnabled,
             ),
-            notificationAllApps = prefs.getBoolean(KEY_NOTIFICATION_ALL_APPS, defaults.notificationAllApps),
             notificationSelectedPackages = decodeList(
                 prefs.getString(KEY_NOTIFICATION_SELECTED_PACKAGES, null),
             ),
@@ -267,7 +272,7 @@ class SettingsRepository(context: Context) {
         prefs.edit()
             .putBoolean(KEY_FORWARDING_ENABLED, settings.forwardingEnabled)
             .putString(KEY_SERVER_URL, settings.serverUrl)
-            .putString(KEY_DEVICE_KEY, cipher.encrypt(settings.deviceKey))
+            .putString(KEY_DEVICE_KEY, cipher.encryptOrThrow(settings.deviceKey))
             .putString(KEY_CHANNELS, encodeChannels(settings.channels.map(::encryptChannel)))
             .putString(KEY_ROUTING_RULES, encodeRules(settings.routingRules))
             .putString(KEY_DEFAULT_CHANNELS, encodeList(settings.defaultChannelIds))
@@ -287,8 +292,11 @@ class SettingsRepository(context: Context) {
             .putBoolean(KEY_AUTO_START_ON_BOOT, settings.autoStartOnBoot)
             .putBoolean(KEY_HIDE_FROM_RECENTS, settings.hideFromRecents)
             .putBoolean(KEY_APP_LOCK_ENABLED, settings.appLockEnabled)
-            .putString(KEY_APP_LOCK_SALT, cipher.encrypt(settings.appLockPinSalt))
-            .putString(KEY_APP_LOCK_HASH, cipher.encrypt(settings.appLockPinHash))
+            .putBoolean(KEY_ALLOW_SCREENSHOTS, settings.allowScreenshots)
+            .putBoolean(KEY_SHOW_SENSITIVE_PREVIEWS, settings.showSensitivePreviews)
+            .putBoolean(KEY_ALLOW_INSECURE_HTTP, settings.allowInsecureHttp)
+            .putString(KEY_APP_LOCK_SALT, cipher.encryptOrThrow(settings.appLockPinSalt))
+            .putString(KEY_APP_LOCK_HASH, cipher.encryptOrThrow(settings.appLockPinHash))
             .putInt(KEY_AUTO_LOCK_MINUTES, settings.autoLockMinutes)
             .putBoolean(KEY_BIOMETRIC_UNLOCK, settings.biometricUnlock)
             .putString(KEY_SENDER_WHITELIST, encodeList(settings.senderWhitelist))
@@ -307,16 +315,15 @@ class SettingsRepository(context: Context) {
             .putBoolean(KEY_RETRY_ONLY_WIFI, settings.retryOnlyWifi)
             .putInt(KEY_RETRY_MAX_HOURS, settings.retryMaxHours)
             .putBoolean(KEY_AUTOMATION_ENABLED, settings.automationEnabled)
-            .putString(KEY_AUTOMATION_TOKEN, cipher.encrypt(settings.automationToken))
+            .putString(KEY_AUTOMATION_TOKEN, cipher.encryptOrThrow(settings.automationToken))
             .putBoolean(KEY_REMOTE_ENABLED, settings.remoteEnabled)
-            .putString(KEY_REMOTE_SECRET, cipher.encrypt(settings.remoteSecret))
+            .putString(KEY_REMOTE_SECRET, cipher.encryptOrThrow(settings.remoteSecret))
             .putString(KEY_REMOTE_TRUSTED_NUMBER, settings.remoteTrustedNumber)
             .putLong(KEY_REMOTE_LAST_NONCE, settings.remoteLastNonce)
             .putBoolean(KEY_PHONE_FORWARD_ENABLED, settings.phoneForwardEnabled)
             .putBoolean(KEY_PHONE_FORWARD_INCOMING, settings.phoneForwardIncoming)
             .putBoolean(KEY_PHONE_FORWARD_MISSED, settings.phoneForwardMissed)
             .putBoolean(KEY_NOTIFICATION_FORWARD_ENABLED, settings.notificationForwardEnabled)
-            .putBoolean(KEY_NOTIFICATION_ALL_APPS, settings.notificationAllApps)
             .putString(KEY_NOTIFICATION_SELECTED_PACKAGES, encodeList(settings.notificationSelectedPackages))
             .putBoolean(KEY_NOTIFICATION_IGNORE_ONGOING, settings.notificationIgnoreOngoing)
             .putBoolean(KEY_SMS_FORWARD_ENABLED, settings.smsForwardEnabled)
@@ -327,7 +334,7 @@ class SettingsRepository(context: Context) {
             .putString(KEY_CALL_WHITELIST, encodeList(settings.callWhitelist))
             .putString(KEY_CALL_BLACKLIST, encodeList(settings.callBlacklist))
             .putString(KEY_NOTIFICATION_BLACKLIST_PACKAGES, encodeList(settings.notificationBlacklistPackages))
-            .commit()
+            .apply()
     }
 
     companion object {
@@ -357,6 +364,9 @@ class SettingsRepository(context: Context) {
         private const val KEY_AUTO_START_ON_BOOT = "auto_start_on_boot"
         private const val KEY_HIDE_FROM_RECENTS = "hide_from_recents"
         private const val KEY_APP_LOCK_ENABLED = "app_lock_enabled"
+        private const val KEY_ALLOW_SCREENSHOTS = "allow_screenshots"
+        private const val KEY_SHOW_SENSITIVE_PREVIEWS = "show_sensitive_previews"
+        private const val KEY_ALLOW_INSECURE_HTTP = "allow_insecure_http"
         private const val KEY_APP_LOCK_SALT = "app_lock_pin_salt"
         private const val KEY_APP_LOCK_HASH = "app_lock_pin_hash"
         private const val KEY_AUTO_LOCK_MINUTES = "auto_lock_minutes"
@@ -384,7 +394,6 @@ class SettingsRepository(context: Context) {
         private const val KEY_PHONE_FORWARD_INCOMING = "phone_forward_incoming"
         private const val KEY_PHONE_FORWARD_MISSED = "phone_forward_missed"
         private const val KEY_NOTIFICATION_FORWARD_ENABLED = "notification_forward_enabled"
-        private const val KEY_NOTIFICATION_ALL_APPS = "notification_all_apps"
         private const val KEY_NOTIFICATION_SELECTED_PACKAGES = "notification_selected_packages"
         private const val KEY_NOTIFICATION_IGNORE_ONGOING = "notification_ignore_ongoing"
         private const val KEY_SMS_FORWARD_ENABLED = "sms_forward_enabled"

@@ -24,6 +24,11 @@ object SystemNavigator {
         return openAppDetails(context)
     }
 
+    fun openNotificationListenerSettings(context: Context): Boolean = launch(
+        context,
+        Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS),
+    )
+
     fun openBatteryOptimizationSettings(context: Context): Boolean = launch(
         context,
         Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS),

@@ -91,9 +91,11 @@ object NotificationHelper {
         val stats = container.history.stats.value
         val last = container.history.lastRecord()
         val pausedMinutes = ((settings.pauseUntil - System.currentTimeMillis()) / 60_000L).toInt() + 1
+        val hidePreviews = settings.appLockEnabled || !settings.showSensitivePreviews
         val text = statusText ?: when {
             !settings.forwardingEnabled -> context.getString(R.string.notify_paused)
             settings.isPaused() -> context.getString(R.string.notify_paused_until, pausedMinutes.coerceAtLeast(1))
+            last != null && hidePreviews -> context.getString(R.string.notify_hidden_content)
             last != null -> context.getString(
                 R.string.notify_ongoing_last,
                 stats.sent,

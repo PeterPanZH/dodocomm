@@ -153,7 +153,7 @@ status, attempts, error, title, bark_response, dedupe_key UNIQUE)`。
    - GET fallback：仅当 POST 返回 404/405 时按 `{base}/{key}/{title}/{body}?...` 重试一次。
    - 超时：连接 10s / 读取 15s；错误信息放在 `BarkResult.message`（中文可读）。
 5. `RetryWorker`：网络约束 + 指数退避（唯一任务名 `sms2bark_retry`，KEEP），
-   每次最多 10 条、每条最多 5 次尝试；`MaintenanceWorker` 每 15 分钟：prune 500 条、
+   每次最多 10 条、每条最多 5 次尝试；`MaintenanceWorker` 每 15 分钟：prune 记录上限（默认 500，可配置至 5000）、
    补发可重试记录、仅当 `forwardingEnabled && foregroundServiceEnabled` 时尝试恢复前台服务。
 6. `ForwardService`：`specialUse` 前台服务（manifest 已声明 subtype property）、
    `START_STICKY`、常驻通知含「暂停/恢复」「发送测试」动作；`isRunning` 用 volatile。

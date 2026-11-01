@@ -42,6 +42,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -49,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dodocomm.app.R
 import com.dodocomm.app.core.security.AppLock
+import com.dodocomm.app.core.security.AppLockAttempts
 import com.dodocomm.app.ui.theme.BrandGradientDark
 import com.dodocomm.app.ui.theme.BrandGradientLight
 import com.dodocomm.app.ui.theme.LocalIsDarkTheme
@@ -63,10 +65,11 @@ fun AppLockScreen(
     onUnlock: () -> Unit,
     onBiometric: () -> Unit,
 ) {
+    val context = LocalContext.current
     var pin by rememberSaveable { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
     var failedAttempts by rememberSaveable { mutableStateOf(0) }
-    var lockedUntil by rememberSaveable { mutableStateOf(0L) }
+    var lockedUntil by rememberSaveable { mutableStateOf(AppLockAttempts.lockedUntil(context)) }
     var verifying by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     var remaining by remember { mutableStateOf(0) }
@@ -105,14 +108,16 @@ fun AppLockScreen(
             }
             verifying = false
             if (matches) {
+                AppLockAttempts.recordSuccess(context)
                 pin = ""
                 error = null
                 onUnlock()
             } else {
                 failedAttempts += 1
                 pin = ""
-                error = if (failedAttempts >= 5) {
-                    lockedUntil = System.currentTimeMillis() + 30_000L
+                val until = AppLockAttempts.recordFailure(context)
+                lockedUntil = until
+                error = if (until > 0L) {
                     "尝试次数过多，请 30 秒后再试"
                 } else {
                     "PIN 不正确，请重试"

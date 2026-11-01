@@ -12,6 +12,7 @@ import com.dodocomm.app.core.model.ForwardStatus
 import com.dodocomm.app.core.routing.RoutingContext
 import com.dodocomm.app.core.system.DeviceName
 import com.dodocomm.app.core.util.TimeFormatter
+import com.dodocomm.app.widget.WidgetUpdater
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -154,6 +155,7 @@ class EventForwarder(
                 error = appContext.getString(R.string.event_no_channel),
             )
             container.serviceController.refreshNotification()
+            refreshWidgets()
             return record.copy(id = id, status = ForwardStatus.FAILED)
         }
         val dispatch = try {
@@ -168,6 +170,7 @@ class EventForwarder(
                 attempts = 1,
                 error = t.message ?: t.javaClass.simpleName,
             )
+            refreshWidgets()
             return record.copy(id = id, status = ForwardStatus.FAILED)
         }
         val outcome = DeliveryPolicy.evaluate(dispatch.results)
@@ -185,11 +188,16 @@ class EventForwarder(
             )
         }
         container.serviceController.refreshNotification()
+        refreshWidgets()
         return record.copy(
             id = id,
             status = if (outcome.sent) ForwardStatus.SENT else ForwardStatus.FAILED,
             error = outcome.error,
         )
+    }
+
+    private fun refreshWidgets() {
+        runCatching { WidgetUpdater.updateAll(appContext) }
     }
 
     private fun render(template: String, vars: Map<String, String>): String =

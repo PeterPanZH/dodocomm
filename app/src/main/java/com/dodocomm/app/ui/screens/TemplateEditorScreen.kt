@@ -20,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.activity.compose.BackHandler
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material3.AlertDialog
@@ -187,6 +188,15 @@ fun TemplateEditorScreen(
         }
     }
 
+    fun saveCurrent() {
+        saveTemplates(titleValue.text, bodyValue.text)
+    }
+
+    BackHandler {
+        saveCurrent()
+        onBack()
+    }
+
     fun insertTitleToken(token: String) {
         insertInto(titleValue, token) { value, text ->
             titleValue = value
@@ -208,7 +218,10 @@ fun TemplateEditorScreen(
                 .padding(start = 4.dp, end = 12.dp, top = 6.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = onBack) {
+            IconButton(onClick = {
+                saveCurrent()
+                onBack()
+            }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = AppStrings.translate("返回"),

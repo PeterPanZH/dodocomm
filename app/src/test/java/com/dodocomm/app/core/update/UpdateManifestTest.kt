@@ -33,6 +33,27 @@ class UpdateManifestTest {
     }
 
     @Test(expected = IllegalArgumentException::class)
+    fun `unsafe version name is rejected`() {
+        UpdateManifest.parse(manifest(versionName = "../../settings"), currentVersionCode = 12)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `oversized apk is rejected`() {
+        UpdateManifest.parse(
+            manifest().replace("\"size\":123", "\"size\":${UpdateManifest.MAX_APK_BYTES + 1}"),
+            currentVersionCode = 12,
+        )
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `localhost url is rejected`() {
+        UpdateManifest.parse(
+            manifest().replace("https://example.com/DodoComm.apk", "http://127.0.0.1/apk"),
+            currentVersionCode = 12,
+        )
+    }
+
+    @Test(expected = IllegalArgumentException::class)
     fun `invalid url is rejected`() {
         UpdateManifest.parse(
             manifest().replace("https://example.com/DodoComm.apk", "file:///tmp/x.apk"),

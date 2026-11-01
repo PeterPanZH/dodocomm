@@ -41,4 +41,6 @@
     <string name="widget_source_sms">SMS</string>
     <string name="widget_source_call">通話</string>
     <string name="widget_source_notification">通知</string>
+    <string name="notify_hidden_content">新しいメッセージを受信しました</string>
+    <string name="widget_hidden_content">新しいメッセージを受信しました</string>
 </resources>

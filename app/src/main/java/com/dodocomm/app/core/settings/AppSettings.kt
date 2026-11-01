@@ -88,6 +88,12 @@ data class AppSettings(
     val hideFromRecents: Boolean = false,
     /** App lock: 6-digit PIN + optional biometric unlock. */
     val appLockEnabled: Boolean = false,
+    /** Allow screenshots/recents previews; off by default for SMS privacy. */
+    val allowScreenshots: Boolean = false,
+    /** Show sender/body in widgets and the ongoing notification. */
+    val showSensitivePreviews: Boolean = false,
+    /** Explicit opt-in for HTTP push endpoints (off by default). */
+    val allowInsecureHttp: Boolean = false,
     val appLockPinSalt: String = "",
     val appLockPinHash: String = "",
     /** 0 = lock immediately when leaving; otherwise minutes of grace. */
@@ -127,7 +133,6 @@ data class AppSettings(
     val phoneForwardMissed: Boolean = true,
     /** App notification forwarding via NotificationListenerService. */
     val notificationForwardEnabled: Boolean = false,
-    val notificationAllApps: Boolean = true,
     val notificationSelectedPackages: List<String> = emptyList(),
     val notificationIgnoreOngoing: Boolean = true,
     /** Per-source switches; the global forwarding switch still applies. */

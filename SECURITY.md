@@ -35,14 +35,26 @@ users at risk. Include the affected version, reproduction steps and impact.
   the SHA-256 and file size from `latest.json`, verify the APK signing certificate
   matches the running app, and then hand the APK to the system installer. There is
   no silent installation and no self-modifying code.
-- **SMS privacy**: the app only registers for new-SMS broadcasts; it does not
-  request access to existing SMS or contacts. Sender/body/title/result fields in
-  local history are AES-256-GCM encrypted with a Keystore key; retention is
+- **SMS / event privacy**: the app only registers for new-SMS broadcasts; it does
+  not request access to existing SMS or contacts. Sender/body/title/result fields
+  in local history are AES-256-GCM encrypted with a Keystore key; retention is
   configurable. Messages are sent only to the channels/SMTP endpoint entered by
-  the user.
-- **Least privilege**: permissions are limited to receiving SMS, notifications,
-  the optional phone state (for dual-SIM labels) and installing an update after an
-  explicit user action. No accessibility, overlay, audio or device-admin tricks.
+  the user. Optional phone/notification sources are opt-in and off by default.
+- **Optional sensitive permissions**: `READ_PHONE_STATE` (call-state detection and
+  dual-SIM labels), `READ_CALL_LOG` (incoming number when the platform exposes
+  it), notification-listener access (other apps' notifications), and
+  `QUERY_ALL_PACKAGES` / OEM app-list permission (the notification forwarding
+  app picker must list installed applications). Each is requested only from its
+  feature screen and can be revoked in system settings.
+- **Cleartext HTTP is opt-in**: push endpoints must be HTTPS by default. A
+  self-hosted HTTP server only works after explicitly enabling the
+  "allow HTTP cleartext" switch; SMS bodies and channel tokens then travel
+  unencrypted over that network.
+- **Crash logs** are Keystore-encrypted at rest and never uploaded; copying them
+  marks the clipboard as sensitive.
+- **Least privilege / hardening**: no accessibility, overlay, audio or
+  device-admin tricks. Screenshots and recents previews are blocked by default;
+  PIN failure lockout is persisted across process restarts.
 
 ## Release integrity
 

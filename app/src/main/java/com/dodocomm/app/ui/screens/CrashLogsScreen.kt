@@ -57,8 +57,12 @@ fun CrashLogsScreen(
 
     fun copyAll() {
         val clipboard = context.getSystemService(ClipboardManager::class.java)
-        clipboard?.setPrimaryClip(ClipData.newPlainText("DodoComm crash logs", CrashLogger.toText(entries)))
-        viewModel.postSnackbar("崩溃日志已复制")
+        com.dodocomm.app.core.system.SensitiveClipboard.copy(
+            context,
+            "DodoComm crash logs",
+            CrashLogger.toText(entries),
+        )
+        viewModel.postSnackbar("崩溃日志已复制，60 秒后自动清空")
     }
 
     Column(Modifier.fillMaxSize()) {

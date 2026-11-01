@@ -41,4 +41,6 @@ Hora: %2$s</string>
     <string name="widget_source_sms">SMS</string>
     <string name="widget_source_call">Llamada</string>
     <string name="widget_source_notification">Notificación</string>
+    <string name="notify_hidden_content">Nuevo mensaje recibido</string>
+    <string name="widget_hidden_content">Nuevo mensaje recibido</string>
 </resources>

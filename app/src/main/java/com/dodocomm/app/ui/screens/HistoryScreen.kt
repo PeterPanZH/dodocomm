@@ -153,17 +153,6 @@ fun HistoryScreen(viewModel: AppViewModel) {
             selectedId = -1L
         }
     }
-    val counts = remember(records) {
-        mapOf(
-            HistoryFilter.ALL to records.size,
-            HistoryFilter.SENT to records.count { it.status == ForwardStatus.SENT },
-            HistoryFilter.RETRY to records.count {
-                it.status == ForwardStatus.FAILED || it.status == ForwardStatus.PENDING
-            },
-            HistoryFilter.FILTERED to records.count { it.status == ForwardStatus.FILTERED },
-        )
-    }
-
     val context = LocalContext.current
     val clipboard = remember(context) { context.getSystemService(ClipboardManager::class.java) }
     val selectedRecord = remember(records, selectedId) { records.firstOrNull { it.id == selectedId } }
@@ -175,6 +164,28 @@ fun HistoryScreen(viewModel: AppViewModel) {
     var dateFilterName by rememberSaveable { mutableStateOf(RecordDateFilter.ALL.name) }
     var showFilterSheet by rememberSaveable { mutableStateOf(false) }
     val dateFilter = RecordDateFilter.valueOf(dateFilterName)
+    // Counts are scoped to the source/advanced filters; otherwise the status
+    // chips claim hundreds of "sent" rows while the list shows only calls.
+    val counts = remember(records, sourceFilter, senderFilter, keywordFilter, dateFilter) {
+        val base = records.filter { record ->
+            sourceFilter.matches(record.source) &&
+                (senderFilter.isBlank() || record.sender.contains(senderFilter.trim(), ignoreCase = true)) &&
+                (keywordFilter.isBlank() || (
+                    record.body.contains(keywordFilter.trim(), ignoreCase = true) ||
+                        record.sender.contains(keywordFilter.trim(), ignoreCase = true)
+                    )) &&
+                dateFilter.matches(record.receivedAt)
+        }
+        mapOf(
+            HistoryFilter.ALL to base.size,
+            HistoryFilter.SENT to base.count { it.status == ForwardStatus.SENT },
+            HistoryFilter.RETRY to base.count {
+                it.status == ForwardStatus.FAILED || it.status == ForwardStatus.PENDING
+            },
+            HistoryFilter.FILTERED to base.count { it.status == ForwardStatus.FILTERED },
+        )
+    }
+
     val filtersActive = senderFilter.isNotBlank() || keywordFilter.isNotBlank() || dateFilter != RecordDateFilter.ALL
     val visibleRecords = remember(records, filter, sourceFilter, senderFilter, keywordFilter, dateFilter) {
         records.filter { record ->
@@ -486,7 +497,7 @@ fun HistoryScreen(viewModel: AppViewModel) {
             viewModel = viewModel,
             onDismiss = { selectedId = -1L },
             onCopy = { text ->
-                clipboard?.setPrimaryClip(ClipData.newPlainText("消息内容", text))
+                com.dodocomm.app.core.system.SensitiveClipboard.copy(context, "消息内容", text)
                 viewModel.postSnackbar("已复制消息内容")
             },
             onExport = {

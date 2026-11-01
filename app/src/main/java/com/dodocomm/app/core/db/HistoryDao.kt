@@ -192,7 +192,7 @@ class HistoryDao(
 
     companion object {
         const val DEFAULT_HISTORY_LIMIT = 300
-        const val MAX_HISTORY_ROWS = 500
+        const val MAX_HISTORY_ROWS = 5000
 
         private val COLUMNS = arrayOf(
             "id", "sender", "body", "received_at", "created_at", "sim_label",

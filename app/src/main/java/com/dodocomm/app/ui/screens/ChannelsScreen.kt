@@ -121,6 +121,15 @@ fun ChannelsScreen(
             ),
         ) {
             item(key = "intro") {
+                SectionCard {
+                    SettingSwitchRow(
+                        title = "允许 HTTP 明文连接",
+                        checked = settings.allowInsecureHttp,
+                        onCheckedChange = viewModel::setAllowInsecureHttp,
+                        subtitle = "默认关闭。开启后自建 HTTP 服务器会以明文接收短信和令牌",
+                    )
+                }
+                Spacer(Modifier.height(10.dp))
                 Text(
                     text = "每个启用并填写完整的通道都会收到短信，至少保留一个。",
                     style = MaterialTheme.typography.bodySmall,

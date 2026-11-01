@@ -27,6 +27,7 @@ import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Key
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.SmartToy
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -46,6 +47,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dodocomm.app.widget.DodoBarWidgetProvider
+import com.dodocomm.app.widget.DodoDashboardWidgetProvider
+import com.dodocomm.app.widget.DodoTallWidgetProvider
+import com.dodocomm.app.widget.DodoWideWidgetProvider
 import com.dodocomm.app.widget.DodoWidgetProvider
 import com.dodocomm.app.widget.WidgetHost
 import com.dodocomm.app.ui.AppViewModel
@@ -67,6 +72,7 @@ fun AutomationScreen(
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     var tokenVisible by rememberSaveable { mutableStateOf(false) }
     var confirmRegenerate by rememberSaveable { mutableStateOf(false) }
+    var showWidgetSizes by rememberSaveable { mutableStateOf(false) }
     val clipboard = remember(context) { context.getSystemService(ClipboardManager::class.java) }
     val appWidgetManager = remember(context) { AppWidgetManager.getInstance(context) }
     val canPinWidget = remember(appWidgetManager) {
@@ -74,8 +80,12 @@ fun AutomationScreen(
     }
 
     fun copyToken() {
-        clipboard?.setPrimaryClip(ClipData.newPlainText("DodoComm automation token", settings.automationToken))
-        viewModel.postSnackbar("令牌已复制")
+        com.dodocomm.app.core.system.SensitiveClipboard.copy(
+            context,
+            "DodoComm automation token",
+            settings.automationToken,
+        )
+        viewModel.postSnackbar("令牌已复制，60 秒后自动清空")
     }
 
     Column(Modifier.fillMaxSize()) {
@@ -116,15 +126,7 @@ fun AutomationScreen(
                             icon = Icons.Rounded.AddToHomeScreen,
                             onClick = {
                                 if (canPinWidget) {
-                                    runCatching {
-                                        appWidgetManager.requestPinAppWidget(
-                                            ComponentName(context, DodoWidgetProvider::class.java),
-                                            null,
-                                            null,
-                                        )
-                                    }.onFailure {
-                                        viewModel.postSnackbar("当前桌面不支持直接添加，请长按桌面手动添加", isError = true)
-                                    }
+                                    showWidgetSizes = true
                                 } else {
                                     viewModel.postSnackbar("请长按桌面 → 小组件，手动添加嘟嘟通讯")
                                 }
@@ -214,7 +216,7 @@ fun AutomationScreen(
                                         adb shell am broadcast \
                                         -n com.dodocomm.app/.automation.AutomationReceiver \
                                         -a com.dodocomm.app.action.AUTOMATION \
-                                        --es token ${settings.automationToken} \
+                                        --es token <令牌> \
                                         --es command status
                                     """.trimIndent(),
                                     style = MaterialTheme.typography.bodySmall,
@@ -254,6 +256,61 @@ fun AutomationScreen(
                 }
             }
         }
+    }
+
+    if (showWidgetSizes) {
+        val options = listOf(
+            Triple("2×2 紧凑卡片", "今日送达与最近消息", DodoWidgetProvider::class.java),
+            Triple("4×2 横向卡片", "统计、最近消息与测试按钮", DodoWideWidgetProvider::class.java),
+            Triple("4×1 状态条", "适合桌面第一行", DodoBarWidgetProvider::class.java),
+            Triple("2×3 纵向卡片", "统计与最近消息", DodoTallWidgetProvider::class.java),
+            Triple("4×4 详细卡片", "两条最近消息与快捷操作", DodoDashboardWidgetProvider::class.java),
+        )
+        AlertDialog(
+            onDismissRequest = { showWidgetSizes = false },
+            title = { Text("添加桌面小组件") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        "选择要添加的尺寸；添加后仍可长按组件调整大小。",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    options.forEach { (title, subtitle, provider) ->
+                        TextButton(
+                            onClick = {
+                                showWidgetSizes = false
+                                runCatching {
+                                    appWidgetManager.requestPinAppWidget(
+                                        ComponentName(context, provider),
+                                        null,
+                                        null,
+                                    )
+                                }.onFailure {
+                                    viewModel.postSnackbar(
+                                        "当前桌面不支持直接添加，请长按桌面手动添加",
+                                        isError = true,
+                                    )
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Column(Modifier.fillMaxWidth()) {
+                                Text(title, style = MaterialTheme.typography.bodyMedium)
+                                Text(
+                                    subtitle,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showWidgetSizes = false }) { Text("取消") }
+            },
+        )
     }
 
     if (confirmRegenerate) {

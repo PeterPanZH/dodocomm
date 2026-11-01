@@ -62,17 +62,19 @@ fun RemoteManagementScreen(
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     var secretVisible by rememberSaveable { mutableStateOf(false) }
     var generatedCommand by rememberSaveable { mutableStateOf("") }
+    var lastGeneratedNonce by rememberSaveable { mutableStateOf(settings.remoteLastNonce) }
     var pauseMinutes by rememberSaveable { mutableStateOf("30") }
     var confirmRegenerate by rememberSaveable { mutableStateOf(false) }
     val clipboard = remember(context) { context.getSystemService(ClipboardManager::class.java) }
 
     fun copy(text: String, label: String) {
-        clipboard?.setPrimaryClip(ClipData.newPlainText(label, text))
-        viewModel.postSnackbar("已复制")
+        com.dodocomm.app.core.system.SensitiveClipboard.copy(context, label, text)
+        viewModel.postSnackbar("已复制，60 秒后自动清空")
     }
 
     fun generateCommand(action: RemoteAction, minutes: Int = 0) {
-        val nonce = System.currentTimeMillis() / 1000
+        val nonce = RemoteCommandParser.nextNonce(lastNonce = maxOf(settings.remoteLastNonce, lastGeneratedNonce))
+        lastGeneratedNonce = nonce
         val command = RemoteCommand(action, minutes, nonce, "")
         val signature = RemoteCommandParser.sign(settings.remoteSecret, command)
         generatedCommand = when (action) {

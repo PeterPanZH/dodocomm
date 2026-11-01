@@ -39,6 +39,7 @@ import androidx.compose.material.icons.rounded.BatterySaver
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Phone
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Dns
@@ -120,6 +121,8 @@ private object SetupIds {
     const val SERVER = "server"
     const val BATTERY = "battery"
     const val AUTOSTART = "autostart"
+    const val CALL_PERMISSION = "call_permission"
+    const val NOTIFICATION_ACCESS = "notification_access"
 }
 
 @Composable
@@ -142,6 +145,9 @@ fun HomeScreen(
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { viewModel.refreshSystemState() }
+    val phonePermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { viewModel.refreshSystemState() }
 
     val setupItems = remember(settings, permissions) { buildSetupItems(settings, permissions) }
     val setupDone = setupItems.count { it.done }
@@ -162,7 +168,11 @@ fun HomeScreen(
             }
 
             SetupIds.NOTIFICATIONS -> if (!permissions.notificationsReady) {
-                launchPermissions()
+                if (android.os.Build.VERSION.SDK_INT >= 33 && !permissions.postNotifications) {
+                    launchPermissions()
+                } else {
+                    SystemNavigator.openNotificationSettings(context)
+                }
             } else {
                 SystemNavigator.openNotificationSettings(context)
             }
@@ -174,6 +184,13 @@ fun HomeScreen(
                 SystemNavigator.requestIgnoreBatteryOptimizations(context)
             }
             SetupIds.AUTOSTART -> SystemNavigator.openAutoStartSettings(context)
+            SetupIds.CALL_PERMISSION -> {
+                ExternalNavigation.suppressNextLeave()
+                runCatching {
+                    phonePermissionLauncher.launch(android.Manifest.permission.READ_PHONE_STATE)
+                }.onFailure { SystemNavigator.openAppDetails(context) }
+            }
+            SetupIds.NOTIFICATION_ACCESS -> SystemNavigator.openNotificationListenerSettings(context)
         }
     }
 
@@ -613,6 +630,8 @@ private fun setupIcon(id: String): ImageVector = when (id) {
     SetupIds.NOTIFICATIONS -> Icons.Rounded.NotificationsActive
     SetupIds.SERVER -> Icons.Rounded.Dns
     SetupIds.BATTERY -> Icons.Rounded.BatterySaver
+    SetupIds.CALL_PERMISSION -> Icons.Rounded.Phone
+    SetupIds.NOTIFICATION_ACCESS -> Icons.Rounded.NotificationsActive
     else -> Icons.Rounded.Autorenew
 }
 
@@ -622,47 +641,79 @@ private fun buildSetupItems(settings: AppSettings, permissions: PermissionState)
     val serverReady = settings.hasAnyConfiguredChannel
     val batteryReady = permissions.batteryOptimizationsIgnored
     val autoStartReady = settings.autoStartOnBoot
-    return listOf(
-        SetupItem(
-            id = SetupIds.SMS,
-            title = "短信接收权限",
-            subtitle = if (smsReady) "已授权，可以接收新短信" else "未授权，无法接收短信",
-            done = smsReady,
-            actionLabel = if (smsReady) "已授权" else "去授权",
-        ),
-        SetupItem(
-            id = SetupIds.NOTIFICATIONS,
-            title = "通知权限",
-            subtitle = if (notificationsReady) "已开启，可显示常驻通知" else "未开启，服务状态不可见",
-            done = notificationsReady,
-            actionLabel = if (notificationsReady) "已开启" else "去开启",
-        ),
-        SetupItem(
-            id = SetupIds.SERVER,
-            title = "推送通道",
-            subtitle = if (serverReady) {
-                "已配置 ${settings.activePushChannels().size} 个可用通道"
-            } else {
-                "还没有可用的推送通道"
-            },
-            done = serverReady,
-            actionLabel = if (serverReady) "已配置" else "去配置",
-        ),
-        SetupItem(
-            id = SetupIds.BATTERY,
-            title = "电池优化豁免",
-            subtitle = if (batteryReady) "系统不会冻结后台服务" else "可能被系统限制后台运行",
-            done = batteryReady,
-            actionLabel = if (batteryReady) "已豁免" else "去设置",
-        ),
-        SetupItem(
-            id = SetupIds.AUTOSTART,
-            title = "开机自动恢复",
-            subtitle = if (autoStartReady) "重启后会尝试自动恢复转发" else "重启后需要手动打开应用",
-            done = autoStartReady,
-            actionLabel = if (autoStartReady) "已开启" else "去开启",
-        ),
-    )
+    return buildList {
+        add(
+            SetupItem(
+                id = SetupIds.SMS,
+                title = "短信接收权限",
+                subtitle = if (smsReady) "已授权，可以接收新短信" else "未授权，无法接收短信",
+                done = smsReady,
+                actionLabel = if (smsReady) "已授权" else "去授权",
+            ),
+        )
+        add(
+            SetupItem(
+                id = SetupIds.NOTIFICATIONS,
+                title = "通知权限",
+                subtitle = if (notificationsReady) "已开启，可显示常驻通知" else "未开启，服务状态不可见",
+                done = notificationsReady,
+                actionLabel = if (notificationsReady) "已开启" else "去开启",
+            ),
+        )
+        add(
+            SetupItem(
+                id = SetupIds.SERVER,
+                title = "推送通道",
+                subtitle = if (serverReady) {
+                    "已配置 ${settings.activePushChannels().size} 个可用通道"
+                } else {
+                    "还没有可用的推送通道"
+                },
+                done = serverReady,
+                actionLabel = if (serverReady) "已配置" else "去配置",
+            ),
+        )
+        add(
+            SetupItem(
+                id = SetupIds.BATTERY,
+                title = "电池优化豁免",
+                subtitle = if (batteryReady) "系统不会冻结后台服务" else "可能被系统限制后台运行",
+                done = batteryReady,
+                actionLabel = if (batteryReady) "已豁免" else "去设置",
+            ),
+        )
+        add(
+            SetupItem(
+                id = SetupIds.AUTOSTART,
+                title = "开机自动恢复",
+                subtitle = if (autoStartReady) "重启后会尝试自动恢复转发" else "重启后需要手动打开应用",
+                done = autoStartReady,
+                actionLabel = if (autoStartReady) "已开启" else "去开启",
+            ),
+        )
+        if (settings.phoneForwardEnabled) {
+            add(
+                SetupItem(
+                    id = SetupIds.CALL_PERMISSION,
+                    title = "电话事件权限",
+                    subtitle = if (permissions.readPhoneState) "已授权，可以检测来电" else "未授权，来电无法转发",
+                    done = permissions.readPhoneState,
+                    actionLabel = if (permissions.readPhoneState) "已授权" else "去授权",
+                ),
+            )
+        }
+        if (settings.notificationForwardEnabled) {
+            add(
+                SetupItem(
+                    id = SetupIds.NOTIFICATION_ACCESS,
+                    title = "通知使用权",
+                    subtitle = if (permissions.notificationAccess) "已授权，可以捕获通知" else "未授权，通知无法转发",
+                    done = permissions.notificationAccess,
+                    actionLabel = if (permissions.notificationAccess) "已授权" else "去授权",
+                ),
+            )
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------

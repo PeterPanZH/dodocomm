@@ -36,6 +36,7 @@ class UpdateClient(
         destination: File,
         onProgress: (Int) -> Unit,
     ): File = withContext(Dispatchers.IO) {
+        require(info.size in 1..UpdateManifest.MAX_APK_BYTES) { "更新包大小无效或超过上限" }
         destination.parentFile?.mkdirs()
         if (destination.exists()) destination.delete()
         val request = Request.Builder().url(info.apkUrl).get().build()
@@ -48,6 +49,7 @@ class UpdateClient(
                 }
                 val body = response.body
                 val total = body.contentLength().takeIf { it > 0L } ?: info.size
+                require(total <= UpdateManifest.MAX_APK_BYTES) { "更新包超过大小上限" }
                 body.byteStream().use { input ->
                     destination.outputStream().use { output ->
                         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
@@ -59,6 +61,9 @@ class UpdateClient(
                             output.write(buffer, 0, read)
                             digest.update(buffer, 0, read)
                             written += read
+                            if (written > UpdateManifest.MAX_APK_BYTES) {
+                                throw IOException("更新包超过大小上限")
+                            }
                             val percent = if (total > 0) {
                                 ((written * 100) / total).toInt().coerceIn(0, 100)
                             } else {

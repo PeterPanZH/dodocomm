@@ -60,5 +60,11 @@ object RemoteCommandParser {
     fun nonceIsFresh(nonce: Long, nowSeconds: Long = System.currentTimeMillis() / 1000): Boolean =
         kotlin.math.abs(nowSeconds - nonce) <= 300
 
+    /** Monotonic nonce so two commands generated in the same second are both valid. */
+    fun nextNonce(
+        nowSeconds: Long = System.currentTimeMillis() / 1000,
+        lastNonce: Long = 0L,
+    ): Long = maxOf(nowSeconds, lastNonce + 1L)
+
     fun normalizeNumber(number: String): String = number.filter { it.isDigit() }
 }

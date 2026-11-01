@@ -38,6 +38,9 @@ object SettingsBackupCodec {
         put("foregroundServiceEnabled", settings.foregroundServiceEnabled)
         put("autoStartOnBoot", settings.autoStartOnBoot)
         put("hideFromRecents", settings.hideFromRecents)
+        put("allowScreenshots", settings.allowScreenshots)
+        put("showSensitivePreviews", settings.showSensitivePreviews)
+        put("allowInsecureHttp", settings.allowInsecureHttp)
         put("dynamicColor", settings.dynamicColor)
         put("themeMode", settings.themeMode.name)
         put("recordFilteredMessages", settings.recordFilteredMessages)
@@ -58,7 +61,6 @@ object SettingsBackupCodec {
         put("phoneForwardIncoming", settings.phoneForwardIncoming)
         put("phoneForwardMissed", settings.phoneForwardMissed)
         put("notificationForwardEnabled", settings.notificationForwardEnabled)
-        put("notificationAllApps", settings.notificationAllApps)
         put("notificationSelectedPackages", JSONArray(settings.notificationSelectedPackages))
         put("notificationIgnoreOngoing", settings.notificationIgnoreOngoing)
         put("smsForwardEnabled", settings.smsForwardEnabled)
@@ -131,6 +133,12 @@ object SettingsBackupCodec {
             foregroundServiceEnabled = json.optBoolean("foregroundServiceEnabled", base.foregroundServiceEnabled),
             autoStartOnBoot = json.optBoolean("autoStartOnBoot", base.autoStartOnBoot),
             hideFromRecents = json.optBoolean("hideFromRecents", base.hideFromRecents),
+            allowScreenshots = json.optBoolean("allowScreenshots", base.allowScreenshots),
+            showSensitivePreviews = json.optBoolean(
+                "showSensitivePreviews",
+                base.showSensitivePreviews,
+            ),
+            allowInsecureHttp = json.optBoolean("allowInsecureHttp", base.allowInsecureHttp),
             dynamicColor = json.optBoolean("dynamicColor", base.dynamicColor),
             themeMode = ThemeMode.fromName(json.optString("themeMode", base.themeMode.name)),
             recordFilteredMessages = json.optBoolean("recordFilteredMessages", base.recordFilteredMessages),
@@ -151,7 +159,6 @@ object SettingsBackupCodec {
             phoneForwardIncoming = json.optBoolean("phoneForwardIncoming", base.phoneForwardIncoming),
             phoneForwardMissed = json.optBoolean("phoneForwardMissed", base.phoneForwardMissed),
             notificationForwardEnabled = json.optBoolean("notificationForwardEnabled", base.notificationForwardEnabled),
-            notificationAllApps = json.optBoolean("notificationAllApps", base.notificationAllApps),
             notificationSelectedPackages = json.optJSONArray("notificationSelectedPackages").toStringList(),
             notificationIgnoreOngoing = json.optBoolean("notificationIgnoreOngoing", base.notificationIgnoreOngoing),
             smsForwardEnabled = json.optBoolean("smsForwardEnabled", base.smsForwardEnabled),

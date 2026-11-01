@@ -202,11 +202,27 @@ internal fun AppPickerDialog(
                         },
                     )
                     Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = "${visibleApps.size} / ${apps.size} 个应用",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = "${visibleApps.size} / ${apps.size} 个应用",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.weight(1f),
+                        )
+                        TextButton(
+                            onClick = {
+                                val ids = visibleApps.map { it.packageName }.toSet()
+                                chosen = if (ids.isNotEmpty() && chosen.containsAll(ids)) {
+                                    chosen - ids
+                                } else {
+                                    chosen + ids
+                                }
+                            },
+                        ) { Text("全选筛选结果") }
+                    }
                 LazyColumn(modifier = Modifier.heightIn(max = 420.dp)) {
                     items(visibleApps, key = { it.packageName }) { app ->
                         Row(

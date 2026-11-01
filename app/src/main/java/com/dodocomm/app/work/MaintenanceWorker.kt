@@ -35,6 +35,7 @@ class MaintenanceWorker(
             }
             runCatching { container.serviceController.startIfEnabled() }
                 .onFailure { Log.w(TAG, "维护任务恢复前台服务失败: ${it.javaClass.simpleName}") }
+            runCatching { com.dodocomm.app.widget.WidgetUpdater.updateAll(applicationContext) }
             Result.success()
         } catch (t: Throwable) {
             Log.w(TAG, "维护任务失败: ${t.javaClass.simpleName}: ${t.message}")

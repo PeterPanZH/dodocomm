@@ -48,7 +48,7 @@ class UpdateClientTest {
         server.enqueue(
             MockResponse(
                 code = 200,
-                body = """{"versionCode":14,"versionName":"1.6.1","apkUrl":"${server.url("/apk")}","sha256":"${sha256(bytes)}","size":3,"changelog":"c"}""",
+                body = """{"versionCode":14,"versionName":"1.6.1","apkUrl":"https://example.com/apk","sha256":"${sha256(bytes)}","size":3,"changelog":"c"}""",
             ),
         )
         val update = client.fetch(server.url("/latest.json").toString(), currentVersionCode = 13)
@@ -58,7 +58,7 @@ class UpdateClientTest {
         server.enqueue(
             MockResponse(
                 code = 200,
-                body = """{"versionCode":13,"versionName":"1.6.0","apkUrl":"${server.url("/apk")}","sha256":"${sha256(bytes)}","size":3}""",
+                body = """{"versionCode":13,"versionName":"1.6.0","apkUrl":"https://example.com/apk","sha256":"${sha256(bytes)}","size":3}""",
             ),
         )
         assertNull(client.fetch(server.url("/latest.json").toString(), currentVersionCode = 13))

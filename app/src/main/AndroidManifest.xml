@@ -25,9 +25,6 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <!-- Used to guide the user to the system battery-optimization screen. -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    <!-- Optional: resolves a friendly dual-SIM label (e.g. "SIM 2 · 中国移动").
-         The app works without it. -->
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <!-- In-app update: only used after the user taps "download & install". -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
@@ -49,6 +46,7 @@
     <application
         android:name=".Sms2BarkApp"
         android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"

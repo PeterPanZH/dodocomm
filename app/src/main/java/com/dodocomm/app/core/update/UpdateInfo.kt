@@ -17,6 +17,8 @@ data class UpdateInfo(
  * validation logic can be unit tested.
  */
 object UpdateManifest {
+    const val MAX_APK_BYTES: Long = 150L * 1024 * 1024
+    private val VERSION_NAME = Regex("^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 
     /**
      * Parses [raw] and returns an update only when it is strictly newer than
@@ -34,17 +36,12 @@ object UpdateManifest {
 
         require(versionCode > 0) { "versionCode 无效" }
         require(versionName.isNotEmpty()) { "versionName 为空" }
-        require(
-            apkUrl.startsWith("https://") ||
-                apkUrl.startsWith("http://127.0.0.1") ||
-                apkUrl.startsWith("http://localhost"),
-        ) {
-            "apkUrl 必须是 https 地址"
-        }
+        require(VERSION_NAME.matches(versionName)) { "versionName 格式无效" }
+        require(apkUrl.startsWith("https://")) { "apkUrl 必须是 https 地址" }
         require(sha256.length == 64 && sha256.all { it in "0123456789abcdef" }) {
             "sha256 格式无效"
         }
-        require(size >= 0L) { "size 无效" }
+        require(size in 1..MAX_APK_BYTES) { "更新包大小无效或超过上限" }
         if (versionCode <= currentVersionCode) return null
         return UpdateInfo(
             versionCode = versionCode,

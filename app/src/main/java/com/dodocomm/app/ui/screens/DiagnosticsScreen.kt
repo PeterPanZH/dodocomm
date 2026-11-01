@@ -131,7 +131,11 @@ fun DiagnosticsScreen(
             DiagnosticAction.RECEIVE_SMS ->
                 permissionLauncher.launch(Manifest.permission.RECEIVE_SMS)
             DiagnosticAction.POST_NOTIFICATIONS ->
-                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                if (android.os.Build.VERSION.SDK_INT >= 33) {
+                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                } else {
+                    SystemNavigator.openNotificationSettings(context)
+                }
             DiagnosticAction.READ_PHONE_STATE ->
                 permissionLauncher.launch(Manifest.permission.READ_PHONE_STATE)
             DiagnosticAction.READ_CALL_LOG ->

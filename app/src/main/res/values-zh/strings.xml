@@ -41,4 +41,6 @@
     <string name="widget_source_sms">短信</string>
     <string name="widget_source_call">电话</string>
     <string name="widget_source_notification">通知</string>
+    <string name="notify_hidden_content">已收到新消息</string>
+    <string name="widget_hidden_content">新消息</string>
 </resources>

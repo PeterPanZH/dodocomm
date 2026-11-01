@@ -50,10 +50,13 @@ class HistoryRepository(
         _stats.value = stats
     }
 
-    /** Coalesces concurrent refresh requests so only the latest snapshot wins. */
+    /** Coalesces bursts (notification fan-out) into one database read. */
     fun refresh() {
         refreshJob?.cancel()
-        refreshJob = scope.launch { refreshNow() }
+        refreshJob = scope.launch {
+            kotlinx.coroutines.delay(REFRESH_DEBOUNCE_MS)
+            refreshNow()
+        }
     }
 
     /** @return inserted id, or -1 if [dedupeKey] was already present. */
@@ -103,4 +106,8 @@ class HistoryRepository(
 
     /** Latest known record (may be one refresh behind). */
     fun lastRecord(): ForwardRecord? = snapshot.firstOrNull()
+
+    private companion object {
+        const val REFRESH_DEBOUNCE_MS = 80L
+    }
 }

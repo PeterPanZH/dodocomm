@@ -50,6 +50,7 @@ import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -134,7 +135,6 @@ enum class SettingsSection(
     val route: String,
 ) {
     OVERVIEW("设置", "按类别管理所有设置", "overview"),
-    PUSH("推送", "推送通道、路由与推送样式", "push"),
     EVENTS("事件与模板", "短信、来电与应用通知", "events"),
     CALL_RULES("电话转发规则", "号码白名单与黑名单", "call_rules"),
     APP_RULES("应用通知转发规则", "应用白名单与黑名单", "app_rules"),
@@ -318,7 +318,6 @@ fun SettingsScreen(
     onNavigateTemplate: () -> Unit,
     onNavigateTemplateSource: (com.dodocomm.app.core.model.ForwardSource) -> Unit = {},
     onNavigateChannels: () -> Unit = {},
-    onNavigateRouting: () -> Unit = {},
     onNavigateRoutingSource: (com.dodocomm.app.core.model.ForwardSource) -> Unit = {},
     onNavigateDiagnostics: () -> Unit = {},
     onNavigateAutomation: () -> Unit = {},
@@ -413,16 +412,6 @@ fun SettingsScreen(
             Spacer(Modifier.height(18.dp))
         }
 
-        if (section == SettingsSection.PUSH) {
-            item(key = "push_card", contentType = "card") {
-                PushStyleCard(
-                    settings = settings,
-                    viewModel = viewModel,
-                    onNavigateChannels = onNavigateChannels,
-                )
-            }
-        }
-
         if (section == SettingsSection.EVENTS) {
             item(key = "events_card", contentType = "card") {
                 com.dodocomm.app.ui.screens.EventSourcesSection(
@@ -472,6 +461,8 @@ fun SettingsScreen(
                     onChangePin = { pinDialogMode = "change" },
                     onSetAutoLockMinutes = viewModel::setAutoLockMinutes,
                     onToggleBiometric = viewModel::setBiometricUnlock,
+                    onToggleScreenshots = viewModel::setAllowScreenshots,
+                    onToggleSensitivePreviews = viewModel::setShowSensitivePreviews,
                 )
             }
         }
@@ -970,65 +961,6 @@ private fun RetryPolicyCard(settings: AppSettings, viewModel: AppViewModel) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Push style
-// ---------------------------------------------------------------------------
-
-@Composable
-private fun PushStyleCard(
-    settings: AppSettings,
-    viewModel: AppViewModel,
-    onNavigateChannels: () -> Unit,
-) {
-    SectionCard {
-        SettingActionRow(
-            title = "推送通道",
-            subtitle = "Bark、ntfy、Telegram、Pushover、Email",
-            value = "${settings.channels.count { it.enabled }} 个启用",
-            icon = Icons.Rounded.NotificationsActive,
-            onClick = onNavigateChannels,
-        )
-    }
-}
-
-@Composable
-private fun PushLevelRow(selected: PushLevel, onSelect: (PushLevel) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        SettingActionRow(
-            title = "推送级别",
-            subtitle = "决定接收端如何提醒这条推送",
-            value = selected.label,
-            onClick = { expanded = true },
-        )
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            PushLevel.entries.forEach { level ->
-                DropdownMenuItem(
-                    text = { Text(level.label) },
-                    onClick = {
-                        onSelect(level)
-                        expanded = false
-                    },
-                    trailingIcon = {
-                        if (level == selected) {
-                            Icon(
-                                imageVector = Icons.Rounded.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                    },
-                )
-            }
-        }
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Forwarding rules
-// ---------------------------------------------------------------------------
-
 @Composable
 private fun ForwardingRulesCard(settings: AppSettings, viewModel: AppViewModel) {
     SectionCard {
@@ -1377,6 +1309,8 @@ private fun PrivacyCard(
     onChangePin: () -> Unit,
     onSetAutoLockMinutes: (Int) -> Unit,
     onToggleBiometric: (Boolean) -> Unit,
+    onToggleScreenshots: (Boolean) -> Unit,
+    onToggleSensitivePreviews: (Boolean) -> Unit,
 ) {
     var autoLockExpanded by remember { mutableStateOf(false) }
     Column {
@@ -1385,7 +1319,7 @@ private fun PrivacyCard(
             title = "应用锁",
             checked = settings.appLockEnabled,
             onCheckedChange = onToggleAppLock,
-            subtitle = "打开 App 需输入 6 位 PIN；禁止截屏与最近任务预览",
+            subtitle = "打开 App 需输入 6 位 PIN",
             icon = Icons.Rounded.Lock,
         )
         if (settings.appLockEnabled) {
@@ -1437,6 +1371,22 @@ private fun PrivacyCard(
                 )
             }
         }
+        RowDivider()
+        SettingSwitchRow(
+            title = "隐藏桌面与锁屏消息内容",
+            checked = !settings.showSensitivePreviews,
+            onCheckedChange = { hidden -> onToggleSensitivePreviews(!hidden) },
+            subtitle = "开启后组件和常驻通知只显示「新消息」，不显示号码/正文",
+            icon = Icons.Rounded.VisibilityOff,
+        )
+        RowDivider()
+        SettingSwitchRow(
+            title = "允许截图与录屏",
+            checked = settings.allowScreenshots,
+            onCheckedChange = onToggleScreenshots,
+            subtitle = "默认关闭；开启后系统截图、录屏和最近任务可看到消息内容",
+            icon = Icons.Rounded.Visibility,
+        )
     }
     Spacer(Modifier.height(10.dp))
     val context = androidx.compose.ui.platform.LocalContext.current

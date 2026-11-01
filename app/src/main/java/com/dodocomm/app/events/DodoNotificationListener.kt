@@ -6,13 +6,15 @@ import android.content.pm.PackageManager
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
-import androidx.core.app.NotificationManagerCompat
 import com.dodocomm.app.appContainer
+import com.dodocomm.app.core.system.NotificationAccess
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 
 /**
  * Optional app-notification source. The user must grant notification access in
@@ -21,6 +23,9 @@ import kotlinx.coroutines.launch
 class DodoNotificationListener : NotificationListenerService() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    /** Cap concurrent notification forwarding so a burst cannot flood channels. */
+    private val forwardingSlots = Semaphore(2)
+
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         val notification = sbn?.notification ?: return
         val packageName = sbn.packageName ?: return
@@ -28,7 +33,7 @@ class DodoNotificationListener : NotificationListenerService() {
 
         val settings = applicationContext.appContainer.settings.current()
         if (!settings.notificationForwardEnabled) return
-        if (!settings.notificationAllApps && packageName !in settings.notificationSelectedPackages) return
+        if (!EventFilters.appAllowed(settings, packageName)) return
 
         val flags = notification.flags
         if (flags and Notification.FLAG_GROUP_SUMMARY != 0) return
@@ -53,6 +58,7 @@ class DodoNotificationListener : NotificationListenerService() {
         }.getOrDefault(packageName)
 
         scope.launch {
+            forwardingSlots.withPermit {
             runCatching {
                 applicationContext.appContainer.eventForwarder.forwardAppNotification(
                     appName = appName,
@@ -63,6 +69,7 @@ class DodoNotificationListener : NotificationListenerService() {
                     timestamp = sbn.postTime,
                 )
             }.onFailure { Log.w(TAG, "通知转发失败: ${it.javaClass.simpleName}") }
+            }
         }
     }
 
@@ -74,17 +81,6 @@ class DodoNotificationListener : NotificationListenerService() {
     companion object {
         const val TAG = "SMS2BARK"
 
-        fun isAccessGranted(context: Context): Boolean = runCatching {
-            val enabled = NotificationManagerCompat.getEnabledListenerPackages(context)
-                .contains(context.packageName)
-            if (enabled) return@runCatching true
-            // Fallback for OEMs whose package list lags behind the secure
-            // setting, especially immediately after granting access.
-            val raw = android.provider.Settings.Secure.getString(
-                context.contentResolver,
-                "enabled_notification_listeners",
-            ).orEmpty()
-            raw.contains(context.packageName)
-        }.getOrDefault(false)
+        fun isAccessGranted(context: Context): Boolean = NotificationAccess.isGranted(context)
     }
 }

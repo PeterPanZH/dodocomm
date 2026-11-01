@@ -84,6 +84,8 @@ object WidgetUpdater {
                 stats.failed + stats.pending,
                 stats.filtered,
             )
+            val hidePreviews = context.appContainer.settings.current().appLockEnabled ||
+                !context.appContainer.settings.current().showSensitivePreviews
             val sourceLabel = { source: ForwardSource ->
                 when (source) {
                     ForwardSource.CALL -> context.getString(R.string.widget_source_call)
@@ -93,6 +95,13 @@ object WidgetUpdater {
             }
             fun recentViews(record: ForwardRecord): Triple<String, String, String> {
                 val meta = "${sourceLabel(record.source)} · ${TimeFormatter.formatRecordTime(record.receivedAt)}"
+                if (hidePreviews) {
+                    return Triple(
+                        context.getString(R.string.widget_hidden_content),
+                        meta,
+                        "",
+                    )
+                }
                 val sender = record.sender.ifBlank { context.getString(R.string.event_unknown_number) }
                 val body = record.body.replace('\n', ' ').trim()
                 return Triple(sender, meta, body)

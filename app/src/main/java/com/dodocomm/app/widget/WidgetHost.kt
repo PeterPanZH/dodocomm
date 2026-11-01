@@ -35,13 +35,13 @@ object WidgetHost {
     fun profile(context: Context): WidgetHostProfile = profileOf(
         manufacturer = Build.MANUFACTURER.orEmpty(),
         brand = Build.BRAND.orEmpty(),
-        oplusRom = systemProperty("ro.build.version.oplusrom"),
+        oplusRom = "",
     )
 
     fun isColorOS(): Boolean = profileOf(
         manufacturer = Build.MANUFACTURER.orEmpty(),
         brand = Build.BRAND.orEmpty(),
-        oplusRom = systemProperty("ro.build.version.oplusrom"),
+        oplusRom = "",
     ).family == WidgetHostFamily.COLOR_OS
 
     internal fun familyOf(manufacturer: String, brand: String, oplusRom: String): WidgetHostFamily {
@@ -117,10 +117,4 @@ object WidgetHost {
             guide = "长按桌面空白 → 小组件/Widgets → 嘟嘟通讯。",
         )
     }
-
-    private fun systemProperty(key: String): String = runCatching {
-        val clazz = Class.forName("android.os.SystemProperties")
-        val get = clazz.getMethod("get", String::class.java)
-        (get.invoke(null, key) as? String).orEmpty()
-    }.getOrDefault("")
 }

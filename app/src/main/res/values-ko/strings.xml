@@ -41,4 +41,6 @@
     <string name="widget_source_sms">SMS</string>
     <string name="widget_source_call">전화</string>
     <string name="widget_source_notification">알림</string>
+    <string name="notify_hidden_content">새 메시지가 도착했습니다</string>
+    <string name="widget_hidden_content">새 메시지가 도착했습니다</string>
 </resources>

@@ -62,7 +62,11 @@ class HistoryDatabase(
     }
 
     override fun onDowngrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        onUpgrade(db, oldVersion, newVersion)
+        // Downgrades are unsupported: keep the app usable instead of running
+        // upgrade DDL backwards (which would duplicate columns on a later
+        // upgrade). This is the only lossy path; normal upgrades preserve rows.
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_RECORDS")
+        onCreate(db)
     }
 
     override fun onOpen(db: SQLiteDatabase) {

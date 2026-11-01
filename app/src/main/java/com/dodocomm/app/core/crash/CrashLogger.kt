@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Build
 import android.os.Process
 import com.dodocomm.app.BuildConfig
+import com.dodocomm.app.core.crypto.RecordCipher
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.text.SimpleDateFormat
@@ -61,7 +62,7 @@ object CrashLogger {
                             time = item.optLong("time"),
                             versionName = item.optString("versionName"),
                             thread = item.optString("thread"),
-                            stackTrace = item.optString("stackTrace"),
+                            stackTrace = RecordCipher(context).decrypt(item.optString("stackTrace")).orEmpty(),
                         ),
                     )
                 }
@@ -89,6 +90,11 @@ object CrashLogger {
         val writer = StringWriter()
         throwable.printStackTrace(PrintWriter(writer))
         val trace = writer.toString().take(MAX_STACK_CHARS)
+        // Stack traces can contain URLs/tokens from exception messages. Encrypt
+        // them at rest; never fall back to plaintext if the Keystore fails.
+        val storedTrace = runCatching { RecordCipher(context).encryptOrThrow(trace) }
+            .getOrNull()
+            ?: "[崩溃日志无法安全保存]"
         val current = entries(context).toMutableList()
         current.add(
             0,
@@ -96,7 +102,7 @@ object CrashLogger {
                 time = System.currentTimeMillis(),
                 versionName = BuildConfig.VERSION_NAME,
                 thread = thread.name,
-                stackTrace = trace,
+                stackTrace = storedTrace,
             ),
         )
         val array = JSONArray()

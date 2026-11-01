@@ -98,7 +98,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun refreshSystemState() {
         _serviceRunning.value = container.serviceController.isServiceRunning()
         _permissions.value = PermissionState.read(appContext)
-        com.dodocomm.app.widget.WidgetUpdater.updateAll(appContext)
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            com.dodocomm.app.widget.WidgetUpdater.updateAll(appContext)
+        }
     }
 
     /** Called whenever the activity becomes visible again. */
@@ -207,7 +209,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 _updateDialogVisible.value = false
                 UpdateDownloadNotifier.showProgress(appContext, info.versionName, 0)
             }
-            val destination = File(appContext.cacheDir, "updates/DodoComm-${info.versionName}.apk")
+            val destination = File(appContext.cacheDir, "updates/DodoComm-${info.versionCode}.apk")
             try {
                 val apk = container.updateClient.download(info, destination) { percent ->
                     _updateState.value = UpdateState.Downloading(info, percent)
@@ -346,7 +348,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateSettings(transform: (AppSettings) -> AppSettings) {
         val previous = container.settings.current()
-        val updated = container.settings.update(transform)
+        val updated = runCatching { container.settings.update(transform) }.getOrElse {
+            postSnackbar("无法安全保存敏感设置，请解锁设备后重试", isError = true)
+            return
+        }
         val serviceRelevant = updated.forwardingEnabled != previous.forwardingEnabled ||
             updated.hasAnyConfiguredChannel != previous.hasAnyConfiguredChannel ||
             updated.foregroundServiceEnabled != previous.foregroundServiceEnabled
@@ -436,10 +441,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         updateSettings { current ->
             val list = current.routingRules.toMutableList()
             val index = list.indexOfFirst { it.id == id }
-            val target = index + direction
-            if (index < 0 || target !in list.indices) return@updateSettings current
-            val item = list.removeAt(index)
-            list.add(target, item)
+            if (index < 0) return@updateSettings current
+            val sourceIndices = list.indices.filter { list[it].source == list[index].source }
+            val position = sourceIndices.indexOf(index)
+            val targetPosition = position + direction
+            if (targetPosition !in sourceIndices.indices) return@updateSettings current
+            val target = sourceIndices[targetPosition]
+            val item = list[index]
+            list[index] = list[target]
+            list[target] = item
             current.copy(routingRules = list)
         }
     }
@@ -524,17 +534,20 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         postSnackbar("远程管理密钥已更新，旧指令会立即失效")
     }
 
-    private fun newRemoteSecret(): String =
-        java.util.UUID.randomUUID().toString().replace("-", "") +
-            java.util.UUID.randomUUID().toString().replace("-", "").take(8)
+    private fun newRemoteSecret(): String = secureHex(32)
 
     fun regenerateAutomationToken() {
         updateSettings { it.copy(automationToken = newAutomationToken()) }
         postSnackbar("自动化令牌已更新")
     }
 
-    private fun newAutomationToken(): String =
-        java.util.UUID.randomUUID().toString().replace("-", "").take(24)
+    private fun newAutomationToken(): String = secureHex(24)
+
+    private fun secureHex(bytes: Int): String {
+        val random = java.security.SecureRandom()
+        val data = ByteArray(bytes).also(random::nextBytes)
+        return data.joinToString("") { "%02x".format(it) }
+    }
 
     suspend fun testChannel(id: String): com.dodocomm.app.core.channel.ChannelSendResult {
         val current = container.settings.current()
@@ -693,6 +706,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setBiometricUnlock(enabled: Boolean) = updateSettings { it.copy(biometricUnlock = enabled) }
 
+    fun setAllowScreenshots(enabled: Boolean) = updateSettings { it.copy(allowScreenshots = enabled) }
+
+    fun setShowSensitivePreviews(enabled: Boolean) = updateSettings { it.copy(showSensitivePreviews = enabled) }
+
+    fun setAllowInsecureHttp(enabled: Boolean) = updateSettings { it.copy(allowInsecureHttp = enabled) }
+
     fun setHideFromRecents(enabled: Boolean) {
         updateSettings { it.copy(hideFromRecents = enabled) }
         postSnackbar(if (enabled) "已开启后台隐藏：离开 App 后从最近任务移除" else "已关闭后台隐藏")
@@ -726,8 +745,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setNotificationForwardEnabled(enabled: Boolean) = updateSettings { it.copy(notificationForwardEnabled = enabled) }
 
-    fun setNotificationAllApps(all: Boolean) = updateSettings { it.copy(notificationAllApps = all) }
-
     fun setNotificationSelectedPackages(packages: List<String>) = updateSettings {
         it.copy(notificationSelectedPackages = packages.distinct())
     }
@@ -737,25 +754,39 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     /** Sends a test call event through the same pipeline as a real one. */
     fun testPhoneEvent() {
         viewModelScope.launch {
-            container.eventForwarder.forwardIncomingCall(
+            val record = container.eventForwarder.forwardIncomingCall(
                 number = "13800138000",
                 missed = false,
             )
-            postSnackbar("已发送测试来电事件")
+            postSnackbar(
+                when {
+                    record == null -> "测试来电未发送：请检查电话转发开关、暂停状态和过滤规则"
+                    record.status == com.dodocomm.app.core.model.ForwardStatus.SENT -> "测试来电已发送"
+                    else -> "测试来电已记录，但发送失败：${record.error ?: "请检查推送通道"}"
+                },
+                isError = record == null || record.status != com.dodocomm.app.core.model.ForwardStatus.SENT,
+            )
         }
     }
 
     /** Sends a test app-notification event through the same pipeline. */
     fun testNotificationEvent() {
         viewModelScope.launch {
-            container.eventForwarder.forwardAppNotification(
+            val record = container.eventForwarder.forwardAppNotification(
                 appName = "DodoComm",
                 packageName = "com.dodocomm.app",
                 notificationTitle = "测试通知",
                 notificationText = "这是一条测试应用通知",
                 notificationKey = "test-${System.currentTimeMillis()}",
             )
-            postSnackbar("已发送测试应用通知")
+            postSnackbar(
+                when {
+                    record == null -> "测试通知未发送：请检查通知转发开关、暂停状态和过滤规则"
+                    record.status == com.dodocomm.app.core.model.ForwardStatus.SENT -> "测试应用通知已发送"
+                    else -> "测试通知已记录，但发送失败：${record.error ?: "请检查推送通道"}"
+                },
+                isError = record == null || record.status != com.dodocomm.app.core.model.ForwardStatus.SENT,
+            )
         }
     }
 

@@ -55,7 +55,7 @@ class ForwardEngine(
         val settings = container.settings.current()
         if (!settings.forwardingEnabled || !settings.smsForwardEnabled) return null
         if (settings.isPaused()) {
-            Log.i(TAG, "临时暂停中，跳过短信 sender=${payload.sender}")
+            Log.i(TAG, "临时暂停中，跳过短信")
             return null
         }
 
@@ -87,7 +87,7 @@ class ForwardEngine(
         val id = container.history.insert(baseRecord, dedupeKey)
         if (id == -1L) {
             // Duplicate broadcast / re-delivery: the original row already wins.
-            Log.i(TAG, "重复短信，跳过 sender=${payload.sender} ts=${payload.smsTimestamp}")
+            Log.i(TAG, "重复短信，跳过 ts=${payload.smsTimestamp}")
             return null
         }
         val record = baseRecord.copy(id = id)
@@ -145,10 +145,19 @@ class ForwardEngine(
     suspend fun sendTestPush(): BarkResult {
         val settings = container.settings.current()
         val clock = DateTimeFormatter.ofPattern("HH:mm:ss", Locale.CHINA).format(LocalTime.now())
-        return container.barkClient.send(
+        if (!settings.hasAnyConfiguredChannel) {
+            return BarkResult.failure("没有可用的推送通道，请先配置至少一个通道")
+        }
+        val dispatch = container.pushDispatcher.dispatch(
             settings = settings,
             title = "嘟嘟通讯 测试推送",
             body = "嘟嘟可报到！测试推送成功 ✅ 时间 $clock",
+        )
+        return BarkResult(
+            success = dispatch.success,
+            code = null,
+            message = dispatch.message,
+            rawBody = dispatch.rawBody,
         )
     }
 

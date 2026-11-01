@@ -23,7 +23,19 @@ class PushDispatcher(
         channel: PushChannel,
         title: String,
         body: String,
-    ): ChannelSendResult = senderOverride?.invoke(channel, title, body) ?: when (channel.type) {
+    ): ChannelSendResult {
+        val insecure = channel.type in setOf(ChannelType.BARK, ChannelType.NTFY) &&
+            channel.serverUrl.trim().startsWith("http://", ignoreCase = true)
+        if (insecure && !settings.allowInsecureHttp) {
+            return ChannelSendResult(
+                channelId = channel.id,
+                channelName = channel.name,
+                type = channel.type,
+                success = false,
+                message = "HTTP 明文连接已关闭，请在推送通道页明确允许后再使用",
+            )
+        }
+        return senderOverride?.invoke(channel, title, body) ?: when (channel.type) {
         ChannelType.BARK -> {
             if (!channel.isConfigured()) {
                 ChannelSendResult(channel.id, channel.name, channel.type, false, "Bark 服务器或 Device Key 未配置")
@@ -43,6 +55,7 @@ class PushDispatcher(
         ChannelType.TELEGRAM -> telegramClient.send(channel, title, body)
         ChannelType.PUSHOVER -> pushoverClient.send(channel, title, body)
         ChannelType.EMAIL -> emailClient.send(channel, title, body)
+        }
     }
 
     suspend fun dispatch(

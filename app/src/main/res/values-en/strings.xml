@@ -41,4 +41,6 @@ Time: %2$s</string>
     <string name="widget_source_sms">SMS</string>
     <string name="widget_source_call">Call</string>
     <string name="widget_source_notification">Notification</string>
+    <string name="notify_hidden_content">New message received</string>
+    <string name="widget_hidden_content">New message received</string>
 </resources>

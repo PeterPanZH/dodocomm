@@ -215,7 +215,6 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                         navController.navigate(Routes.TEMPLATE)
                     },
                     onNavigateChannels = { navController.navigate(Routes.CHANNELS) },
-                    onNavigateRouting = { navController.navigate(Routes.ROUTING) },
                     onNavigateRoutingSource = { source ->
                         viewModel.setRoutingSourceForNextScreen(source)
                         navController.navigate(Routes.ROUTING)
@@ -251,8 +250,7 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                         navController.navigate(Routes.TEMPLATE)
                     },
                         onNavigateChannels = { navController.navigate(Routes.CHANNELS) },
-                        onNavigateRouting = { navController.navigate(Routes.ROUTING) },
-                        onNavigateRoutingSource = { source ->
+                            onNavigateRoutingSource = { source ->
                             viewModel.setRoutingSourceForNextScreen(source)
                             navController.navigate(Routes.ROUTING)
                         },

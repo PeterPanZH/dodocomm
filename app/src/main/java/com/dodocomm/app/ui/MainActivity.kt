@@ -60,7 +60,7 @@ class MainActivity : FragmentActivity() {
         val wasUnlocked = savedInstanceState?.getBoolean(KEY_UNLOCKED, false) ?: false
         _locked.value = current.appLockEnabled && !wasUnlocked && current.appLockPinHash.isNotBlank()
         backgroundAt = savedInstanceState?.getLong(KEY_BACKGROUND_AT, 0L) ?: 0L
-        applyLockWindowFlags(current.appLockEnabled)
+        applyWindowPrivacyFlags(current.appLockEnabled, current.allowScreenshots)
         if (savedInstanceState == null) handleShortcutIntent(intent)
         setContent {
             val viewModel: AppViewModel = viewModel()
@@ -95,8 +95,8 @@ class MainActivity : FragmentActivity() {
                 applySystemLocale(settings.appLanguage)
             }
 
-            LaunchedEffect(settings.appLockEnabled) {
-                applyLockWindowFlags(settings.appLockEnabled)
+            LaunchedEffect(settings.appLockEnabled, settings.allowScreenshots) {
+                applyWindowPrivacyFlags(settings.appLockEnabled, settings.allowScreenshots)
                 if (!settings.appLockEnabled) _locked.value = false
             }
 
@@ -224,14 +224,15 @@ class MainActivity : FragmentActivity() {
         backgroundAt = 0L
     }
 
-    private fun applyLockWindowFlags(enabled: Boolean) {
-        if (enabled) {
+    private fun applyWindowPrivacyFlags(appLockEnabled: Boolean, allowScreenshots: Boolean) {
+        val secure = appLockEnabled || !allowScreenshots
+        if (secure) {
             window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
         } else {
             window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            setRecentsScreenshotEnabled(!enabled)
+            setRecentsScreenshotEnabled(!secure)
         }
     }
 

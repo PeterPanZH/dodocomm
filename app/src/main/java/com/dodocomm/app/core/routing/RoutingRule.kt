@@ -104,17 +104,19 @@ object RoutingEngine {
         }
         val matchedTargets = LinkedHashSet<String>()
         var matched = false
+        var allowFallback = false
         for (rule in rules) {
             if (rule.source != source) continue
             if (!rule.enabled || !rule.matches(context)) continue
             matched = true
             matchedTargets += rule.targetChannelIds
+            allowFallback = allowFallback || rule.fallbackToDefault
             if (!rule.continueMatching) break
         }
         if (!matched) return defaults
         val selected = activeChannels.filter { it.id in matchedTargets }
         return if (selected.isEmpty()) {
-            if (rules.any { it.source == source && it.matches(context) && it.fallbackToDefault }) defaults else emptyList()
+            if (allowFallback) defaults else emptyList()
         } else {
             selected
         }

@@ -37,8 +37,7 @@ class SmsReceiver : BroadcastReceiver() {
                     val payload = SmsParser.parse(appContext, intent) ?: return@withTimeout
                     Log.i(
                         TAG,
-                        "收到短信 sender=${payload.sender} subId=${payload.subscriptionId} " +
-                            "sim=${payload.simLabel} length=${payload.body.length}",
+                        "收到短信 subId=${payload.subscriptionId} length=${payload.body.length}",
                     )
                     if (appContext.appContainer.remoteCommandHandler.handle(payload)) {
                         Log.i(TAG, "已处理远程签名短信，不进入普通转发")

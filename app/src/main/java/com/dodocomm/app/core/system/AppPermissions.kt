@@ -25,11 +25,7 @@ object AppPermissions {
     fun hasReadCallLog(context: Context): Boolean =
         ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED
 
-    fun hasNotificationAccess(context: Context): Boolean =
-        runCatching {
-            androidx.core.app.NotificationManagerCompat.getEnabledListenerPackages(context)
-                .contains(context.packageName)
-        }.getOrDefault(false)
+    fun hasNotificationAccess(context: Context): Boolean = NotificationAccess.isGranted(context)
 
     fun areNotificationsEnabled(context: Context): Boolean {
         val manager = context.getSystemService(android.app.NotificationManager::class.java) ?: return false

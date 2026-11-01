@@ -19,6 +19,7 @@ class ResumeWorker(
             if (settings.pauseUntil > 0L) {
                 container.settings.update { it.copy(pauseUntil = 0L) }
                 container.serviceController.refreshNotification()
+                runCatching { com.dodocomm.app.widget.WidgetUpdater.updateAll(applicationContext) }
                 Log.i("SMS2BARK", "临时暂停已自动恢复")
             }
             Result.success()

@@ -128,7 +128,7 @@ class WorkScheduler(context: Context) {
   Android 16 / 部分 OEM 定制系统在进程由后台（开机广播）拉起时可能拒绝 `startForegroundService`：此时不崩溃，改发一条
   「短信转发服务未自动恢复」提醒通知（alerts 渠道，点击打开 App 后在 MainActivity.onResume 的可见上下文里恢复服务）；
   短信广播接收与即时转发不受影响。
-- **WorkManager**：15 分钟维护任务（prune 500 条、补发、`startIfEnabled()` 自愈）；失败补发走网络约束的一次性任务 + 指数退避。
+- **WorkManager**：15 分钟维护任务（prune 记录上限（默认 500，可配置至 5000）、补发、`startIfEnabled()` 自愈）；失败补发走网络约束的一次性任务 + 指数退避。
 - **电池优化 / OEM 自启动**：由 UI 向导跳官方设置页（`core/system`），应用内不做任何 hack；**不使用**后台音频、无障碍、1px Activity、循环 Alarm。
 - 候选限制（如实说明）：Android 12+ 后台进程（含 WorkManager worker）里 `startForegroundService` 可能被系统拒绝，`start()` 会捕获并返回 `false`；此时短信接收+即时转发仍然工作，前台服务会在用户打开 App、开机或系统允许的时机恢复。
 

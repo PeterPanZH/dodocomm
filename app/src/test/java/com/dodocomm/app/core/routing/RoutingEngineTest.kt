@@ -49,6 +49,20 @@ class RoutingEngineTest {
     }
 
     @Test
+    fun `matched rule without targets falls back only when allowed`() {
+        val noFallback = RoutingRule(
+            id = "1",
+            name = "no target no fallback",
+            senderContains = "95588",
+            targetChannelIds = emptyList(),
+            fallbackToDefault = false,
+        )
+        assertEquals(emptyList<Any>(), RoutingEngine.targets(ctx(), listOf(noFallback), listOf(bark, ntfy)))
+        val fallback = noFallback.copy(fallbackToDefault = true)
+        assertEquals(listOf(bark, ntfy), RoutingEngine.targets(ctx(), listOf(fallback), listOf(bark, ntfy)))
+    }
+
+    @Test
     fun `first matching rule wins`() {
         val first = RoutingRule(id = "1", name = "first", senderContains = "95588", targetChannelIds = listOf("ntfy-1"))
         val second = RoutingRule(id = "2", name = "second", keywordContains = "验证码", targetChannelIds = listOf("bark"))
