@@ -195,8 +195,6 @@ fun EventSourcesSection(
                     )
                 }
             }
-            Spacer(Modifier.height(10.dp))
-            InfoNote("电话事件使用当前默认推送通道和路由规则；不会读取通话内容，也不会自动拨号。")
         }
 
         Column {
@@ -234,17 +232,6 @@ fun EventSourcesSection(
                     onClick = onOpenAppRules,
                 )
                 if (settings.notificationForwardEnabled) {
-                    RowDivider()
-                    SettingSwitchRow(
-                        title = "所有应用",
-                        checked = settings.notificationAllApps,
-                        onCheckedChange = viewModel::setNotificationAllApps,
-                        subtitle = if (settings.notificationAllApps) {
-                            "转发所有已安装应用的通知"
-                        } else {
-                            "只转发下方选中的应用"
-                        },
-                    )
                     RowDivider()
                     SettingSwitchRow(
                         title = "忽略常驻通知",

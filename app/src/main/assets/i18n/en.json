@@ -1113,5 +1113,7 @@
  "输入示例来电号码和通话类型，实时查看命中的第一条规则与最终目标。": "Enter a sample caller ID and call type to see the first rule hit versus the final goal in real time.",
  "应用通知变量": "App notification variables",
  "电话变量": "Call variables",
- "搜索应用名称或包名": "Search app name or package"
+ "搜索应用名称或包名": "Search app name or package",
+ "白名单为空时转发所有应用；白名单非空时只转发其中的应用。黑名单始终优先，且只用于通知转发。": "When the allowlist is empty, all apps are forwarded. A non-empty allowlist restricts forwarding to those apps. The blocklist always wins and is used only for notification forwarding.",
+ "为空时转发所有应用": "Empty means all apps"
 }

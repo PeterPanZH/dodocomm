@@ -21,7 +21,10 @@ object EventFilters {
 
     fun appAllowed(settings: AppSettings, packageName: String): Boolean {
         if (packageName in settings.notificationBlacklistPackages) return false
-        if (!settings.notificationAllApps && packageName !in settings.notificationSelectedPackages) return false
+        // Empty allowlist means "all apps"; a non-empty allowlist restricts it.
+        if (settings.notificationSelectedPackages.isNotEmpty() &&
+            packageName !in settings.notificationSelectedPackages
+        ) return false
         return true
     }
 

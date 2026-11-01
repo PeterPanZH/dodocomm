@@ -76,7 +76,7 @@
  "允许通知权限，并保留常驻通知。常驻通知是前台服务的官方形态，也是系统允许长期运行的必要条件。": "Permita el permiso de notificación y mantenga las notificaciones persistentes. Las notificaciones a residentes son la forma oficial de servicios de front-end y son una condición necesaria para que el sistema permita el funcionamiento a largo plazo.",
  "允许通知，保留常驻通知": "Permitir notificaciones, mantener las notificaciones persistentes",
  "先配置 Bark 服务器": "Configure el servidor Bark primero",
- "全部": "Todos",
+ "全部": "Todas",
  "关于": "Acerca de",
  "关键词黑名单": "Lista de bloqueo de palabras clave",
  "关闭常驻通知栏会停用前台服务，改为短信广播 + 每 15 分钟定时补发；后台可靠性会下降，但不需要常驻通知。后台隐藏只影响最近任务列表。": "Al cerrar la barra de notificaciones permanente, se desactivará el servicio de primer plano y se cambiará a transmisión de SMS + reenvío programado cada 15 minutos; la confiabilidad en segundo plano disminuirá, pero no se requiere notificación permanente. La ocultación del fondo solo afecta a la lista de tareas recientes.",
@@ -1113,5 +1113,7 @@
  "输入示例来电号码和通话类型，实时查看命中的第一条规则与最终目标。": "Ingrese un identificador de llamadas de muestra y un tipo de llamada para ver el primer cumplimiento de la regla versus el objetivo final en tiempo real.",
  "应用通知变量": "Variables de notificaciones",
  "电话变量": "Variables de llamada",
- "搜索应用名称或包名": "Buscar nombre o paquete de app"
+ "搜索应用名称或包名": "Buscar nombre o paquete de app",
+ "白名单为空时转发所有应用；白名单非空时只转发其中的应用。黑名单始终优先，且只用于通知转发。": "Si la lista de permitidos está vacía se reenvían todas las apps; si no, solo esas apps. La lista de bloqueados siempre tiene prioridad y solo se usa para notificaciones.",
+ "为空时转发所有应用": "Vacío significa todas las apps"
 }

@@ -80,17 +80,14 @@ fun AppNotificationRulesCard(viewModel: AppViewModel) {
     var pickerMode by rememberSaveable { mutableStateOf<String?>(null) }
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         SectionCard {
-            SettingSwitchRow(
-                title = "转发所有应用",
-                checked = settings.notificationAllApps,
-                onCheckedChange = viewModel::setNotificationAllApps,
-                subtitle = "关闭后只转发应用白名单中的应用",
-            )
-            RowDivider()
             SettingActionRow(
                 title = "应用白名单",
-                subtitle = "只转发这些应用的通知",
-                value = "${settings.notificationSelectedPackages.size} 个",
+                subtitle = "为空时转发所有应用",
+                value = if (settings.notificationSelectedPackages.isEmpty()) {
+                    "全部"
+                } else {
+                    "${settings.notificationSelectedPackages.size} 个"
+                },
                 onClick = { pickerMode = "whitelist" },
             )
             RowDivider()
@@ -101,7 +98,7 @@ fun AppNotificationRulesCard(viewModel: AppViewModel) {
                 onClick = { pickerMode = "blacklist" },
             )
         }
-        InfoNote("黑名单优先于白名单。应用列表只用于通知转发，不会读取通知以外的数据。")
+        InfoNote("白名单为空时转发所有应用；白名单非空时只转发其中的应用。黑名单始终优先，且只用于通知转发。")
     }
 
     pickerMode?.let { mode ->
