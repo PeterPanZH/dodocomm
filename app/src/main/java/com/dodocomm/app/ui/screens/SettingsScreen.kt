@@ -136,6 +136,8 @@ enum class SettingsSection(
     OVERVIEW("设置", "按类别管理所有设置", "overview"),
     PUSH("推送", "推送通道、路由与推送样式", "push"),
     EVENTS("事件与模板", "短信、来电与应用通知", "events"),
+    CALL_RULES("电话转发规则", "号码白名单与黑名单", "call_rules"),
+    APP_RULES("应用通知转发规则", "应用白名单与黑名单", "app_rules"),
     RULES("转发规则", "白名单、黑名单与关键词过滤", "rules"),
     PRIVACY("隐私与安全", "应用锁与本地数据保护", "privacy"),
     RELIABILITY("后台与可靠性", "常驻通知、开机恢复与电池优化", "reliability"),
@@ -184,6 +186,7 @@ private fun SettingsOverviewScreen(
     updateState: UpdateState,
     onNavigateSection: (SettingsSection) -> Unit,
     onNavigateAutomation: () -> Unit,
+    onNavigateChannels: () -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -197,11 +200,11 @@ private fun SettingsOverviewScreen(
         item(key = "overview_connection") {
             SectionCard {
                 OverviewRow(
-                    title = "推送",
-                    subtitle = "推送通道、路由与推送样式",
-                    value = "${settings.channels.count { it.enabled }} 个通道",
+                    title = "推送通道",
+                    subtitle = "Bark、ntfy、Telegram、Pushover、Email",
+                    value = "${settings.channels.count { it.enabled }} 个启用",
                     icon = Icons.Rounded.NotificationsActive,
-                    onClick = { onNavigateSection(SettingsSection.PUSH) },
+                    onClick = onNavigateChannels,
                 )
                 RowDivider()
                 OverviewRow(
@@ -313,6 +316,7 @@ fun SettingsScreen(
     viewModel: AppViewModel,
     onNavigateGuide: () -> Unit,
     onNavigateTemplate: () -> Unit,
+    onNavigateTemplateSource: (com.dodocomm.app.core.model.ForwardSource) -> Unit = {},
     onNavigateChannels: () -> Unit = {},
     onNavigateRouting: () -> Unit = {},
     onNavigateRoutingSource: (com.dodocomm.app.core.model.ForwardSource) -> Unit = {},
@@ -391,6 +395,7 @@ fun SettingsScreen(
             updateState = updateState,
             onNavigateSection = onNavigateSection,
             onNavigateAutomation = onNavigateAutomation,
+            onNavigateChannels = onNavigateChannels,
         )
         return
     }
@@ -414,7 +419,6 @@ fun SettingsScreen(
                     settings = settings,
                     viewModel = viewModel,
                     onNavigateChannels = onNavigateChannels,
-                    onNavigateRouting = onNavigateRouting,
                 )
             }
         }
@@ -426,6 +430,9 @@ fun SettingsScreen(
                     onOpenSmsTemplate = onNavigateTemplate,
                     onOpenSmsRules = { onNavigateSection(SettingsSection.RULES) },
                     onOpenRouting = onNavigateRoutingSource,
+                    onOpenCallRules = { onNavigateSection(SettingsSection.CALL_RULES) },
+                    onOpenAppRules = { onNavigateSection(SettingsSection.APP_RULES) },
+                    onOpenTemplate = onNavigateTemplateSource,
                 )
             }
         }
@@ -439,6 +446,18 @@ fun SettingsScreen(
             }
             item(key = "rules_card", contentType = "card") {
                 ForwardingRulesCard(settings = settings, viewModel = viewModel)
+            }
+        }
+
+        if (section == SettingsSection.CALL_RULES) {
+            item(key = "call_rules_card", contentType = "card") {
+                CallForwardingRulesCard(viewModel = viewModel)
+            }
+        }
+
+        if (section == SettingsSection.APP_RULES) {
+            item(key = "app_rules_card", contentType = "card") {
+                AppNotificationRulesCard(viewModel = viewModel)
             }
         }
 
@@ -960,7 +979,6 @@ private fun PushStyleCard(
     settings: AppSettings,
     viewModel: AppViewModel,
     onNavigateChannels: () -> Unit,
-    onNavigateRouting: () -> Unit,
 ) {
     SectionCard {
         SettingActionRow(
@@ -969,14 +987,6 @@ private fun PushStyleCard(
             value = "${settings.channels.count { it.enabled }} 个启用",
             icon = Icons.Rounded.NotificationsActive,
             onClick = onNavigateChannels,
-        )
-        RowDivider()
-        SettingActionRow(
-            title = "路由规则",
-            subtitle = "按发送者、关键词、SIM 或时间段选择通道",
-            value = if (settings.routingRules.isEmpty()) "默认" else "${settings.routingRules.size} 条",
-            icon = Icons.Rounded.FilterAlt,
-            onClick = onNavigateRouting,
         )
     }
 }

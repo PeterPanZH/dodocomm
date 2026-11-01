@@ -66,9 +66,9 @@ fun RoutingRulesScreen(viewModel: AppViewModel, onBack: () -> Unit) {
     }
     val sourceRules = settings.routingRules.filter { it.source == selectedSource }
     val sourceLabel = when (selectedSource) {
-        ForwardSource.SMS -> "短信"
-        ForwardSource.CALL -> "电话"
-        ForwardSource.APP_NOTIFICATION -> "应用通知"
+        ForwardSource.SMS -> AppStrings.translate("短信")
+        ForwardSource.CALL -> AppStrings.translate("电话")
+        ForwardSource.APP_NOTIFICATION -> AppStrings.translate("应用通知")
     }
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
     var testSender by rememberSaveable { mutableStateOf("") }
@@ -101,29 +101,11 @@ fun RoutingRulesScreen(viewModel: AppViewModel, onBack: () -> Unit) {
             }
             Spacer(Modifier.width(4.dp))
             Column(Modifier.weight(1f)) {
-                Text("路由规则", style = MaterialTheme.typography.titleLarge)
+                Text("${sourceLabel}路由规则", style = MaterialTheme.typography.titleLarge)
                 Text(
                     "按顺序匹配；首条命中后默认停止",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            listOf(
-                ForwardSource.SMS to "短信",
-                ForwardSource.CALL to "电话",
-                ForwardSource.APP_NOTIFICATION to "应用通知",
-            ).forEach { (source, label) ->
-                FilterChip(
-                    selected = selectedSource == source,
-                    onClick = { selectedSource = source },
-                    label = { Text(label) },
                 )
             }
         }
@@ -220,7 +202,7 @@ fun RoutingRulesScreen(viewModel: AppViewModel, onBack: () -> Unit) {
                 if (sourceRules.isEmpty()) {
                     SectionCard {
                         Text(
-                            text = "还没有规则，所有短信走默认目标。",
+                            text = "还没有规则，所有${sourceLabel}走默认目标。",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

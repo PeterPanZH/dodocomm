@@ -206,7 +206,14 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                 SettingsScreen(
                     viewModel = viewModel,
                     onNavigateGuide = { navController.navigate(Routes.GUIDE) },
-                    onNavigateTemplate = { navController.navigate(Routes.TEMPLATE) },
+                    onNavigateTemplate = {
+                        viewModel.setTemplateSourceForNextScreen(com.dodocomm.app.core.model.ForwardSource.SMS)
+                        navController.navigate(Routes.TEMPLATE)
+                    },
+                    onNavigateTemplateSource = { source ->
+                        viewModel.setTemplateSourceForNextScreen(source)
+                        navController.navigate(Routes.TEMPLATE)
+                    },
                     onNavigateChannels = { navController.navigate(Routes.CHANNELS) },
                     onNavigateRouting = { navController.navigate(Routes.ROUTING) },
                     onNavigateRoutingSource = { source ->
@@ -235,7 +242,14 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                     SettingsScreen(
                         viewModel = viewModel,
                         onNavigateGuide = { navController.navigate(Routes.GUIDE) },
-                        onNavigateTemplate = { navController.navigate(Routes.TEMPLATE) },
+                        onNavigateTemplate = {
+                        viewModel.setTemplateSourceForNextScreen(com.dodocomm.app.core.model.ForwardSource.SMS)
+                        navController.navigate(Routes.TEMPLATE)
+                    },
+                    onNavigateTemplateSource = { source ->
+                        viewModel.setTemplateSourceForNextScreen(source)
+                        navController.navigate(Routes.TEMPLATE)
+                    },
                         onNavigateChannels = { navController.navigate(Routes.CHANNELS) },
                         onNavigateRouting = { navController.navigate(Routes.ROUTING) },
                         onNavigateRoutingSource = { source ->
@@ -378,6 +392,8 @@ fun Sms2BarkRoot(viewModel: AppViewModel) {
                 TemplateEditorScreen(
                     viewModel = viewModel,
                     onBack = { navController.popBackStack() },
+                    source = viewModel.consumeTemplateSource()
+                        ?: com.dodocomm.app.core.model.ForwardSource.SMS,
                 )
             }
         }

@@ -74,10 +74,17 @@ class DodoNotificationListener : NotificationListenerService() {
     companion object {
         const val TAG = "SMS2BARK"
 
-        fun isAccessGranted(context: Context): Boolean =
-            runCatching {
-                NotificationManagerCompat.getEnabledListenerPackages(context)
-                    .contains(context.packageName)
-            }.getOrDefault(false)
+        fun isAccessGranted(context: Context): Boolean = runCatching {
+            val enabled = NotificationManagerCompat.getEnabledListenerPackages(context)
+                .contains(context.packageName)
+            if (enabled) return@runCatching true
+            // Fallback for OEMs whose package list lags behind the secure
+            // setting, especially immediately after granting access.
+            val raw = android.provider.Settings.Secure.getString(
+                context.contentResolver,
+                "enabled_notification_listeners",
+            ).orEmpty()
+            raw.contains(context.packageName)
+        }.getOrDefault(false)
     }
 }

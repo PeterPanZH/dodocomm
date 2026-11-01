@@ -52,6 +52,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.runtime.DisposableEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -69,8 +73,6 @@ import com.dodocomm.app.ui.components.Text
 import com.dodocomm.app.ui.components.TokenChip
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-
-private data class InstalledApp(val label: String, val packageName: String)
 
 private fun openAppDetails(context: android.content.Context) {
     ExternalNavigation.suppressNextLeave()
@@ -90,10 +92,30 @@ fun EventSourcesSection(
     onOpenSmsTemplate: () -> Unit,
     onOpenSmsRules: () -> Unit,
     onOpenRouting: (com.dodocomm.app.core.model.ForwardSource) -> Unit,
+    onOpenCallRules: () -> Unit,
+    onOpenAppRules: () -> Unit,
+    onOpenTemplate: (com.dodocomm.app.core.model.ForwardSource) -> Unit,
 ) {
     val context = LocalContext.current
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     var permissionEpoch by remember { mutableStateOf(0) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                permissionEpoch++
+                viewModel.refreshSystemState()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    val phonePermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { permissionEpoch++ }
+    val callLogPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { permissionEpoch++ }
     val hasPhonePermission = remember(permissionEpoch) {
         ContextCompat.checkSelfPermission(
             context,
@@ -106,9 +128,9 @@ fun EventSourcesSection(
             Manifest.permission.READ_CALL_LOG,
         ) == PackageManager.PERMISSION_GRANTED
     }
-    val notificationAccess = DodoNotificationListener.isAccessGranted(context)
-    var appPickerMode by rememberSaveable { mutableStateOf<String?>(null) }
-    var templateMode by rememberSaveable { mutableStateOf<String?>(null) }
+    val notificationAccess = remember(permissionEpoch) {
+        DodoNotificationListener.isAccessGranted(context)
+    }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Column {
@@ -166,7 +188,7 @@ fun EventSourcesSection(
                     subtitle = "来电与未接来电的标题和正文",
                     value = "编辑",
                     icon = Icons.Rounded.Edit,
-                    onClick = { templateMode = "call" },
+                    onClick = { onOpenTemplate(com.dodocomm.app.core.model.ForwardSource.CALL) },
                 )
                 RowDivider()
                 SettingActionRow(
@@ -175,6 +197,14 @@ fun EventSourcesSection(
                     value = "${settings.routingRules.count { it.source == com.dodocomm.app.core.model.ForwardSource.CALL }} 条",
                     icon = Icons.Rounded.FilterAlt,
                     onClick = { onOpenRouting(com.dodocomm.app.core.model.ForwardSource.CALL) },
+                )
+                RowDivider()
+                SettingActionRow(
+                    title = "电话转发规则",
+                    subtitle = "号码白名单与黑名单",
+                    value = "${settings.callWhitelist.size + settings.callBlacklist.size} 条",
+                    icon = Icons.Rounded.FilterAlt,
+                    onClick = onOpenCallRules,
                 )
                 if (settings.phoneForwardEnabled) {
                     RowDivider()
@@ -202,12 +232,16 @@ fun EventSourcesSection(
                         value = if (hasPhonePermission) "已授权" else "去授权",
                         icon = Icons.Rounded.Security,
                         onClick = {
-                            // Open App info → Permissions instead of launching a
-                            // runtime request. Some OEM permission controllers
-                            // close the app when READ_PHONE_STATE is requested
-                            // from a secondary settings screen; app details is
-                            // available on every Android device and never throws.
-                            openAppDetails(context)
+                            ExternalNavigation.suppressNextLeave()
+                            runCatching {
+                                phonePermissionLauncher.launch(Manifest.permission.READ_PHONE_STATE)
+                            }.onFailure {
+                                openAppDetails(context)
+                                viewModel.postSnackbar(
+                                    "无法打开权限请求，请在应用详情中手动授权",
+                                    isError = true,
+                                )
+                            }
                         },
                     )
                     if (!hasCallLogPermission) {
@@ -217,25 +251,16 @@ fun EventSourcesSection(
                             subtitle = "授予通话记录权限后可在推送中显示号码",
                             value = "去授权",
                             icon = Icons.Rounded.Security,
-                            onClick = { openAppDetails(context) },
+                            onClick = {
+                                ExternalNavigation.suppressNextLeave()
+                                runCatching {
+                                    callLogPermissionLauncher.launch(Manifest.permission.READ_CALL_LOG)
+                                }.onFailure { openAppDetails(context) }
+                            },
                         )
                         Spacer(Modifier.height(8.dp))
                         InfoNote("未授予通话记录权限时，系统可能不提供来电号码；来电事件仍会转发，号码会显示为未知。")
                     }
-                    RowDivider()
-                    FilterListEditor(
-                        title = "号码白名单",
-                        value = settings.callWhitelist,
-                        onCommit = viewModel::setCallWhitelist,
-                        placeholder = "留空表示不限制；例如 +8613800138000",
-                    )
-                    Spacer(Modifier.height(10.dp))
-                    FilterListEditor(
-                        title = "号码黑名单",
-                        value = settings.callBlacklist,
-                        onCommit = viewModel::setCallBlacklist,
-                        placeholder = "这些号码的来电不会推送",
-                    )
                     RowDivider()
                     SettingActionRow(
                         title = "测试电话事件",
@@ -266,7 +291,7 @@ fun EventSourcesSection(
                     subtitle = "通知标题和正文的展示方式",
                     value = "编辑",
                     icon = Icons.Rounded.Edit,
-                    onClick = { templateMode = "notification" },
+                    onClick = { onOpenTemplate(com.dodocomm.app.core.model.ForwardSource.APP_NOTIFICATION) },
                 )
                 RowDivider()
                 SettingActionRow(
@@ -291,21 +316,13 @@ fun EventSourcesSection(
                     if (!settings.notificationAllApps) {
                         RowDivider()
                         SettingActionRow(
-                            title = "应用白名单",
-                            subtitle = "只转发选中应用的通知",
-                            value = "${settings.notificationSelectedPackages.size} 个",
+                            title = "应用转发规则",
+                            subtitle = "应用白名单与黑名单",
+                            value = "${settings.notificationSelectedPackages.size + settings.notificationBlacklistPackages.size} 个",
                             icon = Icons.Rounded.Badge,
-                            onClick = { appPickerMode = "whitelist" },
+                            onClick = onOpenAppRules,
                         )
                     }
-                    RowDivider()
-                    SettingActionRow(
-                        title = "应用黑名单",
-                        subtitle = "这些应用的通知永远不转发",
-                        value = "${settings.notificationBlacklistPackages.size} 个",
-                        icon = Icons.Rounded.Badge,
-                        onClick = { appPickerMode = "blacklist" },
-                    )
                     RowDivider()
                     SettingSwitchRow(
                         title = "忽略常驻通知",
@@ -354,212 +371,4 @@ fun EventSourcesSection(
             InfoNote("应用通知转发依赖系统的通知使用权；关闭授权后服务会自动停止捕获。通知内容只发送到你配置的推送通道，不经过应用服务器。")
         }
     }
-
-    appPickerMode?.let { mode ->
-        AppPickerDialog(
-            title = if (mode == "blacklist") "选择应用黑名单" else "选择应用白名单",
-            selected = if (mode == "blacklist") {
-                settings.notificationBlacklistPackages.toSet()
-            } else {
-                settings.notificationSelectedPackages.toSet()
-            },
-            onDismiss = { appPickerMode = null },
-            onConfirm = { packages ->
-                if (mode == "blacklist") {
-                    viewModel.setNotificationBlacklistPackages(packages.toList())
-                } else {
-                    viewModel.setNotificationSelectedPackages(packages.toList())
-                }
-                appPickerMode = null
-            },
-        )
-    }
-
-    templateMode?.let { mode ->
-        EventTemplateDialog(
-            mode = mode,
-            initialTitle = if (mode == "call") settings.callTitleTemplate else settings.notificationTitleTemplate,
-            initialBody = if (mode == "call") settings.callBodyTemplate else settings.notificationBodyTemplate,
-            onDismiss = { templateMode = null },
-            onSave = { title, body ->
-                if (mode == "call") {
-                    viewModel.setCallTemplates(title, body)
-                } else {
-                    viewModel.setNotificationTemplates(title, body)
-                }
-                templateMode = null
-            },
-        )
-    }
-}
-
-@Composable
-private fun EventTemplateDialog(
-    mode: String,
-    initialTitle: String,
-    initialBody: String,
-    onDismiss: () -> Unit,
-    onSave: (String, String) -> Unit,
-) {
-    var title by rememberSaveable { mutableStateOf(initialTitle) }
-    var body by rememberSaveable { mutableStateOf(initialBody) }
-    val titleTokens = if (mode == "call") {
-        listOf("{type}", "{sender}", "{time}", "{device}")
-    } else {
-        listOf("{app}", "{title}", "{time}", "{device}")
-    }
-    val bodyTokens = if (mode == "call") {
-        listOf("{type}", "{sender}", "{number}", "{time}", "{device}")
-    } else {
-        listOf("{app}", "{package}", "{title}", "{body}", "{time}", "{device}")
-    }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(if (mode == "call") "电话推送模板" else "应用通知推送模板") },
-        text = {
-            Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .imePadding(),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                androidx.compose.material3.OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("推送标题") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    titleTokens.forEach { token ->
-                        TokenChip(text = token, onClick = { title += token })
-                    }
-                }
-                androidx.compose.material3.OutlinedTextField(
-                    value = body,
-                    onValueChange = { body = it },
-                    label = { Text("推送正文") },
-                    minLines = 4,
-                    maxLines = 8,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    bodyTokens.forEach { token ->
-                        TokenChip(text = token, onClick = { body += token })
-                    }
-                }
-                Text(
-                    text = "预览",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                androidx.compose.material3.Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Column(Modifier.padding(12.dp)) {
-                        Text(title.ifBlank { "（空标题）" }, style = MaterialTheme.typography.titleSmall)
-                        Spacer(Modifier.height(3.dp))
-                        Text(
-                            body.ifBlank { "（空正文）" },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onSave(title, body) }) { Text("保存") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
-        },
-    )
-}
-
-@Composable
-private fun AppPickerDialog(
-    title: String,
-    selected: Set<String>,
-    onDismiss: () -> Unit,
-    onConfirm: (Set<String>) -> Unit,
-) {
-    val context = LocalContext.current
-    var chosen by remember { mutableStateOf(selected) }
-    var apps by remember { mutableStateOf<List<InstalledApp>>(emptyList()) }
-    var loading by remember { mutableStateOf(true) }
-
-    LaunchedEffect(Unit) {
-        val loaded = withContext(Dispatchers.IO) {
-            val packageManager = context.packageManager
-            val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
-            val activities = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                packageManager.queryIntentActivities(
-                    intent,
-                    PackageManager.ResolveInfoFlags.of(0L),
-                )
-            } else {
-                @Suppress("DEPRECATION")
-                packageManager.queryIntentActivities(intent, 0)
-            }
-            activities.mapNotNull { resolveInfo ->
-                val packageName = resolveInfo.activityInfo?.packageName ?: return@mapNotNull null
-                val label = resolveInfo.loadLabel(packageManager).toString()
-                InstalledApp(label, packageName)
-            }.distinctBy { it.packageName }.sortedBy { it.label.lowercase() }
-        }
-        apps = loaded
-        loading = false
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            if (loading) {
-                Text("正在读取应用列表…")
-            } else {
-                LazyColumn(modifier = Modifier.heightIn(max = 420.dp)) {
-                    items(apps, key = { it.packageName }) { app ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Checkbox(
-                                checked = app.packageName in chosen,
-                                onCheckedChange = { checked ->
-                                    chosen = if (checked) chosen + app.packageName else chosen - app.packageName
-                                },
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Column {
-                                Text(app.label, style = MaterialTheme.typography.bodyMedium)
-                                Text(
-                                    app.packageName,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(chosen) }) { Text("保存") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
-        },
-    )
 }

@@ -446,6 +446,18 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _routingSourceForNextScreen = kotlinx.coroutines.flow.MutableStateFlow<com.dodocomm.app.core.model.ForwardSource?>(null)
 
+    private val _templateSourceForNextScreen = kotlinx.coroutines.flow.MutableStateFlow<com.dodocomm.app.core.model.ForwardSource?>(null)
+
+    fun setTemplateSourceForNextScreen(source: com.dodocomm.app.core.model.ForwardSource) {
+        _templateSourceForNextScreen.value = source
+    }
+
+    fun consumeTemplateSource(): com.dodocomm.app.core.model.ForwardSource? {
+        val value = _templateSourceForNextScreen.value
+        _templateSourceForNextScreen.value = null
+        return value
+    }
+
     fun setRoutingSourceForNextScreen(source: com.dodocomm.app.core.model.ForwardSource) {
         _routingSourceForNextScreen.value = source
     }

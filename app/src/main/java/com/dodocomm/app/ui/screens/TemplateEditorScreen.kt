@@ -49,6 +49,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dodocomm.app.core.model.ForwardSource
 import com.dodocomm.app.core.model.SmsPayload
 import com.dodocomm.app.core.settings.AppSettings
 import com.dodocomm.app.core.system.DeviceName
@@ -84,9 +85,53 @@ private val templateVariables = listOf(
 fun TemplateEditorScreen(
     viewModel: AppViewModel,
     onBack: () -> Unit,
+    source: ForwardSource = ForwardSource.SMS,
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val testState by viewModel.templateTestState.collectAsStateWithLifecycle()
+    val initialTitle = when (source) {
+        ForwardSource.SMS -> settings.titleTemplate
+        ForwardSource.CALL -> settings.callTitleTemplate
+        ForwardSource.APP_NOTIFICATION -> settings.notificationTitleTemplate
+    }
+    val initialBody = when (source) {
+        ForwardSource.SMS -> settings.bodyTemplate
+        ForwardSource.CALL -> settings.callBodyTemplate
+        ForwardSource.APP_NOTIFICATION -> settings.notificationBodyTemplate
+    }
+    val screenTitle = when (source) {
+        ForwardSource.SMS -> "短信模板"
+        ForwardSource.CALL -> "电话模板"
+        ForwardSource.APP_NOTIFICATION -> "应用通知模板"
+    }
+    val screenSubtitle = when (source) {
+        ForwardSource.SMS -> "编辑短信标题、正文和来源变量"
+        ForwardSource.CALL -> "编辑来电与未接来电的标题、正文"
+        ForwardSource.APP_NOTIFICATION -> "编辑应用通知的标题、正文"
+    }
+    val variables = when (source) {
+        ForwardSource.SMS -> templateVariables
+        ForwardSource.CALL -> listOf(
+            TemplateVariable("{type}", "来电类型", "来电 / 未接来电"),
+            TemplateVariable("{sender}", "来电号码", "13800138000"),
+            TemplateVariable("{number}", "来电号码", "13800138000"),
+            TemplateVariable("{time}", "来电时间", "14:32"),
+            TemplateVariable("{date}", "来电日期", "2026-10-31"),
+            TemplateVariable("{datetime}", "日期和时间", "2026-10-31 14:32"),
+            TemplateVariable("{device}", "设备名称", "Pixel 9"),
+        )
+        ForwardSource.APP_NOTIFICATION -> listOf(
+            TemplateVariable("{app}", "应用名称", "微信"),
+            TemplateVariable("{package}", "应用包名", "com.tencent.mm"),
+            TemplateVariable("{title}", "通知标题", "新消息"),
+            TemplateVariable("{body}", "通知正文", "你好", bodyOnly = true),
+            TemplateVariable("{text}", "通知正文", "你好", bodyOnly = true),
+            TemplateVariable("{time}", "通知时间", "14:32"),
+            TemplateVariable("{date}", "通知日期", "2026-10-31"),
+            TemplateVariable("{datetime}", "日期和时间", "2026-10-31 14:32"),
+            TemplateVariable("{device}", "设备名称", "Pixel 9"),
+        )
+    }
     val context = LocalContext.current
     val systemDeviceName = rememberSaveable { DeviceName.resolve(context) }
     var showHelp by rememberSaveable { mutableStateOf(false) }
@@ -95,33 +140,33 @@ fun TemplateEditorScreen(
     var titleValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(
             TextFieldValue(
-                settings.titleTemplate,
-                selection = TextRange(settings.titleTemplate.length),
+                initialTitle,
+                selection = TextRange(initialTitle.length),
             ),
         )
     }
     var bodyValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(
             TextFieldValue(
-                settings.bodyTemplate,
-                selection = TextRange(settings.bodyTemplate.length),
+                initialBody,
+                selection = TextRange(initialBody.length),
             ),
         )
     }
 
-    LaunchedEffect(settings.titleTemplate) {
-        if (titleValue.text != settings.titleTemplate) {
-            titleValue = TextFieldValue(settings.titleTemplate)
+    LaunchedEffect(initialTitle) {
+        if (titleValue.text != initialTitle) {
+            titleValue = TextFieldValue(initialTitle)
         }
     }
-    LaunchedEffect(settings.bodyTemplate) {
-        if (bodyValue.text != settings.bodyTemplate) {
-            bodyValue = TextFieldValue(settings.bodyTemplate)
+    LaunchedEffect(initialBody) {
+        if (bodyValue.text != initialBody) {
+            bodyValue = TextFieldValue(initialBody)
         }
     }
 
-    val titleTokens = templateVariables.filter { !it.bodyOnly }
-    val bodyTokens = templateVariables
+    val titleTokens = variables.filter { !it.bodyOnly }
+    val bodyTokens = variables
 
     fun insertInto(
         current: TextFieldValue,
@@ -134,17 +179,25 @@ fun TemplateEditorScreen(
         onNewValue(TextFieldValue(newText, selection = TextRange(start + token.length)), newText)
     }
 
+    fun saveTemplates(titleText: String, bodyText: String) {
+        when (source) {
+            ForwardSource.SMS -> viewModel.setTitleTemplate(titleText).also { viewModel.setBodyTemplate(bodyText) }
+            ForwardSource.CALL -> viewModel.setCallTemplates(titleText, bodyText)
+            ForwardSource.APP_NOTIFICATION -> viewModel.setNotificationTemplates(titleText, bodyText)
+        }
+    }
+
     fun insertTitleToken(token: String) {
         insertInto(titleValue, token) { value, text ->
             titleValue = value
-            viewModel.setTitleTemplate(text)
+            saveTemplates(text, bodyValue.text)
         }
     }
 
     fun insertBodyToken(token: String) {
         insertInto(bodyValue, token) { value, text ->
             bodyValue = value
-            viewModel.setBodyTemplate(text)
+            saveTemplates(titleValue.text, text)
         }
     }
 
@@ -165,12 +218,12 @@ fun TemplateEditorScreen(
             Spacer(Modifier.width(4.dp))
             Column(Modifier.weight(1f)) {
                 Text(
-                    text = "推送内容",
+                    text = screenTitle,
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onBackground,
                 )
                 Text(
-                    text = "编辑标题、正文和来源变量",
+                    text = screenSubtitle,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -214,10 +267,18 @@ fun TemplateEditorScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .onFocusChanged { focus ->
-                            if (!focus.isFocused) viewModel.setTitleTemplate(titleValue.text)
+                            if (!focus.isFocused) saveTemplates(titleValue.text, bodyValue.text)
                         },
                     textStyle = MaterialTheme.typography.bodyLarge,
-                    placeholder = { Text("{device} · {sender}") },
+                    placeholder = {
+                        Text(
+                            when (source) {
+                                ForwardSource.SMS -> "{device} · {sender}"
+                                ForwardSource.CALL -> "{type} · {sender}"
+                                ForwardSource.APP_NOTIFICATION -> "📱 {app}"
+                            },
+                        )
+                    },
                     supportingText = { Text("显示在通知的第一行") },
                     singleLine = true,
                     shape = FieldShape,
@@ -256,11 +317,19 @@ fun TemplateEditorScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .onFocusChanged { focus ->
-                            if (!focus.isFocused) viewModel.setBodyTemplate(bodyValue.text)
+                            if (!focus.isFocused) saveTemplates(titleValue.text, bodyValue.text)
                         },
                     textStyle = MaterialTheme.typography.bodyLarge,
                     placeholder = { Text("{body}\n\n{datetime} · {sim} · {number}") },
-                    supportingText = { Text("{body} 是短信原文；不含 {body} 时原文仍会保留") },
+                    supportingText = {
+                        Text(
+                            when (source) {
+                                ForwardSource.SMS -> "{body} 是短信原文；不含 {body} 时原文仍会保留"
+                                ForwardSource.CALL -> "变量：{type} {sender} {time} {device}"
+                                ForwardSource.APP_NOTIFICATION -> "变量：{app} {title} {body} {time} {device}"
+                            },
+                        )
+                    },
                     singleLine = false,
                     minLines = 5,
                     maxLines = 10,
@@ -294,20 +363,34 @@ fun TemplateEditorScreen(
             }
 
             Spacer(Modifier.height(16.dp))
-            TemplatePreviewCard(
-                titleTemplate = settings.titleTemplate,
-                bodyTemplate = settings.bodyTemplate,
-                deviceName = settings.deviceName.ifBlank { systemDeviceName },
-            )
+            if (source == ForwardSource.SMS) {
+                TemplatePreviewCard(
+                    titleTemplate = settings.titleTemplate,
+                    bodyTemplate = settings.bodyTemplate,
+                    deviceName = settings.deviceName.ifBlank { systemDeviceName },
+                )
+            } else {
+                TemplatePreviewCard(
+                    titleTemplate = titleValue.text,
+                    bodyTemplate = bodyValue.text,
+                    deviceName = settings.deviceName.ifBlank { systemDeviceName },
+                )
+            }
 
             Spacer(Modifier.height(14.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 FilledTonalButton(
-                    onClick = viewModel::sendTemplateTestPush,
-                    enabled = testState !is TestPushState.Loading,
+                    onClick = {
+                        when (source) {
+                            ForwardSource.SMS -> viewModel.sendTemplateTestPush()
+                            ForwardSource.CALL -> viewModel.testPhoneEvent()
+                            ForwardSource.APP_NOTIFICATION -> viewModel.testNotificationEvent()
+                        }
+                    },
+                    enabled = source != ForwardSource.SMS || testState !is TestPushState.Loading,
                     shape = RoundedCornerShape(14.dp),
                 ) {
-                    if (testState is TestPushState.Loading) {
+                    if (source == ForwardSource.SMS && testState is TestPushState.Loading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(16.dp),
                             strokeWidth = 2.dp,
@@ -316,18 +399,20 @@ fun TemplateEditorScreen(
                         Spacer(Modifier.width(8.dp))
                         Text("正在发送…")
                     } else {
-                        Text("测试模板推送")
+                        Text(if (source == ForwardSource.SMS) "测试模板推送" else "发送测试事件")
                     }
                 }
                 Spacer(Modifier.width(10.dp))
                 Text(
-                    text = "用当前模板发送一条示例短信",
+                    text = if (source == ForwardSource.SMS) "用当前模板发送一条示例短信" else "使用当前模板发送一条测试事件",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),
                 )
             }
-            if (testState is TestPushState.Success || testState is TestPushState.Failure) {
+            if (source == ForwardSource.SMS &&
+                (testState is TestPushState.Success || testState is TestPushState.Failure)
+            ) {
                 Spacer(Modifier.height(8.dp))
                 Text(
                     text = when (val state = testState) {
@@ -357,8 +442,20 @@ fun TemplateEditorScreen(
             text = { Text("标题和消息体会一起恢复为推荐模板。") },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.setTitleTemplate(AppSettings.DEFAULT_TITLE_TEMPLATE)
-                    viewModel.setBodyTemplate(AppSettings.DEFAULT_BODY_TEMPLATE)
+                    when (source) {
+                        ForwardSource.SMS -> {
+                            viewModel.setTitleTemplate(AppSettings.DEFAULT_TITLE_TEMPLATE)
+                            viewModel.setBodyTemplate(AppSettings.DEFAULT_BODY_TEMPLATE)
+                        }
+                        ForwardSource.CALL -> viewModel.setCallTemplates(
+                            AppSettings().callTitleTemplate,
+                            AppSettings().callBodyTemplate,
+                        )
+                        ForwardSource.APP_NOTIFICATION -> viewModel.setNotificationTemplates(
+                            AppSettings().notificationTitleTemplate,
+                            AppSettings().notificationBodyTemplate,
+                        )
+                    }
                     titleValue = TextFieldValue(AppSettings.DEFAULT_TITLE_TEMPLATE)
                     bodyValue = TextFieldValue(AppSettings.DEFAULT_BODY_TEMPLATE)
                     showResetDialog = false
