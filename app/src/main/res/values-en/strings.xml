@@ -24,4 +24,12 @@
     <string name="widget_desc_wide">4×2 wide card</string>
     <string name="widget_desc_bar">4×1 status bar</string>
     <string name="widget_desc_tall">2×3 tall card</string>
+    <string name="event_unknown_number">Unknown number</string>
+    <string name="event_call_incoming_title">📞 Incoming call</string>
+    <string name="event_call_missed_title">📞 Missed call</string>
+    <string name="event_call_body">Number: %1$s
+Time: %2$s</string>
+    <string name="event_notification_title">📱 %1$s</string>
+    <string name="event_notification_empty">(no content)</string>
+    <string name="event_no_channel">No push channel is available. Configure one first.</string>
 </resources>

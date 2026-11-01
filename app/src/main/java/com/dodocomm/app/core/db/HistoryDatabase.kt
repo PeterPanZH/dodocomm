@@ -38,6 +38,7 @@ class HistoryDatabase(
                 bark_body TEXT,
                 bark_response TEXT,
                 target_channels TEXT,
+                source TEXT NOT NULL DEFAULT 'SMS',
                 dedupe_key TEXT NOT NULL UNIQUE
             )
             """.trimIndent(),
@@ -54,6 +55,9 @@ class HistoryDatabase(
         }
         if (oldVersion < 3) {
             db.execSQL("ALTER TABLE $TABLE_RECORDS ADD COLUMN target_channels TEXT")
+        }
+        if (oldVersion < 4) {
+            db.execSQL("ALTER TABLE $TABLE_RECORDS ADD COLUMN source TEXT NOT NULL DEFAULT 'SMS'")
         }
     }
 
@@ -117,7 +121,7 @@ class HistoryDatabase(
 
     companion object {
         const val DATABASE_NAME = "sms2bark.db"
-        const val DATABASE_VERSION = 3
+        const val DATABASE_VERSION = 4
         const val TABLE_RECORDS = "records"
     }
 }

@@ -24,4 +24,12 @@
     <string name="widget_desc_wide">4×2 横向卡片</string>
     <string name="widget_desc_bar">4×1 状态条</string>
     <string name="widget_desc_tall">2×3 纵向卡片</string>
+    <string name="event_unknown_number">未知号码</string>
+    <string name="event_call_incoming_title">📞 来电</string>
+    <string name="event_call_missed_title">📞 未接来电</string>
+    <string name="event_call_body">号码：%1$s
+时间：%2$s</string>
+    <string name="event_notification_title">📱 %1$s</string>
+    <string name="event_notification_empty">（无正文）</string>
+    <string name="event_no_channel">没有可用的推送通道，请先配置至少一个通道</string>
 </resources>

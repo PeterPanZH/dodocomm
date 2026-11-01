@@ -24,4 +24,12 @@
     <string name="widget_desc_wide">Tarjeta ancha 4×2</string>
     <string name="widget_desc_bar">Barra de estado 4×1</string>
     <string name="widget_desc_tall">Tarjeta alta 2×3</string>
+    <string name="event_unknown_number">Número desconocido</string>
+    <string name="event_call_incoming_title">📞 Llamada entrante</string>
+    <string name="event_call_missed_title">📞 Llamada perdida</string>
+    <string name="event_call_body">Número: %1$s
+Hora: %2$s</string>
+    <string name="event_notification_title">📱 %1$s</string>
+    <string name="event_notification_empty">(sin contenido)</string>
+    <string name="event_no_channel">No hay ningún canal push disponible. Configura uno primero.</string>
 </resources>

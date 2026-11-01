@@ -135,6 +135,7 @@ enum class SettingsSection(
 ) {
     OVERVIEW("设置", "按类别管理所有设置", "overview"),
     PUSH("推送", "推送内容、推送通道与路由规则", "push"),
+    EVENTS("更多事件", "电话与应用通知转发", "events"),
     RULES("转发规则", "白名单、黑名单与关键词过滤", "rules"),
     PRIVACY("隐私与安全", "应用锁与本地数据保护", "privacy"),
     RELIABILITY("后台与可靠性", "常驻通知、开机恢复与电池优化", "reliability"),
@@ -209,6 +210,14 @@ private fun SettingsOverviewScreen(
                     value = if (settings.hasFilters) "已启用" else "未设置",
                     icon = Icons.Rounded.FilterAlt,
                     onClick = { onNavigateSection(SettingsSection.RULES) },
+                )
+                RowDivider()
+                OverviewRow(
+                    title = "更多事件",
+                    subtitle = "来电与应用通知转发",
+                    value = if (settings.phoneForwardEnabled || settings.notificationForwardEnabled) "已开启" else "未开启",
+                    icon = Icons.Rounded.NotificationsActive,
+                    onClick = { onNavigateSection(SettingsSection.EVENTS) },
                 )
             }
             Spacer(Modifier.height(16.dp))
@@ -415,6 +424,12 @@ fun SettingsScreen(
                     onNavigateChannels = onNavigateChannels,
                     onNavigateRouting = onNavigateRouting,
                 )
+            }
+        }
+
+        if (section == SettingsSection.EVENTS) {
+            item(key = "events_card", contentType = "card") {
+                com.dodocomm.app.ui.screens.EventSourcesSection(viewModel = viewModel)
             }
         }
 

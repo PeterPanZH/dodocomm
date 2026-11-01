@@ -71,10 +71,11 @@ class RecordExporter(private val context: Context) {
 
         /** CSV with UTF-8 BOM and spreadsheet-formula protection. */
         fun toCsv(records: List<ForwardRecord>, masked: Boolean): String {
-            val header = "received_at,sender,sim,body,status,attempts,error,title"
+            val header = "received_at,source,sender,sim,body,status,attempts,error,title"
             val rows = records.map { record ->
                 listOf(
                     iso(record.receivedAt),
+                    record.source.name,
                     safeCell(if (masked) maskSender(record.sender) else record.sender),
                     safeCell(record.simLabel.orEmpty()),
                     safeCell(if (masked) maskBody(record.body) else record.body),
@@ -93,6 +94,7 @@ class RecordExporter(private val context: Context) {
                 array.put(
                     JSONObject().apply {
                         put("receivedAt", iso(record.receivedAt))
+                        put("source", record.source.name)
                         put("sender", if (masked) maskSender(record.sender) else record.sender)
                         put("simLabel", record.simLabel)
                         put("body", if (masked) maskBody(record.body) else record.body)

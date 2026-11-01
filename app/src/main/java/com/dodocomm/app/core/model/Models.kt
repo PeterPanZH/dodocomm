@@ -42,6 +42,18 @@ enum class ForwardStatus {
     }
 }
 
+/** Where a forwarded event came from. */
+enum class ForwardSource {
+    SMS,
+    CALL,
+    APP_NOTIFICATION;
+
+    companion object {
+        fun fromStorage(value: String?): ForwardSource =
+            entries.firstOrNull { it.name == value } ?: SMS
+    }
+}
+
 /** One row in the local forwarding history. */
 data class ForwardRecord(
     val id: Long = 0L,
@@ -60,6 +72,8 @@ data class ForwardRecord(
     val barkResponse: String? = null,
     /** Display names of channels that received this message. */
     val targetChannels: String? = null,
+    /** SMS, phone call, or an app notification. */
+    val source: ForwardSource = ForwardSource.SMS,
 )
 
 /** Aggregated counters for the dashboard. */

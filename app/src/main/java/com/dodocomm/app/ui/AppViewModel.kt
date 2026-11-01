@@ -676,6 +676,47 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setThemeMode(mode: ThemeMode) = updateSettings { it.copy(themeMode = mode) }
 
+    fun setPhoneForwardEnabled(enabled: Boolean) = updateSettings { it.copy(phoneForwardEnabled = enabled) }
+
+    fun setPhoneForwardIncoming(enabled: Boolean) = updateSettings { it.copy(phoneForwardIncoming = enabled) }
+
+    fun setPhoneForwardMissed(enabled: Boolean) = updateSettings { it.copy(phoneForwardMissed = enabled) }
+
+    fun setNotificationForwardEnabled(enabled: Boolean) = updateSettings { it.copy(notificationForwardEnabled = enabled) }
+
+    fun setNotificationAllApps(all: Boolean) = updateSettings { it.copy(notificationAllApps = all) }
+
+    fun setNotificationSelectedPackages(packages: List<String>) = updateSettings {
+        it.copy(notificationSelectedPackages = packages.distinct())
+    }
+
+    fun setNotificationIgnoreOngoing(ignore: Boolean) = updateSettings { it.copy(notificationIgnoreOngoing = ignore) }
+
+    /** Sends a test call event through the same pipeline as a real one. */
+    fun testPhoneEvent() {
+        viewModelScope.launch {
+            container.eventForwarder.forwardIncomingCall(
+                number = "13800138000",
+                missed = false,
+            )
+            postSnackbar("已发送测试来电事件")
+        }
+    }
+
+    /** Sends a test app-notification event through the same pipeline. */
+    fun testNotificationEvent() {
+        viewModelScope.launch {
+            container.eventForwarder.forwardAppNotification(
+                appName = "DodoComm",
+                packageName = "com.dodocomm.app",
+                notificationTitle = "测试通知",
+                notificationText = "这是一条测试应用通知",
+                notificationKey = "test-${System.currentTimeMillis()}",
+            )
+            postSnackbar("已发送测试应用通知")
+        }
+    }
+
     fun setAppLanguage(language: AppLanguage) = updateSettings { it.copy(appLanguage = language) }
 
     fun setDynamicColor(enabled: Boolean) = updateSettings { it.copy(dynamicColor = enabled) }

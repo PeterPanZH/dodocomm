@@ -5,6 +5,8 @@
     <!-- SMS receiving: the only sensitive permission needed. SMS bodies are only
          sent to the Bark server configured by the user. -->
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <!-- The app is a phone tool; this also silences the ChromeOS hardware lint
          check without claiming telephony when installed on non-phone devices. -->
     <uses-feature
@@ -143,6 +145,26 @@
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Forward incoming SMS to the user's Bark push server" />
+        </service>
+
+        <!-- Optional call-state source. Needs READ_PHONE_STATE at runtime. -->
+        <receiver
+            android:name=".events.PhoneStateReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PHONE_STATE" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Optional notification source; the user grants notification access in system settings. -->
+        <service
+            android:name=".events.DodoNotificationListener"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
         </service>
 
         <!-- Manifest receiver: works even when the app process was not running. -->

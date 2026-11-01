@@ -229,6 +229,21 @@ class SettingsRepository(context: Context) {
             ).orEmpty(),
             remoteTrustedNumber = prefs.getString(KEY_REMOTE_TRUSTED_NUMBER, defaults.remoteTrustedNumber).orEmpty(),
             remoteLastNonce = prefs.getLong(KEY_REMOTE_LAST_NONCE, defaults.remoteLastNonce),
+            phoneForwardEnabled = prefs.getBoolean(KEY_PHONE_FORWARD_ENABLED, defaults.phoneForwardEnabled),
+            phoneForwardIncoming = prefs.getBoolean(KEY_PHONE_FORWARD_INCOMING, defaults.phoneForwardIncoming),
+            phoneForwardMissed = prefs.getBoolean(KEY_PHONE_FORWARD_MISSED, defaults.phoneForwardMissed),
+            notificationForwardEnabled = prefs.getBoolean(
+                KEY_NOTIFICATION_FORWARD_ENABLED,
+                defaults.notificationForwardEnabled,
+            ),
+            notificationAllApps = prefs.getBoolean(KEY_NOTIFICATION_ALL_APPS, defaults.notificationAllApps),
+            notificationSelectedPackages = decodeList(
+                prefs.getString(KEY_NOTIFICATION_SELECTED_PACKAGES, null),
+            ),
+            notificationIgnoreOngoing = prefs.getBoolean(
+                KEY_NOTIFICATION_IGNORE_ONGOING,
+                defaults.notificationIgnoreOngoing,
+            ),
         )
     }
 
@@ -281,6 +296,13 @@ class SettingsRepository(context: Context) {
             .putString(KEY_REMOTE_SECRET, cipher.encrypt(settings.remoteSecret))
             .putString(KEY_REMOTE_TRUSTED_NUMBER, settings.remoteTrustedNumber)
             .putLong(KEY_REMOTE_LAST_NONCE, settings.remoteLastNonce)
+            .putBoolean(KEY_PHONE_FORWARD_ENABLED, settings.phoneForwardEnabled)
+            .putBoolean(KEY_PHONE_FORWARD_INCOMING, settings.phoneForwardIncoming)
+            .putBoolean(KEY_PHONE_FORWARD_MISSED, settings.phoneForwardMissed)
+            .putBoolean(KEY_NOTIFICATION_FORWARD_ENABLED, settings.notificationForwardEnabled)
+            .putBoolean(KEY_NOTIFICATION_ALL_APPS, settings.notificationAllApps)
+            .putString(KEY_NOTIFICATION_SELECTED_PACKAGES, encodeList(settings.notificationSelectedPackages))
+            .putBoolean(KEY_NOTIFICATION_IGNORE_ONGOING, settings.notificationIgnoreOngoing)
             .commit()
     }
 
@@ -334,6 +356,13 @@ class SettingsRepository(context: Context) {
         private const val KEY_REMOTE_SECRET = "remote_secret"
         private const val KEY_REMOTE_TRUSTED_NUMBER = "remote_trusted_number"
         private const val KEY_REMOTE_LAST_NONCE = "remote_last_nonce"
+        private const val KEY_PHONE_FORWARD_ENABLED = "phone_forward_enabled"
+        private const val KEY_PHONE_FORWARD_INCOMING = "phone_forward_incoming"
+        private const val KEY_PHONE_FORWARD_MISSED = "phone_forward_missed"
+        private const val KEY_NOTIFICATION_FORWARD_ENABLED = "notification_forward_enabled"
+        private const val KEY_NOTIFICATION_ALL_APPS = "notification_all_apps"
+        private const val KEY_NOTIFICATION_SELECTED_PACKAGES = "notification_selected_packages"
+        private const val KEY_NOTIFICATION_IGNORE_ONGOING = "notification_ignore_ongoing"
 
         fun encodeList(values: List<String>): String {
             val array = JSONArray()

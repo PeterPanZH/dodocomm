@@ -44,6 +44,9 @@ class AppContainer(context: Context) {
     }
     val serviceController: ServiceController by lazy { ServiceController(appContext, this) }
     val forwardEngine: ForwardEngine by lazy { ForwardEngine(appContext, this) }
+    val eventForwarder: com.dodocomm.app.events.EventForwarder by lazy {
+        com.dodocomm.app.events.EventForwarder(appContext, this)
+    }
     val workScheduler: WorkScheduler by lazy { WorkScheduler(appContext) }
     val recordExporter: RecordExporter by lazy { RecordExporter(appContext) }
     val backupManager: BackupManager by lazy { BackupManager(appContext) }

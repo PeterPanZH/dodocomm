@@ -121,6 +121,15 @@ data class AppSettings(
     val remoteSecret: String = "",
     val remoteTrustedNumber: String = "",
     val remoteLastNonce: Long = 0L,
+    /** Incoming/missed phone call forwarding (optional event source). */
+    val phoneForwardEnabled: Boolean = false,
+    val phoneForwardIncoming: Boolean = true,
+    val phoneForwardMissed: Boolean = true,
+    /** App notification forwarding via NotificationListenerService. */
+    val notificationForwardEnabled: Boolean = false,
+    val notificationAllApps: Boolean = true,
+    val notificationSelectedPackages: List<String> = emptyList(),
+    val notificationIgnoreOngoing: Boolean = true,
 ) {
     fun isPaused(now: Long = System.currentTimeMillis()): Boolean = pauseUntil > now
 

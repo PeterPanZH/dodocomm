@@ -54,6 +54,13 @@ object SettingsBackupCodec {
         put("remoteSecret", settings.remoteSecret)
         put("remoteTrustedNumber", settings.remoteTrustedNumber)
         put("remoteLastNonce", settings.remoteLastNonce)
+        put("phoneForwardEnabled", settings.phoneForwardEnabled)
+        put("phoneForwardIncoming", settings.phoneForwardIncoming)
+        put("phoneForwardMissed", settings.phoneForwardMissed)
+        put("notificationForwardEnabled", settings.notificationForwardEnabled)
+        put("notificationAllApps", settings.notificationAllApps)
+        put("notificationSelectedPackages", JSONArray(settings.notificationSelectedPackages))
+        put("notificationIgnoreOngoing", settings.notificationIgnoreOngoing)
         put("senderWhitelist", JSONArray(settings.senderWhitelist))
         put("senderBlacklist", JSONArray(settings.senderBlacklist))
         put("keywordBlacklist", JSONArray(settings.keywordBlacklist))
@@ -132,6 +139,13 @@ object SettingsBackupCodec {
             remoteSecret = json.optString("remoteSecret", base.remoteSecret),
             remoteTrustedNumber = json.optString("remoteTrustedNumber", base.remoteTrustedNumber),
             remoteLastNonce = json.optLong("remoteLastNonce", base.remoteLastNonce),
+            phoneForwardEnabled = json.optBoolean("phoneForwardEnabled", base.phoneForwardEnabled),
+            phoneForwardIncoming = json.optBoolean("phoneForwardIncoming", base.phoneForwardIncoming),
+            phoneForwardMissed = json.optBoolean("phoneForwardMissed", base.phoneForwardMissed),
+            notificationForwardEnabled = json.optBoolean("notificationForwardEnabled", base.notificationForwardEnabled),
+            notificationAllApps = json.optBoolean("notificationAllApps", base.notificationAllApps),
+            notificationSelectedPackages = json.optJSONArray("notificationSelectedPackages").toStringList(),
+            notificationIgnoreOngoing = json.optBoolean("notificationIgnoreOngoing", base.notificationIgnoreOngoing),
             senderWhitelist = json.optJSONArray("senderWhitelist").toStringList(),
             senderBlacklist = json.optJSONArray("senderBlacklist").toStringList(),
             keywordBlacklist = json.optJSONArray("keywordBlacklist").toStringList(),

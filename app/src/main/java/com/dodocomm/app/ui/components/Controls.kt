@@ -582,8 +582,13 @@ fun RecordCard(
                     StatusChip(status = record.status)
                 }
                 Spacer(Modifier.height(2.dp))
+                val sourceLabel = when (record.source) {
+                    com.dodocomm.app.core.model.ForwardSource.CALL -> "电话"
+                    com.dodocomm.app.core.model.ForwardSource.APP_NOTIFICATION -> "应用通知"
+                    com.dodocomm.app.core.model.ForwardSource.SMS -> null
+                }
                 Text(
-                    text = listOfNotNull(timeLabel, record.simLabel?.takeIf { it.isNotBlank() })
+                    text = listOfNotNull(sourceLabel, timeLabel, record.simLabel?.takeIf { it.isNotBlank() })
                         .joinToString(" · "),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

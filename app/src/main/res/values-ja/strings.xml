@@ -24,4 +24,12 @@
     <string name="widget_desc_wide">4×2 横長カード</string>
     <string name="widget_desc_bar">4×1 ステータスバー</string>
     <string name="widget_desc_tall">2×3 縦長カード</string>
+    <string name="event_unknown_number">不明な番号</string>
+    <string name="event_call_incoming_title">📞 着信</string>
+    <string name="event_call_missed_title">📞 不在着信</string>
+    <string name="event_call_body">番号：%1$s
+時刻：%2$s</string>
+    <string name="event_notification_title">📱 %1$s</string>
+    <string name="event_notification_empty">（本文なし）</string>
+    <string name="event_no_channel">利用可能なプッシュチャンネルがありません。先に設定してください。</string>
 </resources>

@@ -3,6 +3,7 @@ package com.dodocomm.app.core.db
 import android.content.ContentValues
 import android.database.Cursor
 import com.dodocomm.app.core.model.ForwardRecord
+import com.dodocomm.app.core.model.ForwardSource
 import com.dodocomm.app.core.model.ForwardStatus
 import com.dodocomm.app.core.crypto.RecordCipher
 import com.dodocomm.app.core.model.TodayStats
@@ -31,6 +32,7 @@ class HistoryDao(
             put("bark_body", cipher.encryptOrThrow(record.barkBody))
             put("bark_response", cipher.encryptOrThrow(record.barkResponse))
             put("target_channels", record.targetChannels)
+            put("source", record.source.name)
             put("dedupe_key", dedupeKey)
         }
         return database.writableDatabase.insertWithOnConflict(
@@ -185,6 +187,7 @@ class HistoryDao(
         barkBody = cipher.decrypt(getString(getColumnIndexOrThrow("bark_body"))),
         barkResponse = cipher.decrypt(getString(getColumnIndexOrThrow("bark_response"))),
         targetChannels = getString(getColumnIndexOrThrow("target_channels")),
+        source = ForwardSource.fromStorage(getString(getColumnIndexOrThrow("source"))),
     )
 
     companion object {
@@ -194,7 +197,7 @@ class HistoryDao(
         private val COLUMNS = arrayOf(
             "id", "sender", "body", "received_at", "created_at", "sim_label",
             "subscription_id", "status", "attempts", "error", "title", "bark_body", "bark_response",
-            "target_channels",
+            "target_channels", "source",
         )
     }
 }
